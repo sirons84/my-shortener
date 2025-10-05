@@ -43,7 +43,8 @@ export default function Home() {
     if (data.error) {
       alert(data.error);
     } else {
-      setShortUrl(`${window.location.origin}/${data.code}`);
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      setShortUrl(`${siteUrl}/${data.code}`);
     }
   }
 
