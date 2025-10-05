@@ -21,10 +21,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
+    <html lang="ko">
+      <head>
+        {/* fallback 으로도 추가 */}
+        <link rel="icon" href="/favicon.ico" />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
