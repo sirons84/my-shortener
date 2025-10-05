@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabaseAdmin } from "../../lib/supabaseAdmin";
 
 export async function GET(req) {
-  const authHeader = req.headers.get("Authorization") || "";
-  const accessToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get("userId");
 
-  const { data: userResp } = await supabase.auth.getUser(accessToken);
-  const userId = userResp?.user?.id;
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) {
+    return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("urls")
-    .select("code, url, created_at, expires_at")
+    .select("id, code, url, expires_at, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ items: data || [] });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ urls: data });
 }
