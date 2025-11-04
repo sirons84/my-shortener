@@ -1,9 +1,20 @@
+// 파일 경로: app/page.js
+// (기존 파일 덮어쓰기)
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
 import { toUnicode } from "punycode";
+
+// + NEW: QR 코드에 로고를 넣기 위한 설정 (2번 기능)
+const qrImageSettings = {
+  src: "/favicon.ico", // public 폴더의 favicon.ico 사용
+  height: 48, // 로고 높이
+  width: 48, // 로고 너비
+  excavate: true, // 로고 뒤쪽의 QR 코드 영역을 비워서 선명하게
+};
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -170,7 +181,8 @@ export default function Home() {
           />
           <input
             type="text"
-            placeholder="커스텀 코드 (선택)"
+            // + CHANGED: 한글 입력도 가능함을 안내
+            placeholder="커스텀 코드 (선택, 한글 가능)"
             value={customCode}
             onChange={(e) => setCustomCode(e.target.value)}
             style={{
@@ -243,7 +255,12 @@ export default function Home() {
               {unicodeShortUrl}
             </a>
             <div style={{ marginTop: 12 }}>
-              <QRCodeCanvas value={unicodeShortUrl} size={256} />
+              {/* // + CHANGED: QR 코드에 로고 설정 (2번 기능) */}
+              <QRCodeCanvas 
+                value={unicodeShortUrl} 
+                size={256} 
+                imageSettings={qrImageSettings} 
+              />
             </div>
             <button
               onClick={copyToClipboard}
