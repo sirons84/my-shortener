@@ -8,10 +8,9 @@ import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
 import { toUnicode } from "punycode";
 
-// + QR 코드 로고 설정
+// QR 코드 로고 설정
 const qrImageSettings = {
-  // !! CHANGED: QR 중앙 로고 경로를 logo.png로 변경
-  src: "/logo.png", 
+  src: "/logo.png", // public/logo.png 사용
   height: 48,
   width: 48,
   excavate: true,
@@ -21,7 +20,7 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
-  const [shortUrl, setShortUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState(""); // 여기에는 Punycode URL이 저장됨 (예: .../xn--...)
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -62,16 +61,37 @@ export default function Home() {
     }
   }
 
+  // !! FIX:
+  // functionalShortUrl: 링크, QR생성에 사용될 실제 Punycode URL
+  const functionalShortUrl = shortUrl;
+
+  // displayShortUrl: 사용자 눈에 보여질 한글 URL
+  const displayShortUrl = shortUrl
+    ? (() => {
+        try {
+          // URL을 파싱하여 도메인과 경로를 분리
+          const urlParts = new URL(shortUrl);
+          // 경로 부분(예: "/xn--...")에서 "/"를 제거
+          const punycodePath = urlParts.pathname.substring(1);
+          // Punycode 경로를 한글로 변환
+          const unicodePath = toUnicode(punycodePath);
+          // "https://외솔.한국" + "/" + "테스트"
+          return `${urlParts.origin}/${unicodePath}`;
+        } catch (e) {
+          // 오류 발생 시(예: toUnicode 변환 실패) Punycode 원본 표시
+          console.error("Punycode conversion error:", e);
+          return shortUrl;
+        }
+      })()
+    : "";
+
   async function copyToClipboard() {
-    if (!shortUrl) return;
-    const unicodeUrl = toUnicode(shortUrl);
-    await navigator.clipboard.writeText(unicodeUrl);
+    // !! FIX: 복사할 URL은 (Punycode가 아닌) 한글로 변환된 displayShortUrl
+    if (!displayShortUrl) return;
+    await navigator.clipboard.writeText(displayShortUrl);
     alert("단축 URL이 클립보드에 복사되었습니다!");
   }
 
-  const unicodeShortUrl = shortUrl
-    ? toUnicode(shortUrl)
-    : "";
 
   return (
     <div
@@ -221,7 +241,7 @@ export default function Home() {
         </form>
 
         {/* 결과 표시 */}
-        {unicodeShortUrl && (
+        {shortUrl && ( // shortUrl(Punycode)이 생성되었을 때만 표시
           <div
             style={{
               background: "#f1f2f6",
@@ -231,7 +251,7 @@ export default function Home() {
           >
             <p style={{ margin: 0, fontWeight: "bold" }}>Shortened URL</p>
             <a
-              href={unicodeShortUrl}
+              href={functionalShortUrl} // !! FIX: 링크는 Punycode URL
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -240,13 +260,13 @@ export default function Home() {
                 fontWeight: "bold",
               }}
             >
-              {unicodeShortUrl}
+              {displayShortUrl} {/* !! FIX: 표시는 한글 URL */}
             </a>
             <div style={{ marginTop: 12 }}>
               <QRCodeCanvas 
-                value={unicodeShortUrl}
+                value={functionalShortUrl} // !! FIX: QR도 Punycode URL
                 size={256} 
-                imageSettings={qrImageSettings} // 로고 설정 적용
+                imageSettings={qrImageSettings}
               />
             </div>
             <button

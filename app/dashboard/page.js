@@ -9,10 +9,9 @@ import { FaTrashAlt, FaQrcode, FaExternalLinkAlt, FaPencilAlt } from "react-icon
 import Link from "next/link";
 import { toUnicode } from "punycode";
 
-// + QR 코드 로고 설정
+// QR 코드 로고 설정
 const qrImageSettings = {
-  // !! CHANGED: QR 중앙 로고 경로를 logo.png로 변경
-  src: "/logo.png",
+  src: "/logo.png", // public/logo.png 사용
   height: 48,
   width: 48,
   excavate: true,
@@ -63,9 +62,17 @@ export default function DashboardPage() {
   
   async function handleEdit(code, currentUrl) {
     const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
-    const displayCode = toUnicode(code);
+    
+    // !! FIX: 사용자에게 보여줄 한글 코드 (try-catch 추가)
+    let displayCode = code;
+    try {
+      displayCode = toUnicode(code);
+    } catch (e) {
+      console.error("Failed to convert code to Unicode", e);
+    }
 
     if (newUrl && newUrl !== currentUrl && token) {
+      // API 호출은 Punycode(code)로
       const res = await fetch(`/api/url/${code}`, {
         method: "PATCH",
         headers: {
@@ -130,22 +137,33 @@ export default function DashboardPage() {
           </thead>
           <tbody>
             {urls.map((u) => {
-              const displayUrl = toUnicode(`${window.location.origin}/${u.code}`);
-              const displayCode = toUnicode(u.code);
+              // !! FIX:
+              // functionalShortUrl: 링크, QR생성에 사용될 실제 Punycode URL
+              const functionalShortUrl = `${window.location.origin}/${u.code}`;
+              
+              // displayCode: 사용자 눈에 보여질 한글 코드 (오류 방지 try-catch)
+              let displayCode = u.code;
+              try {
+                displayCode = toUnicode(u.code);
+              } catch (e) {
+                console.error("Punycode conversion error in map:", e);
+                // 오류 시 Punycode 원본 표시
+              }
 
               return (
               <tr key={u.code}>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {displayCode}
+                  {displayCode} {/* !! FIX: 한글 코드로 표시 */}
                 </td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
                   <a
-                    href={displayUrl}
+                    href={functionalShortUrl} // !! FIX: 링크는 Punycode URL
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }}
                   >
-                    {u.url} <FaExternalLinkAlt style={{ marginLeft: 6, color: "#636e72" }} />
+                    {u.url} {/* 원본 URL 표시 (기존과 동일) */}
+                    <FaExternalLinkAlt style={{ marginLeft: 6, color: "#636e72" }} />
                   </a>
                 </td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
@@ -155,9 +173,9 @@ export default function DashboardPage() {
                   padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
                 }}>
                   <QRCodeCanvas 
-                    value={displayUrl} 
+                    value={functionalShortUrl} // !! FIX: QR은 Punycode URL
                     size={64} 
-                    imageSettings={qrImageSettings} // 로고 설정 적용
+                    imageSettings={qrImageSettings}
                   />
                 </td>
                 <td style={{
