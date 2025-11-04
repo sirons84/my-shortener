@@ -106,142 +106,10 @@ export default function Home() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "3rem" 
+        gap: "3rem" // 섹션과 단축기 사이 간격
       }}>
 
-        {/* 1. 새 섹션 (우리아이 플랫폼 소개) */}
-        <section style={{ 
-          width: "100%", 
-          maxWidth: "1000px", 
-          textAlign: "center",
-          padding: "0 1rem"
-        }}>
-          <h2 style={{ fontSize: "2.2rem", fontWeight: "bold", marginBottom: "0.5rem", color: "#222" }}>
-            외솔.한국, 그 이상의 가치
-          </h2>
-          <p style={{ fontSize: "1.1rem", color: "#555", marginBottom: "2.5rem" }}>
-            {/* !! CHANGED: '우리아이' -> &apos;우리아이&apos; */}
-            울산교육청의 똑똑한 AI 친구, &apos;우리아이&apos;를 만나보세요!
-          </p>
-
-          {/* 카드 3개 레이아웃 */}
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap", 
-            gap: "1.5rem",
-          }}>
-            {/* 카드 1 */}
-            <div className="info-card" style={{
-              background: "#fff",
-              padding: "2rem",
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              width: "320px",
-              textAlign: "left"
-            }}>
-              <div className="card-icon" style={{ 
-                fontSize: "2rem", 
-                color: "#0984e3",
-                backgroundColor: "rgba(9, 132, 227, 0.1)",
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem"
-              }}>
-                <FaBrain />
-              </div>
-              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>스마트한 학습 파트너</h3>
-              <p style={{ color: "#444", lineHeight: 1.6 }}>광고 없는 정확한 학습 답변! AI 튜터와 궁금증을 해결하고, 101종의 미래형 수업 콘텐츠를 체험해 보세요.</p>
-            </div>
-
-            {/* 카드 2 */}
-            <div className="info-card" style={{
-              background: "#fff",
-              padding: "2rem",
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              width: "320px",
-              textAlign: "left"
-            }}>
-              <div className="card-icon" style={{
-                fontSize: "2rem",
-                color: "#e17055", 
-                backgroundColor: "rgba(225, 112, 85, 0.1)",
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem"
-              }}>
-                <FaPencilAlt />
-              </div>
-              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>교사를 위한 강력한 도구</h3>
-              <p style={{ color: "#444", lineHeight: 1.6 }}>
-                {/* !! CHANGED: '미리캔버스 Pro' -> &apos;미리캔버스 Pro&apos; */}
-                수업 자료 제작이 고민이라면? 울산 교육 가족에게 무료 제공되는 &apos;미리캔버스 Pro&apos;로 손쉽게 디자인을 완성하세요.
-              </p>
-            </div>
-
-            {/* 카드 3 */}
-            <div className="info-card" style={{
-              background: "#fff",
-              padding: "2rem",
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              width: "320px",
-              textAlign: "left"
-            }}>
-              <div className="card-icon" style={{
-                fontSize: "2rem",
-                color: "#00b894",
-                backgroundColor: "rgba(0, 184, 148, 0.1)",
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem"
-              }}>
-                <FaUsers />
-              </div>
-              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>모두를 위한 열린 플랫폼</h3>
-              <p style={{ color: "#444", lineHeight: 1.6 }}>학생, 교사, 학부모 누구나! 복잡한 가입 절차 없이 24시간 언제나 자유롭게 AI와 함께 배우고 성장할 수 있습니다.</p>
-            </div>
-          </div>
-
-          {/* 바로가기 버튼 */}
-          <a
-            href="https://wooriai.use.go.kr/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="wooriai-button"
-            style={{
-              display: "inline-block",
-              marginTop: "2.5rem",
-              padding: "1rem 2rem",
-              background: "#F9C80E",
-              color: "#3D3A30",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: "50px", 
-              textDecoration: "none",
-              boxShadow: "0 4px 15px rgba(249, 200, 14, 0.3)",
-              transition: "all 0.2s ease",
-            }}
-          >
-            우리아이(AI)플랫폼 바로가기
-          </a>
-        </section>
-
-
-        {/* 2. 기존 URL 단축기 섹션 */}
+        {/* 1. URL 단축기 섹션 */}
         <div
           style={{
             background: "#fff",
@@ -445,6 +313,140 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* !! NEW: 2. 새 섹션 (우리아이 플랫폼 소개) - URL 단축기 아래로 이동 */}
+        <section style={{ 
+          width: "100%", 
+          maxWidth: "1000px", 
+          textAlign: "center",
+          padding: "0 1rem",
+          marginTop: "2rem" // 윗 섹션과 간격 추가
+        }}>
+          <h2 style={{ fontSize: "2.2rem", fontWeight: "bold", marginBottom: "0.5rem", color: "#222" }}>
+            외솔.한국, 그 이상의 가치
+          </h2>
+          <p style={{ fontSize: "1.1rem", color: "#555", marginBottom: "2.5rem" }}>
+            {/* !! CHANGED: '우리아이' -> &apos;우리아이&apos; */}
+            울산교육청의 똑똑한 AI 친구, &apos;우리아이&apos;를 만나보세요!
+          </p>
+
+          {/* 카드 3개 레이아웃 */}
+          <div style={{
+            display: "flex",
+            justifyContent: "center", // PC에서 중앙 정렬
+            flexWrap: "wrap", // 모바일에서 줄바꿈
+            gap: "1.5rem",
+          }}>
+            {/* 카드 1 */}
+            <div className="info-card" style={{
+              background: "#fff",
+              padding: "2rem",
+              borderRadius: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              width: "320px", // 3개가 한 줄에 들어갈 수 있는 너비 (약 30%)
+              minWidth: "300px", // 최소 너비
+              textAlign: "left"
+            }}>
+              <div className="card-icon" style={{ 
+                fontSize: "2rem", 
+                color: "#0984e3",
+                backgroundColor: "rgba(9, 132, 227, 0.1)",
+                width: "60px",
+                height: "60px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "1rem"
+              }}>
+                <FaBrain />
+              </div>
+              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>스마트한 학습 파트너</h3>
+              <p style={{ color: "#444", lineHeight: 1.6 }}>광고 없는 정확한 학습 답변! AI 튜터와 궁금증을 해결하고, 101종의 미래형 수업 콘텐츠를 체험해 보세요.</p>
+            </div>
+
+            {/* 카드 2 */}
+            <div className="info-card" style={{
+              background: "#fff",
+              padding: "2rem",
+              borderRadius: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              width: "320px",
+              textAlign: "left"
+            }}>
+              <div className="card-icon" style={{
+                fontSize: "2rem",
+                color: "#e17055", 
+                backgroundColor: "rgba(225, 112, 85, 0.1)",
+                width: "60px",
+                height: "60px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "1rem"
+              }}>
+                <FaPencilAlt />
+              </div>
+              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>교사를 위한 강력한 도구</h3>
+              <p style={{ color: "#444", lineHeight: 1.6 }}>
+                {/* !! CHANGED: '미리캔버스 Pro' -> &apos;미리캔버스 Pro&apos; */}
+                수업 자료 제작이 고민이라면? 울산 교육 가족에게 무료 제공되는 &apos;미리캔버스 Pro&apos;로 손쉽게 디자인을 완성하세요.
+              </p>
+            </div>
+
+            {/* 카드 3 */}
+            <div className="info-card" style={{
+              background: "#fff",
+              padding: "2rem",
+              borderRadius: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              width: "320px",
+              textAlign: "left"
+            }}>
+              <div className="card-icon" style={{
+                fontSize: "2rem",
+                color: "#00b894",
+                backgroundColor: "rgba(0, 184, 148, 0.1)",
+                width: "60px",
+                height: "60px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "1rem"
+              }}>
+                <FaUsers />
+              </div>
+              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>모두를 위한 열린 플랫폼</h3>
+              <p style={{ color: "#444", lineHeight: 1.6 }}>학생, 교사, 학부모 누구나! 복잡한 가입 절차 없이 24시간 언제나 자유롭게 AI와 함께 배우고 성장할 수 있습니다.</p>
+            </div>
+          </div>
+
+          {/* 바로가기 버튼 */}
+          <a
+            href="https://wooriai.use.go.kr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="wooriai-button"
+            style={{
+              display: "inline-block",
+              marginTop: "2.5rem",
+              padding: "1rem 2rem",
+              background: "#F9C80E",
+              color: "#3D3A30",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              borderRadius: "50px", 
+              textDecoration: "none",
+              boxShadow: "0 4px 15px rgba(249, 200, 14, 0.3)",
+              transition: "all 0.2s ease",
+            }}
+          >
+            우리아이(AI)플랫폼 바로가기
+          </a>
+        </section>
+
       </main>
 
       {/* 3. 푸터 */}
@@ -452,6 +454,7 @@ export default function Home() {
         width: "100%",
         textAlign: "center",
         padding: "2rem 1rem 1rem 1rem",
+        marginTop: "3rem", // main 영역과 푸터 사이 간격
         color: "#888",
         fontSize: "0.85rem",
         lineHeight: 1.6,
