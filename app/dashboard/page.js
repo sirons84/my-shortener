@@ -7,13 +7,14 @@ import { supabase } from "../../lib/supabaseClient";
 import { QRCodeCanvas } from "qrcode.react";
 import { FaTrashAlt, FaQrcode, FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
 import Link from "next/link";
-import { toUnicode } from "punycode";
+// !! CHANGED: toASCII 추가
+import { toUnicode, toASCII } from "punycode";
 
-// QR 코드 로고 설정
+// QR 코드 로고 설정 (대시보드 전용)
 const qrImageSettings = {
   src: "/logo.png", // public/logo.png 사용
-  height: 48,
-  width: 48,
+  height: 16, // 대시보드용 작은 아이콘
+  width: 16,
   excavate: true,
 };
 
@@ -21,6 +22,8 @@ export default function DashboardPage() {
   const [urls, setUrls] = useState([]);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  // !! NEW: 100% Punycode로 변환된 origin을 저장할 state
+  const [punycodeOrigin, setPunycodeOrigin] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -30,6 +33,17 @@ export default function DashboardPage() {
         return;
       }
       setUser(data.user);
+
+      // !! NEW: origin을 가져와서 100% Punycode 버전으로 변환 후 state에 저장
+      // (Galaxy Tab 오류 해결용)
+      try {
+        const urlObj = new URL(window.location.origin);
+        // (예: "외솔.한국" -> "xn--im4bl3g.xn--3e0b707e")
+        urlObj.hostname = toASCII(urlObj.hostname);
+        setPunycodeOrigin(urlObj.origin);
+      } catch (e) {
+        setPunycodeOrigin(window.location.origin); // 실패 시 그대로 사용
+      }
 
       const sessionToken = (await supabase.auth.getSession()).data.session?.access_token;
       setToken(sessionToken);
@@ -63,13 +77,14 @@ export default function DashboardPage() {
   async function handleEdit(code, currentUrl) {
     const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
     
-    // !! FIX: 사용자에게 보여줄 한글 코드 (try-catch 추가)
+    // !! FIX: 사용자에게 보여줄 한글 코드 (오류 방지)
     let displayCode = code;
     try {
-      displayCode = toUnicode(code);
-    } catch (e) {
-      console.error("Failed to convert code to Unicode", e);
-    }
+      // 'xn--'로 시작할 때만 한글로 변환
+      if (code && code.startsWith('xn--')) {
+        displayCode = toUnicode(code);
+      }
+    } catch (e) {} // 에러 시 Punycode 원본(code) 사용
 
     if (newUrl && newUrl !== currentUrl && token) {
       // API 호출은 Punycode(code)로
@@ -121,6 +136,9 @@ export default function DashboardPage() {
           </Link>
 
         {user && <p>안녕하세요, {user.email}</p>}
+        
+        {/* !! FIX: punycodeOrigin이 로드된 후에 테이블을 렌더링 (오류 방지) */}
+        {punycodeOrigin && ( 
         <table style={{
           width: "100%", borderCollapse: "collapse", marginTop: 16
         }}>
@@ -138,31 +156,33 @@ export default function DashboardPage() {
           <tbody>
             {urls.map((u) => {
               // !! FIX:
-              // functionalShortUrl: 링크, QR생성에 사용될 실제 Punycode URL
-              const functionalShortUrl = `${window.location.origin}/${u.code}`;
+              // functionalShortUrl: QR/링크용 (예: https://xn--.../xn--...)
+              const functionalShortUrl = `${punycodeOrigin}/${u.code}`;
               
-              // displayCode: 사용자 눈에 보여질 한글 코드 (오류 방지 try-catch)
+              // displayCode: 표시용 (예: 테스트 / ming2)
               let displayCode = u.code;
               try {
-                displayCode = toUnicode(u.code);
+                // 'xn--'로 시작할 때만 한글로 변환 (RangeError 방지)
+                if (u.code && u.code.startsWith('xn--')) {
+                  displayCode = toUnicode(u.code);
+                }
               } catch (e) {
                 console.error("Punycode conversion error in map:", e);
-                // 오류 시 Punycode 원본 표시
               }
 
               return (
               <tr key={u.code}>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {displayCode} {/* !! FIX: 한글 코드로 표시 */}
+                  {displayCode} {/* !! FIX: 한글 또는 영문 코드로 표시 */}
                 </td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
                   <a
-                    href={functionalShortUrl} // !! FIX: 링크는 Punycode URL
+                    href={functionalShortUrl} // !! FIX: 링크는 100% Punycode
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }}
                   >
-                    {u.url} {/* 원본 URL 표시 (기존과 동일) */}
+                    {u.url} 
                     <FaExternalLinkAlt style={{ marginLeft: 6, color: "#636e72" }} />
                   </a>
                 </td>
@@ -173,7 +193,7 @@ export default function DashboardPage() {
                   padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
                 }}>
                   <QRCodeCanvas 
-                    value={functionalShortUrl} // !! FIX: QR은 Punycode URL
+                    value={functionalShortUrl} // !! FIX: QR은 100% Punycode
                     size={64} 
                     imageSettings={qrImageSettings}
                   />
@@ -215,6 +235,7 @@ export default function DashboardPage() {
             )}
           </tbody>
         </table>
+        )} 
       </div>
     </div>
   );

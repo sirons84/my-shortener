@@ -6,7 +6,8 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
-import { toUnicode } from "punycode";
+// !! CHANGED: toASCII 추가
+import { toUnicode, toASCII } from "punycode";
 
 // QR 코드 로고 설정
 const qrImageSettings = {
@@ -20,7 +21,8 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
-  const [shortUrl, setShortUrl] = useState(""); // 여기에는 Punycode URL이 저장됨 (예: .../xn--...)
+  // !! CHANGED: state는 Punycode 경로(code)만 저장하도록 변경
+  const [shortCode, setShortCode] = useState(""); 
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -56,38 +58,44 @@ export default function Home() {
         alert(data.error);
       }
     } else {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      setShortUrl(`${siteUrl}/${data.code}`);
+      // !! CHANGED: state에 Punycode 경로(code)만 저장
+      setShortCode(data.code); // 예: "xn--9t4b11yi5a"
     }
   }
 
   // !! FIX:
-  // functionalShortUrl: 링크, QR생성에 사용될 실제 Punycode URL
-  const functionalShortUrl = shortUrl;
+  // QR/링크에 사용할 100% Punycode URL과 
+  // 화면 표시/복사용 한글 URL을 분리 생성
+  let functionalShortUrl = ""; // QR/링크용 (예: https://xn--.../xn--...)
+  let displayShortUrl = "";    // 표시/복사용 (예: https://외솔.한국/테스트)
 
-  // displayShortUrl: 사용자 눈에 보여질 한글 URL
-  const displayShortUrl = shortUrl
-    ? (() => {
-        try {
-          // URL을 파싱하여 도메인과 경로를 분리
-          const urlParts = new URL(shortUrl);
-          // 경로 부분(예: "/xn--...")에서 "/"를 제거
-          const punycodePath = urlParts.pathname.substring(1);
-          // Punycode 경로를 한글로 변환
-          const unicodePath = toUnicode(punycodePath);
-          // "https://외솔.한국" + "/" + "테스트"
-          return `${urlParts.origin}/${unicodePath}`;
-        } catch (e) {
-          // 오류 발생 시(예: toUnicode 변환 실패) Punycode 원본 표시
-          console.error("Punycode conversion error:", e);
-          return shortUrl;
-        }
-      })()
-    : "";
+  if (shortCode) {
+    try {
+      // 1. 현재 도메인(https://외솔.한국)을 가져옴
+      // Vercel 환경 변수(Punycode) 또는 브라우저의 한글 도메인
+      const originString = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const originUrl = new URL(originString);
+
+      // 2. 표시용/복사용 한글 URL 생성 (도메인, 경로 모두 한글)
+      const unicodeDomain = toUnicode(originUrl.hostname);
+      const unicodePath = toUnicode(shortCode);
+      displayShortUrl = `${originUrl.protocol}//${unicodeDomain}/${unicodePath}`;
+
+      // 3. QR/링크용 100% Punycode URL 생성 (도메인, 경로 모두 Punycode)
+      const punycodeDomain = toASCII(originUrl.hostname); // (예: xn--im4bl3g.xn--3e0b707e)
+      functionalShortUrl = `${originUrl.protocol}//${punycodeDomain}/${shortCode}`;
+
+    } catch (e) {
+      console.error("URL generation error:", e);
+      // 오류 시 안전하게 Punycode 원본 표시
+      functionalShortUrl = `${window.location.origin}/${shortCode}`;
+      displayShortUrl = functionalShortUrl;
+    }
+  }
 
   async function copyToClipboard() {
-    // !! FIX: 복사할 URL은 (Punycode가 아닌) 한글로 변환된 displayShortUrl
     if (!displayShortUrl) return;
+    // !! FIX: 복사할 URL은 한글로 변환된 displayShortUrl
     await navigator.clipboard.writeText(displayShortUrl);
     alert("단축 URL이 클립보드에 복사되었습니다!");
   }
@@ -188,19 +196,46 @@ export default function Home() {
               borderRadius: 8,
             }}
           />
-          <input
-            type="text"
-            placeholder="커스텀 코드 (선택, 한글 가능)"
-            value={customCode}
-            onChange={(e) => setCustomCode(e.target.value)}
-            style={{
-              width: "100%",
+
+          {/* !! CHANGED: 커스텀 코드 입력 UI (flex wrapper) */}
+          <div style={{
+            display: "flex",
+            width: "100%",
+            marginBottom: 8,
+          }}>
+            <span style={{
               padding: "10px",
-              marginBottom: 8,
               border: "1px solid #dcdde1",
-              borderRadius: 8,
-            }}
-          />
+              borderRight: "none",
+              borderRadius: "8px 0 0 8px", // 왼쪽만 둥글게
+              background: "#e9ecef", // 회색 배경
+              color: "#495057",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              fontSize: "0.9rem",
+              fontWeight: "bold",
+            }}>
+              외솔.한국/
+            </span>
+            <input
+              type="text"
+              // !! CHANGED: placeholder 수정 (한글 가능 명시)
+              placeholder="단축주소 (한글, 영어, 숫자)"
+              value={customCode}
+              onChange={(e) => setCustomCode(e.target.value)}
+              style={{
+                width: "100%", // 남은 너비 모두 사용
+                padding: "10px",
+                border: "1px solid #dcdde1",
+                borderRadius: "0 8px 8px 0", // 오른쪽만 둥글게
+                borderLeft: "none", // 왼쪽 테두리 제거
+                flex: 1, // input이 늘어나도록
+              }}
+            />
+          </div>
+          {/* !! END CHANGED SECTION */}
+          
           <select
             value={expiry}
             onChange={(e) => setExpiry(e.target.value)}
@@ -241,7 +276,7 @@ export default function Home() {
         </form>
 
         {/* 결과 표시 */}
-        {shortUrl && ( // shortUrl(Punycode)이 생성되었을 때만 표시
+        {shortCode && ( // shortCode(Punycode)가 생성되었을 때만 표시
           <div
             style={{
               background: "#f1f2f6",
@@ -251,7 +286,7 @@ export default function Home() {
           >
             <p style={{ margin: 0, fontWeight: "bold" }}>Shortened URL</p>
             <a
-              href={functionalShortUrl} // !! FIX: 링크는 Punycode URL
+              href={functionalShortUrl} // !! FIX: 링크는 100% Punycode URL
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -264,7 +299,7 @@ export default function Home() {
             </a>
             <div style={{ marginTop: 12 }}>
               <QRCodeCanvas 
-                value={functionalShortUrl} // !! FIX: QR도 Punycode URL
+                value={functionalShortUrl} // !! FIX: QR도 100% Punycode URL
                 size={256} 
                 imageSettings={qrImageSettings}
               />
