@@ -1,498 +1,102 @@
-// 파일 경로: app/page.js
+// 파일 경로: app/terms/page.js
 // (이 코드로 파일 전체를 덮어쓰세요)
 
-"use client";
+import Link from "next/link";
 
-import { useEffect, useState } from "react";
-import { QRCodeCanvas } from "qrcode.react";
-import { supabase } from "../lib/supabaseClient";
-import { toUnicode, toASCII } from "punycode";
-// !! NEW: 새 섹션에 사용할 아이콘 3개 임포트
-import { FaBrain, FaPencilAlt, FaUsers } from "react-icons/fa";
-
-// QR 코드 로고 설정
-const qrImageSettings = {
-  src: "/logo.png", // public/logo.png 사용
-  height: 40,
-  width: 40,
-  excavate: true,
-};
-
-export default function Home() {
-  const [url, setUrl] = useState("");
-  const [customCode, setCustomCode] = useState("");
-  const [expiry, setExpiry] = useState("7d");
-  const [shortCode, setShortCode] = useState(""); 
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-    });
-  }, []);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!user && expiry === "forever") {
-      alert("무제한은 로그인 후에만 가능합니다.");
-      return;
+export default function TermsPage() {
+  const styles = {
+    container: {
+      maxWidth: "800px",
+      margin: "40px auto",
+      padding: "20px",
+      fontFamily: "Arial, sans-serif",
+      lineHeight: 1.6,
+      background: "#fff",
+      borderRadius: "8px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    },
+    h1: {
+      borderBottom: "2px solid #eee",
+      paddingBottom: "10px",
+      marginBottom: "20px",
+    },
+    h2: {
+      marginTop: "30px",
+      borderBottom: "1px solid #eee",
+      paddingBottom: "5px",
+    },
+    footer: {
+      marginTop: "40px",
+      textAlign: "center",
+      fontSize: "0.9rem",
+      color: "#888",
+    },
+    link: {
+      color: "#0984e3",
+      textDecoration: "none",
     }
-
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-
-    const res = await fetch("/api/shorten", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ url, customCode, expiry }),
-    });
-
-    const data = await res.json();
-    if (data.error) {
-      if (data.error.includes("duplicate key")) {
-        alert("이미 사용 중인 주소입니다. 다른 코드를 입력하세요.");
-      } else {
-        alert(data.error);
-      }
-    } else {
-      setShortCode(data.code);
-    }
-  }
-
-  let functionalShortUrl = ""; // QR/링크용 (Punycode)
-  let displayShortUrl = "";    // 표시/복사용 (한글)
-
-  if (shortCode) {
-    try {
-      const originString = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-      const originUrl = new URL(originString);
-      
-      const unicodeDomain = toUnicode(originUrl.hostname);
-      const unicodePath = toUnicode(shortCode);
-      displayShortUrl = `${originUrl.protocol}//${unicodeDomain}/${unicodePath}`;
-
-      const punycodeDomain = toASCII(originUrl.hostname);
-      functionalShortUrl = `${originUrl.protocol}//${punycodeDomain}/${shortCode}`;
-
-    } catch (e) {
-      console.error("URL generation error:", e);
-      functionalShortUrl = `${window.location.origin}/${shortCode}`;
-      displayShortUrl = functionalShortUrl;
-    }
-  }
-
-  async function copyToClipboard() {
-    if (!displayShortUrl) return;
-    await navigator.clipboard.writeText(displayShortUrl);
-    alert("단축 URL이 클립보드에 복사되었습니다!");
-  }
+  };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column", // 세로 정렬
-        justifyContent: "space-between", // 푸터를 하단에 고정
-        alignItems: "center",
-        minHeight: "100vh", // 최소 높이를 화면 전체로
-        background: "#f5f6fa",
-        fontFamily: "Arial, sans-serif",
-        padding: "4rem 0 1rem 0", // 위아래 여백
-      }}
-    >
-      <main style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "3rem" // 섹션과 단축기 사이 간격
-      }}>
+    <div style={{ background: "#f5f6fa", padding: "20px", minHeight: "100vh" }}>
+      <div style={styles.container}>
+        <h1 style={styles.h1}>외솔.한국 이용약관</h1>
+        <p><strong>최종 업데이트: 2025년 11월 05일</strong></p>
 
-        {/* !! NEW: 1. 새 섹션 (우리아이 플랫폼 소개) */}
-        <section style={{ 
-          width: "100%", 
-          maxWidth: "1000px", 
-          textAlign: "center",
-          padding: "0 1rem" // 좌우 여백
-        }}>
-          <h2 style={{ fontSize: "2.2rem", fontWeight: "bold", marginBottom: "0.5rem", color: "#222" }}>
-            외솔.한국, 그 이상의 가치
-          </h2>
-          <p style={{ fontSize: "1.1rem", color: "#555", marginBottom: "2.5rem" }}>
-            울산교육청의 똑똑한 AI 친구, '우리아이'를 만나보세요!
-          </p>
+        <h2 style={styles.h2}>제1조 (목적)</h2>
+        <p>이 약관은 외솔.한국(이하 "서비스")이 제공하는 URL 단축 서비스의 이용조건 및 절차, 이용자와 서비스 제공자 간의 권리, 의무, 책임사항과 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
 
-          {/* 카드 3개 레이아웃 */}
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap", // 화면 작아지면 줄바꿈
-            gap: "1.5rem",
-          }}>
-            {/* 카드 1 */}
-            <div className="info-card" style={{
-              background: "#fff",
-              padding: "2rem",
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              width: "320px", // 너비 고정
-              textAlign: "left"
-            }}>
-              <div className="card-icon" style={{ 
-                fontSize: "2rem", 
-                color: "#0984e3",
-                backgroundColor: "rgba(9, 132, 227, 0.1)",
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem"
-              }}>
-                <FaBrain />
-              </div>
-              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>스마트한 학습 파트너</h3>
-              <p style={{ color: "#444", lineHeight: 1.6 }}>광고 없는 정확한 학습 답변! AI 튜터와 궁금증을 해결하고, 101종의 미래형 수업 콘텐츠를 체험해 보세요.</p>
-            </div>
+        <h2 style={styles.h2}>제2조 (용어의 정의)</h2>
+        {/* !! CHANGED: " 따옴표를 &quot; 로 수정 */}
+        <ul style={{ paddingLeft: "20px" }}>
+          <li>&quot;서비스&quot;란 이용자가 온라인(PC, 모바일 등)으로 접속하여 외솔.한국이 제공하는 URL 단축 서비스를 이용할 수 있는 가상의 공간을 의미합니다.</li>
+          <li>&quot;이용자&quot;란 서비스에 접속하여 이 약관에 따라 서비스를 이용하는 모든 사용자를 말합니다.</li>
+          <li>&quot;단축 URL&quot;이란 긴 인터넷 주소(URL)를 짧은 주소로 변환하는 서비스를 의미합니다.</li>
+        </ul>
 
-            {/* 카드 2 */}
-            <div className="info-card" style={{
-              background: "#fff",
-              padding: "2rem",
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              width: "320px",
-              textAlign: "left"
-            }}>
-              <div className="card-icon" style={{
-                fontSize: "2rem",
-                color: "#e17055", // 주황색 톤 변경
-                backgroundColor: "rgba(225, 112, 85, 0.1)",
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem"
-              }}>
-                <FaPencilAlt />
-              </div>
-              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>교사를 위한 강력한 도구</h3>
-              <p style={{ color: "#444", lineHeight: 1.6 }}>수업 자료 제작이 고민이라면? 울산 교육 가족에게 무료 제공되는 '미리캔버스 Pro'로 손쉽게 디자인을 완성하세요.</p>
-            </div>
+        <h2 style={styles.h2}>제3조 (약관의 효력 및 변경)</h2>
+        <p>이 약관은 서비스 화면에 게시하거나 기타의 방법으로 이용자에게 공지함으로써 효력이 발생합니다.</p>
+        <p>서비스 제공자는 필요하다고 인정되는 경우 이 약관을 변경할 수 있으며, 변경된 약관은 전항과 같은 방법으로 공지함으로써 효력이 발생합니다.</p>
 
-            {/* 카드 3 */}
-            <div className="info-card" style={{
-              background: "#fff",
-              padding: "2rem",
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              width: "320px",
-              textAlign: "left"
-            }}>
-              <div className="card-icon" style={{
-                fontSize: "2rem",
-                color: "#00b894",
-                backgroundColor: "rgba(0, 184, 148, 0.1)",
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem"
-              }}>
-                <FaUsers />
-              </div>
-              <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>모두를 위한 열린 플랫폼</h3>
-              <p style={{ color: "#444", lineHeight: 1.6 }}>학생, 교사, 학부모 누구나! 복잡한 가입 절차 없이 24시간 언제나 자유롭게 AI와 함께 배우고 성장할 수 있습니다.</p>
-            </div>
-          </div>
+        <h2 style={styles.h2}>제4조 (서비스의 제공 및 변경)</h2>
+        <p>서비스는 URL 단축 서비스 및 관련 부가 기능(대시보드, QR코드 생성 등)을 제공합니다.</p>
+        <p>서비스 제공자는 기술적 사양의 변경 등의 이유로 서비스의 내용을 변경할 수 있습니다.</p>
 
-          {/* 바로가기 버튼 */}
-          <a
-            href="https://wooriai.use.go.kr/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="wooriai-button" // 호버 클래스 적용
-            style={{
-              display: "inline-block",
-              marginTop: "2.5rem",
-              padding: "1rem 2rem",
-              background: "#F9C80E", // 이미지의 노란색
-              color: "#3D3A30", // 어두운 텍스트
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: "50px", // 알약 형태
-              textDecoration: "none",
-              boxShadow: "0 4px 15px rgba(249, 200, 14, 0.3)",
-              transition: "all 0.2s ease",
-            }}
-          >
-            우리아이(AI)플랫폼 바로가기
-          </a>
-        </section>
+        <h2 style={styles.h2}>제5조 (서비스 이용 제한)</h2>
+        <p>서비스 제공자는 다음 각 호의 경우 서비스 이용을 제한할 수 있습니다.</p>
+        <ul style={{ paddingLeft: "20px" }}>
+          <li>서비스 설비의 보수, 점검 등 공사로 인한 부득이한 경우</li>
+          <li>국가적 비상사태, 정전, 서비스 설비의 장애 또는 서비스 이용의 폭주 등으로 정상적인 서비스 이용에 지장이 있는 경우</li>
+          <li>이용자가 제6조의 의무를 위반하는 경우</li>
+        </ul>
 
+        <h2 style={styles.h2}>제6조 (이용자의 의무)</h2>
+        <p>이용자는 다음 각 호의 행위를 하여서는 안 됩니다.</p>
+        <ul style={{ paddingLeft: "20px" }}>
+          <li>타인의 정보도용 (로그인 등)</li>
+          <li>서비스를 이용하여 법령, 공공질서, 미풍양속 등에 반하는 목적 (스팸, 피싱, 불법 사이트)의 URL 단축</li>
+          <li>서비스의 운영을 고의로 방해하는 행위</li>
+          <li>기타 서비스 제공자가 부적절하다고 판단하는 행위</li>
+        </ul>
 
-        {/* !! 2. 기존 URL 단축기 섹션 */}
-        <div
-          style={{
-            background: "#fff",
-            padding: "2rem",
-            borderRadius: 12,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            textAlign: "center",
-            width: 440,
-            maxWidth: "95%"
-          }}
-        >
-          <h1 style={{ marginBottom: 12 }}> 외솔.한국</h1>
-          <h2 style={{ marginBottom: 12 }}> 울산교육청 URL 줄이기 서비스</h2>
+        <h2 style={styles.h2}>제7조 (저작권)</h2>
+        <p>서비스 제공자가 작성한 저작물에 대한 저작권은 서비스 제공자에게 있습니다.</p>
 
-          {/* 로그인 상태 표시 */}
-          <div style={{ marginBottom: 20 }}>
-            {user ? (
-              <div style={{ textAlign: "center" }}>
-                <p style={{ marginBottom: 16, fontWeight: "bold", fontSize: "1rem" }}>
-                  안녕하세요 👋 <br />
-                  <span style={{ color: "#0984e3" }}>{user.email}</span>
-                </p>
-                <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
-                  <button
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                      location.reload();
-                    }}
-                    style={{
-                      padding: "10px 18px",
-                      background: "#636e72",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                      fontSize: "0.9rem",
-                      transition: "background 0.2s ease",
-                    }}
-                    onMouseOver={(e) => (e.target.style.background = "#2d3436")}
-                    onMouseOut={(e) => (e.target.style.background = "#636e72")}
-                  >
-                    🚪 로그아웃
-                  </button>
-                  <a
-                    href="/dashboard"
-                    style={{
-                      padding: "10px 18px",
-                      background: "#0984e3",
-                      color: "#fff",
-                      borderRadius: 8,
-                      textDecoration: "none",
-                      fontWeight: "bold",
-                      fontSize: "0.9rem",
-                      display: "inline-block",
-                      transition: "background 0.2s ease",
-                    }}
-                    onMouseOver={(e) => (e.target.style.background = "#0652DD")}
-                    onMouseOut={(e) => (e.target.style.background = "#0984e3")}
-                  >
-                    📊 대시보드
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <a href="/login">로그인</a>
-            )}
-          </div>
+        <h2 style={styles.h2}>제8조 (면책)</h2>
+        <p>서비스 제공자는 천재지변 및 기타 불가항력적인 사유로 인하여 서비스를 제공할 수 없는 경우에는 책임이 면제됩니다.</p>
+        <p>서비스 제공자는 이용자의 귀책사유로 인한 서비스 이용의 장애에 대하여 책임을 지지 않습니다.</p>
+        <p>서비스 제공자는 이용자가 단축한 URL의 내용(연결된 원본 URL)으로 인해 발생한 손해에 대해 책임을 지지 않습니다.</p>
 
-          {/* 입력 폼 */}
-          <form onSubmit={handleSubmit} style={{ marginBottom: "1rem" }}>
-            <input
-              type="url"
-              placeholder="긴 URL을 입력하세요"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginBottom: 8,
-                border: "1px solid #dcdde1",
-                borderRadius: 8,
-              }}
-            />
-            <div style={{
-              display: "flex",
-              width: "100%",
-              marginBottom: 8,
-            }}>
-              <span style={{
-                padding: "10px",
-                border: "1px solid #dcdde1",
-                borderRight: "none",
-                borderRadius: "8px 0 0 8px",
-                background: "#e9ecef",
-                color: "#495057",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                fontSize: "0.9rem",
-                fontWeight: "bold",
-              }}>
-                외솔.한국/
-              </span>
-              <input
-                type="text"
-                placeholder="단축주소 (한글, 영어, 숫자)"
-                value={customCode}
-                onChange={(e) => setCustomCode(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  border: "1px solid #dcdde1",
-                  borderRadius: "0 8px 8px 0",
-                  borderLeft: "none",
-                  flex: 1,
-                }}
-              />
-            </div>
-            
-            <select
-              value={expiry}
-              onChange={(e) => setExpiry(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginBottom: 8,
-                border: "1px solid #dcdde1",
-                borderRadius: 8,
-              }}
-            >
-              <option value="7d">1주</option>
-              <option value="30d">1달</option>
-              {user && (
-                <>
-                  <option value="180d">6달</option>
-                  <option value="365d">1년</option>
-                  <option value="forever">무제한</option>
-                </>
-              )}
-            </select>
-            <button
-              type="submit"
-              style={{
-                width: "100%",
-                padding: "12px",
-                background: "#0984e3",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-              }}
-            >
-              URL 줄이기
-            </button>
-          </form>
+        <h2 style={styles.h2}>제9조 (분쟁해결)</h2>
+        <p>본 약관은 대한민국 법률에 따라 규율되고 해석됩니다.</p>
+        
+        <h2 style={styles.h2}>제10조 (시행일)</h2>
+        <p>이 약관은 2025년 11월 05일부터 시행합니다.</p>
 
-          {/* 결과 표시 */}
-          {shortCode && ( 
-            <div
-              style={{
-                background: "#f1f2f6",
-                padding: "1rem",
-                borderRadius: 8,
-              }}
-            >
-              <p style={{ margin: 0, fontWeight: "bold" }}>Shortened URL</p>
-              <a
-                href={functionalShortUrl} 
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#0984e3",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                }}
-              >
-                {displayShortUrl}
-              </a>
-              <div style={{ marginTop: 12 }}>
-                <QRCodeCanvas 
-                  value={functionalShortUrl}
-                  size={256} 
-                  level="H"
-                  imageSettings={qrImageSettings}
-                />
-              </div>
-              <button
-                onClick={copyToClipboard}
-                style={{
-                  marginTop: 12,
-                  padding: "10px 14px",
-                  background: "#00b894",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                }}
-              >
-                📋 단축 URL 복사하기
-              </button>
-            </div>
-          )}
+        <div style={styles.footer}>
+          <Link href="/" style={styles.link}>메인으로 돌아가기</Link>
         </div>
-      </main>
-
-      {/* !! NEW: 3. 푸터 추가 */}
-      <footer style={{
-        width: "100%",
-        textAlign: "center",
-        padding: "2rem 1rem 1rem 1rem",
-        color: "#888",
-        fontSize: "0.85rem",
-        lineHeight: 1.6,
-      }}>
-        <div style={{ marginBottom: "1rem" }}>
-          <a href="/privacy" className="footer-link">개인정보처리방침</a>
-          <span style={{ margin: "0 10px" }}>|</span>
-          <a href="/terms" className="footer-link">이용약관</a>
-          <span style={{ margin: "0 10px" }}>|</span>
-          <a href="mailto:sirons@usedu.ai.kr" className="footer-link">문의하기</a>
-        </div>
-        © 2026 울산교육청 (개발자: 정윤호, 이충민, 석희철, 이강현, 박창현, 김지현, 황정훈)
-        <br />
-        디자인 (요즘사람주식회사, 퍼스널컬러다이브). All rights reserved.
-      </footer>
-
-      {/* !! NEW: 4. 아이콘/버튼 호버 이펙트 및 푸터 링크 스타일 */}
-      <style jsx>{`
-        .card-icon {
-          transition: transform 0.2s ease-in-out;
-        }
-        .card-icon:hover {
-          transform: scale(1.15);
-        }
-        .info-card {
-          transition: box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        .info-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
-        .wooriai-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(249, 200, 14, 0.5);
-        }
-        .footer-link {
-          color: #555;
-          text-decoration: none;
-        }
-        .footer-link:hover {
-          text-decoration: underline;
-        }
-      `}</style>
-
+      </div>
     </div>
   );
 }
