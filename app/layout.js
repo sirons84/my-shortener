@@ -18,8 +18,8 @@ export const metadata = {
   title: "외솔.한국 - 울산교육청 URL 줄이기",
   description: "울산교육청 URL 단축 서비스",
     icons: {
-    // !! CHANGED: 파비콘 경로를 logo.png로 변경
-    icon: "/logo.png", // public 폴더 기준
+    // !! CHANGED: 파비콘 경로에 캐시 무시용 쿼리 추가
+    icon: "/logo.png?v=2", 
     },
 };
 
@@ -27,12 +27,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <head>
-        {/* !! CHANGED: fallback 파비콘 경로도 logo.png로 변경 */}
-        <link rel="icon" href="/logo.png" />
+        {/* !! CHANGED: fallback 파비콘 경로에도 쿼리 추가 */}
+        <link rel="icon" href="/logo.png?v=2" />
       </head>
-      {/* 참고: 폰트를 적용하시려면 <body>를 <body className={`${geistSans.variable} ${geistMono.variable}`}>로 
-        변경하셔야 합니다. 지금은 요청하신 파비콘만 수정했습니다.
-      */}
       <body>{children}</body>
     </html>
   );

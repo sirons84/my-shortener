@@ -7,12 +7,11 @@ import { supabase } from "../../lib/supabaseClient";
 import { QRCodeCanvas } from "qrcode.react";
 import { FaTrashAlt, FaQrcode, FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
 import Link from "next/link";
-// !! CHANGED: toASCII 추가
 import { toUnicode, toASCII } from "punycode";
 
 // QR 코드 로고 설정 (대시보드 전용)
 const qrImageSettings = {
-  src: "/logo.png", // public/logo.png 사용
+  src: "/logo.png",
   height: 16, // 대시보드용 작은 아이콘
   width: 16,
   excavate: true,
@@ -22,7 +21,6 @@ export default function DashboardPage() {
   const [urls, setUrls] = useState([]);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  // !! NEW: 100% Punycode로 변환된 origin을 저장할 state
   const [punycodeOrigin, setPunycodeOrigin] = useState("");
 
   useEffect(() => {
@@ -34,15 +32,12 @@ export default function DashboardPage() {
       }
       setUser(data.user);
 
-      // !! NEW: origin을 가져와서 100% Punycode 버전으로 변환 후 state에 저장
-      // (Galaxy Tab 오류 해결용)
       try {
         const urlObj = new URL(window.location.origin);
-        // (예: "외솔.한국" -> "xn--im4bl3g.xn--3e0b707e")
         urlObj.hostname = toASCII(urlObj.hostname);
         setPunycodeOrigin(urlObj.origin);
       } catch (e) {
-        setPunycodeOrigin(window.location.origin); // 실패 시 그대로 사용
+        setPunycodeOrigin(window.location.origin);
       }
 
       const sessionToken = (await supabase.auth.getSession()).data.session?.access_token;
@@ -77,17 +72,14 @@ export default function DashboardPage() {
   async function handleEdit(code, currentUrl) {
     const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
     
-    // !! FIX: 사용자에게 보여줄 한글 코드 (오류 방지)
     let displayCode = code;
     try {
-      // 'xn--'로 시작할 때만 한글로 변환
       if (code && code.startsWith('xn--')) {
         displayCode = toUnicode(code);
       }
-    } catch (e) {} // 에러 시 Punycode 원본(code) 사용
+    } catch (e) {} 
 
     if (newUrl && newUrl !== currentUrl && token) {
-      // API 호출은 Punycode(code)로
       const res = await fetch(`/api/url/${code}`, {
         method: "PATCH",
         headers: {
@@ -137,7 +129,6 @@ export default function DashboardPage() {
 
         {user && <p>안녕하세요, {user.email}</p>}
         
-        {/* !! FIX: punycodeOrigin이 로드된 후에 테이블을 렌더링 (오류 방지) */}
         {punycodeOrigin && ( 
         <table style={{
           width: "100%", borderCollapse: "collapse", marginTop: 16
@@ -155,14 +146,10 @@ export default function DashboardPage() {
           </thead>
           <tbody>
             {urls.map((u) => {
-              // !! FIX:
-              // functionalShortUrl: QR/링크용 (예: https://xn--.../xn--...)
               const functionalShortUrl = `${punycodeOrigin}/${u.code}`;
               
-              // displayCode: 표시용 (예: 테스트 / ming2)
               let displayCode = u.code;
               try {
-                // 'xn--'로 시작할 때만 한글로 변환 (RangeError 방지)
                 if (u.code && u.code.startsWith('xn--')) {
                   displayCode = toUnicode(u.code);
                 }
@@ -173,11 +160,11 @@ export default function DashboardPage() {
               return (
               <tr key={u.code}>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {displayCode} {/* !! FIX: 한글 또는 영문 코드로 표시 */}
+                  {displayCode}
                 </td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
                   <a
-                    href={functionalShortUrl} // !! FIX: 링크는 100% Punycode
+                    href={functionalShortUrl} 
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }}
@@ -193,8 +180,10 @@ export default function DashboardPage() {
                   padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
                 }}>
                   <QRCodeCanvas 
-                    value={functionalShortUrl} // !! FIX: QR은 100% Punycode
+                    value={functionalShortUrl} 
                     size={64} 
+                    // !! CHANGED: 'level="H"' (오류 복구 레벨 높음) 추가
+                    level="H"
                     imageSettings={qrImageSettings}
                   />
                 </td>

@@ -6,14 +6,14 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
-// !! CHANGED: toASCII 추가
 import { toUnicode, toASCII } from "punycode";
 
 // QR 코드 로고 설정
 const qrImageSettings = {
   src: "/logo.png", // public/logo.png 사용
-  height: 48,
-  width: 48,
+  // !! CHANGED: 아이콘 크기를 48 -> 40으로 살짝 줄임
+  height: 40,
+  width: 40,
   excavate: true,
 };
 
@@ -21,7 +21,6 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
-  // !! CHANGED: state는 Punycode 경로(code)만 저장하도록 변경
   const [shortCode, setShortCode] = useState(""); 
   const [user, setUser] = useState(null);
 
@@ -58,36 +57,27 @@ export default function Home() {
         alert(data.error);
       }
     } else {
-      // !! CHANGED: state에 Punycode 경로(code)만 저장
-      setShortCode(data.code); // 예: "xn--9t4b11yi5a"
+      setShortCode(data.code);
     }
   }
 
-  // !! FIX:
-  // QR/링크에 사용할 100% Punycode URL과 
-  // 화면 표시/복사용 한글 URL을 분리 생성
   let functionalShortUrl = ""; // QR/링크용 (예: https://xn--.../xn--...)
   let displayShortUrl = "";    // 표시/복사용 (예: https://외솔.한국/테스트)
 
   if (shortCode) {
     try {
-      // 1. 현재 도메인(https://외솔.한국)을 가져옴
-      // Vercel 환경 변수(Punycode) 또는 브라우저의 한글 도메인
       const originString = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const originUrl = new URL(originString);
-
-      // 2. 표시용/복사용 한글 URL 생성 (도메인, 경로 모두 한글)
+      
       const unicodeDomain = toUnicode(originUrl.hostname);
       const unicodePath = toUnicode(shortCode);
       displayShortUrl = `${originUrl.protocol}//${unicodeDomain}/${unicodePath}`;
 
-      // 3. QR/링크용 100% Punycode URL 생성 (도메인, 경로 모두 Punycode)
-      const punycodeDomain = toASCII(originUrl.hostname); // (예: xn--im4bl3g.xn--3e0b707e)
+      const punycodeDomain = toASCII(originUrl.hostname);
       functionalShortUrl = `${originUrl.protocol}//${punycodeDomain}/${shortCode}`;
 
     } catch (e) {
       console.error("URL generation error:", e);
-      // 오류 시 안전하게 Punycode 원본 표시
       functionalShortUrl = `${window.location.origin}/${shortCode}`;
       displayShortUrl = functionalShortUrl;
     }
@@ -95,11 +85,9 @@ export default function Home() {
 
   async function copyToClipboard() {
     if (!displayShortUrl) return;
-    // !! FIX: 복사할 URL은 한글로 변환된 displayShortUrl
     await navigator.clipboard.writeText(displayShortUrl);
     alert("단축 URL이 클립보드에 복사되었습니다!");
   }
-
 
   return (
     <div
@@ -197,7 +185,6 @@ export default function Home() {
             }}
           />
 
-          {/* !! CHANGED: 커스텀 코드 입력 UI (flex wrapper) */}
           <div style={{
             display: "flex",
             width: "100%",
@@ -207,8 +194,8 @@ export default function Home() {
               padding: "10px",
               border: "1px solid #dcdde1",
               borderRight: "none",
-              borderRadius: "8px 0 0 8px", // 왼쪽만 둥글게
-              background: "#e9ecef", // 회색 배경
+              borderRadius: "8px 0 0 8px",
+              background: "#e9ecef",
               color: "#495057",
               whiteSpace: "nowrap",
               display: "flex",
@@ -220,21 +207,19 @@ export default function Home() {
             </span>
             <input
               type="text"
-              // !! CHANGED: placeholder 수정 (한글 가능 명시)
               placeholder="단축주소 (한글, 영어, 숫자)"
               value={customCode}
               onChange={(e) => setCustomCode(e.target.value)}
               style={{
-                width: "100%", // 남은 너비 모두 사용
+                width: "100%",
                 padding: "10px",
                 border: "1px solid #dcdde1",
-                borderRadius: "0 8px 8px 0", // 오른쪽만 둥글게
-                borderLeft: "none", // 왼쪽 테두리 제거
-                flex: 1, // input이 늘어나도록
+                borderRadius: "0 8px 8px 0",
+                borderLeft: "none",
+                flex: 1,
               }}
             />
           </div>
-          {/* !! END CHANGED SECTION */}
           
           <select
             value={expiry}
@@ -247,11 +232,8 @@ export default function Home() {
               borderRadius: 8,
             }}
           >
-            {/* 공통 옵션 */}
             <option value="7d">1주</option>
             <option value="30d">1달</option>
-
-            {/* 로그인 한 경우만 더 많은 옵션 표시 */}
             {user && (
               <>
                 <option value="180d">6달</option>
@@ -276,7 +258,7 @@ export default function Home() {
         </form>
 
         {/* 결과 표시 */}
-        {shortCode && ( // shortCode(Punycode)가 생성되었을 때만 표시
+        {shortCode && ( 
           <div
             style={{
               background: "#f1f2f6",
@@ -286,7 +268,7 @@ export default function Home() {
           >
             <p style={{ margin: 0, fontWeight: "bold" }}>Shortened URL</p>
             <a
-              href={functionalShortUrl} // !! FIX: 링크는 100% Punycode URL
+              href={functionalShortUrl} 
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -295,12 +277,14 @@ export default function Home() {
                 fontWeight: "bold",
               }}
             >
-              {displayShortUrl} {/* !! FIX: 표시는 한글 URL */}
+              {displayShortUrl}
             </a>
             <div style={{ marginTop: 12 }}>
               <QRCodeCanvas 
-                value={functionalShortUrl} // !! FIX: QR도 100% Punycode URL
+                value={functionalShortUrl}
                 size={256} 
+                // !! CHANGED: 'level="H"' (오류 복구 레벨 높음) 추가
+                level="H"
                 imageSettings={qrImageSettings}
               />
             </div>
