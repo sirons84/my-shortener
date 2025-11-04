@@ -1,26 +1,26 @@
 // 파일 경로: app/dashboard/page.js
-// (기존 파일 덮어쓰기)
+// (이 코드로 파일 전체를 덮어쓰세요)
 
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { QRCodeCanvas } from "qrcode.react";
-// CHANGED: FaPencilAlt 아이콘 추가
 import { FaTrashAlt, FaQrcode, FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
 import Link from "next/link";
+import { toUnicode } from "punycode";
 
-// + CHANGED: QR 코드에 로고를 넣기 위한 설정 (2번 기능)
+// + QR 코드 로고 설정
 const qrImageSettings = {
-  src: "/favicon.ico", // public 폴더의 favicon.ico 사용
+  // !! CHANGED: QR 중앙 로고 경로를 logo.png로 변경
+  src: "/logo.png",
   height: 48,
   width: 48,
-  excavate: true, // 아이콘 뒤쪽의 QR을 비움
+  excavate: true,
 };
 
 export default function DashboardPage() {
   const [urls, setUrls] = useState([]);
   const [user, setUser] = useState(null);
-  // + CHANGED: 토큰을 state로 관리
   const [token, setToken] = useState(null);
 
   useEffect(() => {
@@ -33,7 +33,6 @@ export default function DashboardPage() {
       setUser(data.user);
 
       const sessionToken = (await supabase.auth.getSession()).data.session?.access_token;
-      // + CHANGED: 토큰 state에 저장
       setToken(sessionToken);
 
       const res = await fetch("/api/my-urls", {
@@ -45,7 +44,6 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  // + CHANGED: 삭제 함수 (인증 토큰 추가)
   async function deleteUrl(code) {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     
@@ -63,9 +61,9 @@ export default function DashboardPage() {
     setUrls(urls.filter((u) => u.code !== code));
   }
   
-  // + NEW: 수정 함수 (1번 기능)
   async function handleEdit(code, currentUrl) {
     const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
+    const displayCode = toUnicode(code);
 
     if (newUrl && newUrl !== currentUrl && token) {
       const res = await fetch(`/api/url/${code}`, {
@@ -78,8 +76,7 @@ export default function DashboardPage() {
       });
 
       if (res.ok) {
-        alert("URL이 성공적으로 변경되었습니다.");
-        // UI 즉시 반영
+        alert(`'${displayCode}'의 URL이 성공적으로 변경되었습니다.`);
         setUrls(urls.map(u => u.code === code ? { ...u, url: newUrl } : u));
       } else {
         const data = await res.json();
@@ -128,22 +125,25 @@ export default function DashboardPage() {
               <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>
                 <FaQrcode style={{ marginRight: 6 }} /> QR
               </th>
-              {/* + CHANGED: '관리' 컬럼으로 변경 */}
               <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>관리</th>
             </tr>
           </thead>
           <tbody>
-            {urls.map((u) => (
+            {urls.map((u) => {
+              const displayUrl = toUnicode(`${window.location.origin}/${u.code}`);
+              const displayCode = toUnicode(u.code);
+
+              return (
               <tr key={u.code}>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {u.code}
+                  {displayCode}
                 </td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
                   <a
-                    href={`/${u.code}`}
+                    href={displayUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }} // + CHANGED: 긴 URL 줄바꿈
+                    style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }}
                   >
                     {u.url} <FaExternalLinkAlt style={{ marginLeft: 6, color: "#636e72" }} />
                   </a>
@@ -154,24 +154,22 @@ export default function DashboardPage() {
                 <td style={{
                   padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
                 }}>
-                  {/* + CHANGED: QR 코드에 로고 설정 (2번 기능) */}
                   <QRCodeCanvas 
-                    value={`${window.location.origin}/${u.code}`} 
+                    value={displayUrl} 
                     size={64} 
-                    imageSettings={qrImageSettings} 
+                    imageSettings={qrImageSettings} // 로고 설정 적용
                   />
                 </td>
                 <td style={{
                   padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
                 }}>
-                  {/* + NEW: 수정 버튼 (1번 기능) */}
                   <button
                     onClick={() => handleEdit(u.code, u.url)}
                     style={{
                       background: "#0984e3", color: "#fff", border: "none",
                       padding: "6px 12px", borderRadius: 6,
                       display: "flex", alignItems: "center", gap: "6px",
-                      justifyContent: "center", cursor: "pointer", marginBottom: "4px"
+                      justifyContent: "center", cursor: "pointer", marginBottom: "4px", width: "80px"
                     }}
                   >
                     <FaPencilAlt /> 수정
@@ -182,17 +180,16 @@ export default function DashboardPage() {
                       background: "#d63031", color: "#fff", border: "none",
                       padding: "6px 12px", borderRadius: 6,
                       display: "flex", alignItems: "center", gap: "6px",
-                      justifyContent: "center", cursor: "pointer"
+                      justifyContent: "center", cursor: "pointer", width: "80px"
                     }}
                   >
                     <FaTrashAlt /> 삭제
                   </button>
                 </td>
               </tr>
-            ))}
+            )})}
             {urls.length === 0 && (
               <tr>
-                {/* + CHANGED: ColSpan 5로 변경 */}
                 <td colSpan={5} style={{ textAlign: "center", padding: 16 }}>
                   등록된 URL이 없습니다.
                 </td>

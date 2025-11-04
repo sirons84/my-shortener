@@ -1,5 +1,5 @@
 // 파일 경로: app/page.js
-// (기존 파일 덮어쓰기)
+// (이 코드로 파일 전체를 덮어쓰세요)
 
 "use client";
 
@@ -8,33 +8,31 @@ import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
 import { toUnicode } from "punycode";
 
-// + NEW: QR 코드에 로고를 넣기 위한 설정 (2번 기능)
+// + QR 코드 로고 설정
 const qrImageSettings = {
-  src: "/favicon.ico", // public 폴더의 favicon.ico 사용
-  height: 48, // 로고 높이
-  width: 48, // 로고 너비
-  excavate: true, // 로고 뒤쪽의 QR 코드 영역을 비워서 선명하게
+  // !! CHANGED: QR 중앙 로고 경로를 logo.png로 변경
+  src: "/logo.png", 
+  height: 48,
+  width: 48,
+  excavate: true,
 };
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
-  const [expiry, setExpiry] = useState("7d"); // 기본은 1주
+  const [expiry, setExpiry] = useState("7d");
   const [shortUrl, setShortUrl] = useState("");
   const [user, setUser] = useState(null);
 
-  // 로그인된 사용자 가져오기
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ?? null);
     });
   }, []);
 
-  // URL 단축 요청
   async function handleSubmit(e) {
     e.preventDefault();
 
-    // 비회원이 무제한 선택하면 막기
     if (!user && expiry === "forever") {
       alert("무제한은 로그인 후에만 가능합니다.");
       return;
@@ -53,7 +51,6 @@ export default function Home() {
 
     const data = await res.json();
     if (data.error) {
-      // 에러 메시지 커스터마이즈
       if (data.error.includes("duplicate key")) {
         alert("이미 사용 중인 주소입니다. 다른 코드를 입력하세요.");
       } else {
@@ -65,23 +62,15 @@ export default function Home() {
     }
   }
 
-  // URL 복사하기
   async function copyToClipboard() {
     if (!shortUrl) return;
-    const unicodeUrl = shortUrl.replace(
-      /^https?:\/\/([^/]+)/,
-      (m, domain) => `https://${toUnicode(domain)}`
-    );
+    const unicodeUrl = toUnicode(shortUrl);
     await navigator.clipboard.writeText(unicodeUrl);
     alert("단축 URL이 클립보드에 복사되었습니다!");
   }
 
-  // punycode → 한글 도메인으로 변환된 URL
   const unicodeShortUrl = shortUrl
-    ? shortUrl.replace(
-        /^https?:\/\/([^/]+)/,
-        (m, domain) => `https://${toUnicode(domain)}`
-      )
+    ? toUnicode(shortUrl)
     : "";
 
   return (
@@ -181,7 +170,6 @@ export default function Home() {
           />
           <input
             type="text"
-            // + CHANGED: 한글 입력도 가능함을 안내
             placeholder="커스텀 코드 (선택, 한글 가능)"
             value={customCode}
             onChange={(e) => setCustomCode(e.target.value)}
@@ -255,11 +243,10 @@ export default function Home() {
               {unicodeShortUrl}
             </a>
             <div style={{ marginTop: 12 }}>
-              {/* // + CHANGED: QR 코드에 로고 설정 (2번 기능) */}
               <QRCodeCanvas 
-                value={unicodeShortUrl} 
+                value={unicodeShortUrl}
                 size={256} 
-                imageSettings={qrImageSettings} 
+                imageSettings={qrImageSettings} // 로고 설정 적용
               />
             </div>
             <button
