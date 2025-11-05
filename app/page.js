@@ -69,15 +69,13 @@ export default function Home() {
       const originString = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const originUrl = new URL(originString);
       
-      // !! FIX:
-      // 'xn--'로 시작하는 코드(한글 경로)만 toUnicode로 변환 (RangeError 방지)
+      // !! FIX (RangeError): 'xn--'로 시작하는 코드(한글)만 toUnicode로 변환
       let unicodePath = shortCode;
       if (shortCode && shortCode.startsWith("xn--")) {
         unicodePath = toUnicode(shortCode);
       }
       
-      // !! FIX:
-      // 'xn--'로 시작하는 도메인(한글 도메인)만 toUnicode로 변환 (RangeError 방지)
+      // !! FIX (RangeError): 'xn--'로 시작하는 도메인(한글)만 toUnicode로 변환
       let unicodeDomain = originUrl.hostname;
       if (originUrl.hostname && originUrl.hostname.startsWith("xn--")) {
          unicodeDomain = toUnicode(originUrl.hostname);

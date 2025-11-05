@@ -44,10 +44,11 @@ export default function TermsPage() {
         <p><strong>최종 업데이트: 2025년 11월 05일</strong></p>
 
         <h2 style={styles.h2}>제1조 (목적)</h2>
+        {/* !! CHANGED: ESLint 오류 수정 */}
         <p>이 약관은 외솔.한국(이하 &quot;서비스&quot;)이 제공하는 URL 단축 서비스의 이용조건 및 절차, 이용자와 서비스 제공자 간의 권리, 의무, 책임사항과 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
 
         <h2 style={styles.h2}>제2조 (용어의 정의)</h2>
-        {/* !! CHANGED: " 따옴표를 &quot; 로 수정 */}
+        {/* !! CHANGED: ESLint 오류 수정 */}
         <ul style={{ paddingLeft: "20px" }}>
           <li>&quot;서비스&quot;란 이용자가 온라인(PC, 모바일 등)으로 접속하여 외솔.한국이 제공하는 URL 단축 서비스를 이용할 수 있는 가상의 공간을 의미합니다.</li>
           <li>&quot;이용자&quot;란 서비스에 접속하여 이 약관에 따라 서비스를 이용하는 모든 사용자를 말합니다.</li>
