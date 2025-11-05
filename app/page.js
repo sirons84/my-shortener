@@ -69,10 +69,21 @@ export default function Home() {
       const originString = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const originUrl = new URL(originString);
       
-      const unicodeDomain = toUnicode(originUrl.hostname);
-      const unicodePath = toUnicode(shortCode);
+      // !! FIX: 'xn--'로 시작하는 코드(한글)만 toUnicode로 변환 (RangeError 방지)
+      let unicodePath = shortCode;
+      if (shortCode.startsWith("xn--")) {
+        unicodePath = toUnicode(shortCode);
+      }
+      
+      // !! FIX: 'xn--'로 시작하는 도메인(한글)만 toUnicode로 변환
+      let unicodeDomain = originUrl.hostname;
+      if (originUrl.hostname.startsWith("xn--")) {
+         unicodeDomain = toUnicode(originUrl.hostname);
+      }
+      
       displayShortUrl = `${originUrl.protocol}//${unicodeDomain}/${unicodePath}`;
 
+      // QR/링크용 (100% Punycode)
       const punycodeDomain = toASCII(originUrl.hostname);
       functionalShortUrl = `${originUrl.protocol}//${punycodeDomain}/${shortCode}`;
 
@@ -111,7 +122,6 @@ export default function Home() {
 
         {/* 1. URL 단축기 섹션 */}
         <div
-          // !! CHANGED: .info-card 클래스 추가 (호버 효과)
           className="info-card" 
           style={{
             background: "#fff",
@@ -328,11 +338,10 @@ export default function Home() {
             외솔.한국, 그 이상의 가치
           </h2>
           <p style={{ fontSize: "1.1rem", color: "#555", marginBottom: "2.5rem" }}>
-            {/* !! CHANGED: ESLint 오류 수정 */}
+            {/* ESLint 오류 수정 */}
             울산교육청의 똑똑한 AI 친구, &apos;우리아이&apos;를 만나보세요!
           </p>
 
-          {/* 카드 3개 레이아웃 */}
           <div style={{
             display: "flex",
             justifyContent: "center",
@@ -345,8 +354,7 @@ export default function Home() {
               padding: "2rem",
               borderRadius: 12,
               boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              // !! CHANGED: 너비 320 -> 310
-              width: "310px", 
+              width: "310px",
               minWidth: "300px",
               textAlign: "left"
             }}>
@@ -374,7 +382,6 @@ export default function Home() {
               padding: "2rem",
               borderRadius: 12,
               boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              // !! CHANGED: 너비 320 -> 310
               width: "310px",
               minWidth: "300px",
               textAlign: "left"
@@ -395,7 +402,7 @@ export default function Home() {
               </div>
               <h3 style={{ fontWeight: "bold", fontSize: "1.2rem", marginBottom: "0.5rem", color: "#333" }}>교사를 위한 강력한 도구</h3>
               <p style={{ color: "#444", lineHeight: 1.6 }}>
-                {/* !! CHANGED: ESLint 오류 수정 */}
+                {/* ESLint 오류 수정 */}
                 수업 자료 제작이 고민이라면? 울산 교육 가족에게 무료 제공되는 &apos;미리캔버스 Pro&apos;로 손쉽게 디자인을 완성하세요.
               </p>
             </div>
@@ -406,7 +413,6 @@ export default function Home() {
               padding: "2rem",
               borderRadius: 12,
               boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              // !! CHANGED: 너비 320 -> 310
               width: "310px",
               minWidth: "300px",
               textAlign: "left"
@@ -486,8 +492,6 @@ export default function Home() {
         .card-icon:hover {
           transform: scale(1.15);
         }
-        
-        /* !! CHANGED: shortener-box 포함하도록 .info-card 정의 */
         .info-card {
           transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
@@ -495,7 +499,6 @@ export default function Home() {
           transform: translateY(-5px);
           box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
-        
         .wooriai-button:hover {
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(249, 200, 14, 0.5);

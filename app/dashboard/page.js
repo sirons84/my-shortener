@@ -72,12 +72,14 @@ export default function DashboardPage() {
   async function handleEdit(code, currentUrl) {
     const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
     
+    // !! FIX: 사용자에게 보여줄 한글 코드 (오류 방지)
     let displayCode = code;
     try {
+      // 'xn--'로 시작할 때만 한글로 변환
       if (code && code.startsWith('xn--')) {
         displayCode = toUnicode(code);
       }
-    } catch (e) {} 
+    } catch (e) {} // 에러 시 Punycode 원본(code) 사용
 
     if (newUrl && newUrl !== currentUrl && token) {
       const res = await fetch(`/api/url/${code}`, {
@@ -148,8 +150,11 @@ export default function DashboardPage() {
             {urls.map((u) => {
               const functionalShortUrl = `${punycodeOrigin}/${u.code}`;
               
+              // !! FIX:
+              // displayCode: 표시용 (예: 테스트 / ming2)
               let displayCode = u.code;
               try {
+                // 'xn--'로 시작할 때만 한글로 변환 (RangeError 방지)
                 if (u.code && u.code.startsWith('xn--')) {
                   displayCode = toUnicode(u.code);
                 }
@@ -182,7 +187,6 @@ export default function DashboardPage() {
                   <QRCodeCanvas 
                     value={functionalShortUrl} 
                     size={64} 
-                    // !! CHANGED: 'level="H"' (오류 복구 레벨 높음) 추가
                     level="H"
                     imageSettings={qrImageSettings}
                   />
