@@ -3,7 +3,8 @@
 
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "./lib/supabaseAdmin";
-import { toASCII } from "punycode"; // toASCII 임포트
+// !! NEW: toASCII 임포트
+import { toASCII } from "punycode";
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
@@ -52,6 +53,7 @@ export async function middleware(req) {
     punycodeCode = toASCII(code); 
   } catch (e) {
     console.error("Middleware Punycode conversion failed:", e.message);
+    // 변환 실패 시 (잘못된 경로) 404 페이지로
     return NextResponse.next(); 
   }
 
@@ -72,6 +74,6 @@ export async function middleware(req) {
 }
 
 export const config = {
-  // 모든 경로를 미들웨어에서 검사하도록 변경
+  // !! CHANGED: 모든 요청을 미들웨어에서 검사하도록 변경
   matcher: '/:path*',
 };
