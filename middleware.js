@@ -8,7 +8,8 @@ import { toASCII } from "punycode";
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // 1. 앱 내부 페이지 경로 (matcher에서 걸러지지 않은 앱 경로들)
+  // 1. 앱 내부 페이지 경로 (이 경로는 DB 조회하면 안 됨)
+  // (matcher에서 걸러지지 않은 앱 경로들)
   const APP_ROUTES = [
     "/",
     "/login",
@@ -25,7 +26,7 @@ export async function middleware(req) {
   // (matcher가 이미 api, _next, static, 파일 확장자(.png 등)를 걸러줌)
   const code = pathname.slice(1);
   
-  // 3. DB 조회를 위해 Punycode로 변환
+  // 3. (THE FIX) DB 조회를 위해 Punycode로 변환
   let punycodeCode = code;
   try {
     punycodeCode = toASCII(code); 
@@ -51,7 +52,6 @@ export async function middleware(req) {
 }
 
 export const config = {
-  // !! CHANGED: . (확장자)가 붙은 파일, api, _next 등을 제외시킴
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
