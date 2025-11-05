@@ -31,11 +31,13 @@ export async function middleware(req) {
   }
 
   // 4. 파일 확장자가 있는 경우 (e.g., /logo.png, /favicon.ico) 통과
+  //    이것으로 /logo.png 같은 파일 요청이 DB를 조회하는 것을 막습니다.
   if (pathname.includes('.')) {
     return NextResponse.next();
   }
 
   // 5. 앱 내부 페이지 경로는 통과
+  //    이것으로 /dashboard, /privacy 등이 DB를 조회하는 것을 막습니다.
   if (APP_ROUTES.includes(pathname)) {
     return NextResponse.next();
   }
