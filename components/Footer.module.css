@@ -1,0 +1,68 @@
+/* 파일 경로: components/Footer.module.css (이 코드로 덮어쓰세요) */
+
+.footer {
+  width: 100%;
+  padding: 40px 20px;
+  
+  /* 1. (!! 수정 !!) 배경색을 투명하게 변경 */
+  background-color: transparent; 
+  
+  text-align: center;
+  
+  /* 2. (!! 삭제 !!) 상단 경계선 제거 */
+  /* border-top: 1px solid #EAEAEA; */
+}
+
+.wrapper {
+  max-width: var(--layout-max-width, 1728px);
+  margin: 0 auto;
+}
+
+.links {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.link {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  opacity: 0.6;
+}
+.link:hover {
+  text-decoration: underline;
+  opacity: 1.0; 
+}
+
+.separator {
+  font-size: 14px;
+  color: var(--color-border-light, #EAEAEA);
+  opacity: 0.6; /* (링크와 투명도 통일) */
+}
+
+.copyright {
+  font-size: 12px;
+  color: var(--color-text-secondary, #767676);
+  line-height: 1.6;
+  opacity: 0.3;
+}
+
+/* --- 모바일 반응형 --- */
+@media (max-width: 768px) {
+  .footer {
+    padding: 30px 20px;
+  }
+  .links {
+    gap: 10px;
+  }
+  .link {
+    font-size: 13px;
+  }
+  .copyright {
+    font-size: 11px;
+  }
+}

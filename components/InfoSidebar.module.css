@@ -1,0 +1,106 @@
+/* 파일 경로: components/InfoSidebar.module.css (이 코드로 덮어쓰세요) */
+
+.sidebar {
+  width: 100%;
+  max-width: 400px;
+}
+
+.card {
+  width: 320px;
+  height: 449px; 
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  position: relative; 
+  overflow: hidden; 
+}
+
+.content {
+  padding: 32px;
+  position: relative; 
+  z-index: 2; /* 이미지(z-index: 1)보다 항상 위에 표시 */
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.5;
+}
+
+.cardMoreLink {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+}
+.cardMoreLink:hover {
+  text-decoration: underline;
+}
+
+.personName {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.personQuote {
+  font-size: 18px; 
+  color: var(--color-text-secondary);
+  font-family: var(--font-jeju); 
+  margin-bottom: 24px;
+}
+
+.imageContainer {
+  position: absolute;
+  z-index: 1; /* 텍스트(.content)보다 뒤 */
+  width: 466px;
+  height: 320px;
+  top: 140px; /* 이미지를 텍스트 아래로 내림 */
+
+  /* 1. (!! 핵심 수정 !!) 
+     left: -120px; -> left: -90px;
+     이미지를 오른쪽으로 30px 이동시킵니다.
+  */
+  left: -90px; 
+}
+
+.personImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 'fill' 효과 */
+}
+
+/* --- 모바일 반응형 --- */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 320px; 
+    max-width: 100%;
+  }
+
+  .card {
+    width: 320px;
+    height: 449px; 
+    max-width: 100%;
+    padding: 0; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  
+  .content {
+    padding: 24px; /* 모바일용 패딩 */
+  }
+
+  .personName {
+    font-size: 24px;
+  }
+  
+  .personQuote {
+    font-size: 16px;
+  }
+}

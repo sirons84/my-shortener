@@ -1,0 +1,55 @@
+/* 파일 경로: components/Header.module.css (이 코드로 덮어쓰세요) */
+
+.header {
+  width: 100%;
+  
+  /* 1. (!! 수정 !!) 배경색을 투명하게 변경 */
+  background-color: transparent; 
+  
+  /* 2. (!! 삭제 !!) 하단 경계선 제거 */
+  /* border-bottom: 1px solid #EAEAEA; */
+}
+
+.wrapper {
+  max-width: var(--layout-max-width, 1728px);
+  margin: 0 auto;
+  padding: 40px; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  height: 50px; 
+  width: auto;
+}
+
+.myUrlButton {
+  background-color: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 99px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s;
+}
+
+.myUrlButton:hover {
+  background-color: #F9F9F9;
+}
+
+
+/* --- 모바일 반응형 --- */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 20px; 
+  }
+  .logo {
+    height: 32px; 
+  }
+  .myUrlButton {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}

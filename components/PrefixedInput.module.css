@@ -1,0 +1,90 @@
+/* 파일 경로: components/PrefixedInput.module.css (이 코드로 덮어쓰세요) */
+
+.container {
+  width: 100%;
+}
+
+/* 1. (!! 수정 !!) 
+   회색 박스. padding-top: 16px로 라벨의 시작 위치(y)를 16px로 맞춥니다.
+*/
+.inputWrapper {
+  display: flex;
+  flex-direction: column; /* 라벨과 (prefix + input)을 세로로 쌓음 */
+  justify-content: flex-start; /* 위에서부터 정렬 */
+  
+  width: 100%;
+  height: 90px;
+  background-color: rgba(245, 245, 245, 0.8); /* F5F5F5 80% */
+  border-radius: 12px;
+  
+  /* 2. (!! 수정 !!) 
+     padding: 16px 16px; 
+     (top: 16px, left: 16px, right: 16px)
+  */
+  padding: 16px 16px;
+  
+  border: 2px solid transparent; 
+  transition: border-color 0.2s ease-in-out;
+}
+
+.inputWrapper:hover {
+  border-color: #E0E0E0;
+}
+.inputWrapper:focus-within {
+  outline: none; 
+  border-color: var(--color-brand-yellow); 
+}
+
+/* 3. 라벨 (단축 주소) 스타일 */
+.label {
+  display: block;
+  font-size: 16px;
+  font-weight: 500; /* Medium */
+  color: #000000; /* 스펙: 검정, 투명도 0% */
+  
+  /* 4. (!! 수정 !!) 
+     '단축 주소' 높이(16px) + 이 마진(9px) = 25px
+     (prefix + input)의 시작 위치(y) = 16px(padding) + 25px = 41px
+     (StyledInput과 동일한 간격 적용)
+  */
+  margin-bottom: 9px; 
+}
+
+/* 5. (!! 신규 !!) 
+   '외솔.한국/' 접두사와 <input>을 가로로 묶는 래퍼
+*/
+.fieldWrapper {
+  display: flex;
+  align-items: center;
+}
+
+/* 6. '외솔.한국/' 접두사 스타일 */
+.prefix {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding-right: 12px;
+  white-space: nowrap;
+}
+
+/* 7. 실제 <input> 태그 스타일 */
+.input {
+  flex: 1;
+  border: none;
+  background-color: transparent; 
+  outline: none;
+  padding: 0;
+  
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  width: 100%;
+}
+
+/* 8. 플레이스홀더 스타일 */
+.input::placeholder {
+  color: #000000; 
+  opacity: 0.2;  /* 투명도 20% */
+  font-weight: 400;
+  font-size: 18px;
+}

@@ -1,29 +1,73 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* 파일 경로: app/globals.css */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 1. Pretendard 폰트 CDN 임포트 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+/* 2. CSS 변수 (디자인 토큰) */
+:root {
+  /* PC 버전 최대 넓이 */
+  --layout-max-width: 1728px;
+
+  /* 그라디언트 색상 */
+  --color-bg-gradient-start: #FFF4D7; 
+  --color-bg-gradient-end: #FFE397; 
+
+  /* 기타 색상 (피그마에서 정확한 값으로 수정하세요) */
+  --color-text-primary: #333333;
+  --color-text-secondary: #767676;
+  --color-brand-yellow: #F9C80E;
+  --color-border-light: #EAEAEA;
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-text-primary);
+  
+  /* 3. 기본 배경: 그라디언트만 적용 */
+  background: linear-gradient(to bottom right, var(--color-bg-gradient-start) 0%, var(--color-bg-gradient-end) 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* 스크롤해도 그라디언트 고정 */
+
+  /* 4. 폰트 적용 */
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  
+  /* 5. 블렌드 모드를 위한 스태킹 컨텍스트 생성 */
+  position: relative;
+  isolation: isolate;
+  
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 6. 패턴 오버레이 (::before 가상 요소 사용) */
+body::before {
+  content: '';
+  position: fixed; /* 화면 전체에 고정 */
+  inset: 0; /* top: 0; left: 0; right: 0; bottom: 0; */
+  
+  /* 'public/images/character.png' 경로 가정 */
+  background-image: url('/images/character.png');
+  background-repeat: repeat;
+  
+  /* 7. 블렌드 모드 및 투명도 적용 */
+  mix-blend-mode: overlay; 
+  opacity: 0.1; /* 20% */
+  
+  /* 8. 컨텐츠 뒤로 보내기 */
+  z-index: -1; 
+  
+  /* 9. 클릭 방해 방지 */
+  pointer-events: none;
+}
+
+
+/* 10. 기본 스타일 리셋 */
 * {
   box-sizing: border-box;
   padding: 0;
@@ -33,10 +77,4 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 }
