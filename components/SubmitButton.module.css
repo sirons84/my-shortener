@@ -10,20 +10,14 @@
   
   font-size: 24px;
   font-weight: 700;
-  
-  /* 1. (!! 수정 !!) 글자 색상을 #FFFFFF (흰색)으로 변경 */
-  color: #FFFFFF; 
+  color: #FFFFFF; /* (흰색 글씨 유지) */
   
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   
-  /* 2. (!! 수정 !!) 
-     캐릭터가 다시 보이도록 'hidden'에서 'visible'로 되돌립니다.
-  */
   overflow: visible; 
-  
   transition: opacity 0.2s ease;
 }
 
@@ -41,14 +35,10 @@
   z-index: 1;
   pointer-events: none; 
   
-  width: 480px; /* (20% 줄인 값 유지) */
+  width: 480px; 
   height: auto;
   
   right: 40px;
-  
-  /* 3. (!! 수정 !!) 
-     캐릭터 위치를 버튼 하단보다 10px 위로 설정합니다.
-  */
   bottom: 10px; 
 }
 
@@ -60,10 +50,11 @@
   }
   
   .character {
-    width: 320px; 
+    /* 1. (!! 수정 !!) 모바일에서 크기를 320px에서 260px로 줄입니다. */
+    width: 260px; 
     right: 10px;
     
-    /* 4. (!! 수정 !!) 모바일 bottom도 20px로 설정합니다. */
-    bottom: 20px; 
+    /* 2. (!! 수정 !!) 크기에 맞춰 bottom 위치를 20px에서 15px로 미세 조정합니다. */
+    bottom: 15px; 
   }
 }
