@@ -2,21 +2,27 @@
 import Image from 'next/image';
 import styles from './SubmitButton.module.css';
 
-export default function SubmitButton() {
+// (!! 수정 !!) disabled prop을 받도록 수정
+export default function SubmitButton({ disabled }) {
   return (
-    <button type="submit" className={styles.button}>
-      <span className={styles.text}>URL 줄이기</span>
+    <button 
+      type="submit" 
+      className={styles.button}
+      // (!! 수정 !!) disabled 상태를 버튼에 적용
+      disabled={disabled}
+      // (!! 수정 !!) 비활성화 시 스타일 변경
+      style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'wait' : 'pointer' }}
+    >
+      {/* (!! 수정 !!) 로딩 상태에 따라 텍스트 변경 */}
+      <span className={styles.text}>
+        {disabled ? '생성 중...' : 'URL 줄이기'}
+      </span>
       
       <Image
         src="/images/character-wooli.svg"
         alt="울리 캐릭터"
-        
-        /* 1. (!! 수정 !!) 
-           width/height를 300에서 240으로 20% 줄입니다.
-        */
         width={240}  
         height={240} 
-        
         className={styles.character}
         priority
       />
