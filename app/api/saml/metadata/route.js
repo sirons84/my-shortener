@@ -3,7 +3,7 @@
 // 예: https://xn--im4bl3g.xn--3e0b707e/api/saml/metadata
 
 import { NextResponse } from "next/server";
-import { sp } from "../../../lib/saml"; // SAML SP 설정 (다음 파일에서 생성)
+import { sp } from "@/lib/saml"; // SAML SP 설정 (다음 파일에서 생성)
 
 export async function GET() {
   const metadata = sp.getMetadata();
