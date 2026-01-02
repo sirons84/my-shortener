@@ -16,13 +16,13 @@ export default function InfoSidebar() {
         <div className={styles.content}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>외솔이란?</span>
-            <Link href="/info" className={styles.cardMoreLink}>
+            <Link href="https://www.junggu.ulsan.kr/oesol/" className={styles.cardMoreLink}>
               더 알아보기 ↗
             </Link>
           </div>
           
           <h3 className={styles.personName}>외솔 최현배</h3>
-          <p className={styles.personQuote}>말과 글은 우리의 얼이다.</p>
+          <p className={styles.personQuote}>말과 글은 <br/>우리의 얼이다.</p>
         </div>
         
         <div className={styles.imageContainer}>

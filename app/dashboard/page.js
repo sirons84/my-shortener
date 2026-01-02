@@ -116,27 +116,28 @@ export default function DashboardPage() {
         background: "#fff", padding: "2rem", borderRadius: 12,
         boxShadow: "0 4px 12px rgba(0,0,0,0.1)", width: "95%", maxWidth: 900
       }}>
-        <h1 style={{ marginBottom: "1rem" }}>📊 내 URL 대시보드</h1>
-        <Link
-            href="/"
-            style={{
-              padding: "8px 14px",
-              background: "#636e72",
-              color: "#fff",
-              borderRadius: 6,
-              textDecoration: "none",
-              fontWeight: "bold",
-              fontSize: "0.9rem",
-              transition: "background 0.2s ease",
-              display: "inline-block", /* (margin 적용 위해) */
-              marginBottom: "1rem"
-            }}
-            onMouseOver={(e) => (e.target.style.background = "#2d3436")}
-            onMouseOut={(e) => (e.target.style.background = "#636e72")}
-          >
-            🏠 메인으로
-          </Link>
-
+        <div>
+          <h1 style={{ marginBottom: "1rem" }}>나의 URL 대시보드</h1>
+          <Link
+              href="/"
+              style={{
+                padding: "8px 14px",
+                background: "#636e72",
+                color: "#fff",
+                borderRadius: 6,
+                textDecoration: "none",
+                fontWeight: "bold",
+                fontSize: "0.9rem",
+                transition: "background 0.2s ease",
+                display: "inline-block", /* (margin 적용 위해) */
+                marginBottom: "1rem"
+              }}
+              onMouseOver={(e) => (e.target.style.background = "#2d3436")}
+              onMouseOut={(e) => (e.target.style.background = "#636e72")}
+            >
+              🏠 메인으로
+            </Link>
+        </div>
         {user && <p>안녕하세요, {user.email}</p>}
         
         {punycodeOrigin && ( 
@@ -205,8 +206,8 @@ export default function DashboardPage() {
                   <button
                     onClick={() => handleEdit(u.code, u.url)}
                     style={{
-                      background: "#0984e3", color: "#fff", border: "none",
-                      padding: "6px 12px", borderRadius: 6,
+                      background: "#fff", color: "#333", border: "1px solid #ccc",
+                      padding: "6px 8px", borderRadius: 6,
                       display: "flex", alignItems: "center", gap: "6px",
                       justifyContent: "center", cursor: "pointer", marginBottom: "4px", width: "80px"
                     }}
@@ -216,8 +217,8 @@ export default function DashboardPage() {
                   <button
                     onClick={() => deleteUrl(u.code)}
                     style={{
-                      background: "#d63031", color: "#fff", border: "none",
-                      padding: "6px 12px", borderRadius: 6,
+                      background: "#555", color: "#fff", border: "none",
+                      padding: "6px 8px", borderRadius: 6,
                       display: "flex", alignItems: "center", gap: "6px",
                       justifyContent: "center", cursor: "pointer", width: "80px"
                     }}

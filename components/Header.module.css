@@ -6,7 +6,7 @@
 }
 
 .wrapper {
-  max-width: var(--layout-max-width, 1728px);
+  /* max-width: var(--layout-max-width, 1728px); */
   margin: 0 auto;
   padding: 20px; 
   display: flex;

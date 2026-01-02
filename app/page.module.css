@@ -23,7 +23,7 @@
   
   background-color: #FFFFFF;
   border-radius: 40px;
-  padding: 36px; 
+  padding: 36px 36px 40px; 
   position: relative; 
   
   /* (!! 2. 수정 !!) 
@@ -43,6 +43,13 @@
   position: relative; 
 }
 
+.form + div {
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  width: 100%;
+  text-align: center;
+}
 .arrowWrapper {
   position: absolute;
   top: calc(90px + 84px / 2 - 12px); 
@@ -85,8 +92,8 @@
   .wrapper {
     flex-direction: column;
     align-items: center; 
-    padding: 20px;
-    gap: 30px;
+    padding: 12px;
+    gap: 12px;
     max-width: 100%; 
   }
   
@@ -95,16 +102,17 @@
     max-width: 450px; 
     height: auto; 
     min-height: auto;
-    padding: 20px;
+    border-radius: 24px;
+    padding: 24px 20px 40px;
     overflow: visible; 
   }
   
   .selectWrapper {
     flex-direction: column; 
     align-items: flex-start;
-    gap: 20px;
+    gap: 8px;
     margin-bottom: 60px; 
-    width: 100%; 
+    width: 100%;  
   }
   
   .selectWrapper > * {

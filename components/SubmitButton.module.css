@@ -3,7 +3,7 @@
   width: 100%;
   height: 90px;
   border: none;
-  border-radius: 12px;
+  border-radius: 45px;
   cursor: pointer;
   
   background: linear-gradient(to right, #FFD22D 0%, #FF8100 100%); 
@@ -55,6 +55,6 @@
     right: 10px;
     
     /* 2. (!! 수정 !!) 크기에 맞춰 bottom 위치를 15px에서 10px로 미세 조정합니다. */
-    bottom: 10px; 
+    bottom: 30px; 
   }
 }

@@ -4,7 +4,37 @@ import Header from "../components/Header";
 import Footer from "../components/Footer"; // 1. Footer 임포트
 
 export const metadata = {
-  // ... (metadata는 그대로) ...
+  title: "외솔.한국",
+  description: "간편한 URL 단축 서비스",
+  icons: {
+    icon: [
+      { url: "/images/favicon/favicon.ico" },
+      { url: "/images/favicon/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/images/favicon/apple-touch-icon.png",
+    other: [
+      {
+        rel: "manifest",
+        url: "/images/favicon/site.webmanifest",
+      },
+    ],
+  },
+  openGraph: {
+    title: "외솔.한국",
+    description: "간편한 URL 단축 서비스",
+    image: "/images/meta.png",
+    type: "website",
+    url: "https://xn--im4bl3g.xn--3e0b707e/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    image: "/images/meta.png",
+  },
+  verification: {
+    other: {
+      "google-site-verification": "", // 필요시 추가
+    },
+  },
 };
 
 export default function RootLayout({ children }) {

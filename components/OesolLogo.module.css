@@ -15,13 +15,15 @@
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   .logo {
+    width: 32%;
+
     max-width: 240px; 
     
     /* 2. (!! 수정 !!)
        모바일에선 .sidebar의 flex가 해제되므로
        카드와의 간격을 16px로 다시 설정합니다.
     */
-    margin-bottom: 16px; 
+    margin-top: -13%;
     
     margin-left: auto;
     margin-right: auto;

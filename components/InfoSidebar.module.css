@@ -18,14 +18,14 @@
   /* 449px * 0.9 = 404px */
   height: 404px; 
   background-color: #FFFFFF;
-  border-radius: 12px;
+  border-radius: 20px;
   position: relative; 
   overflow: hidden; 
 }
 
 /* (내부 패딩 등은 폰트 크기 비례 유지) */
 .content {
-  padding: 32px;
+  padding: 24px;
   position: relative; 
   z-index: 2; 
 }
@@ -61,6 +61,9 @@
   font-family: var(--font-jeju); 
   margin-bottom: 24px;
 }
+.personQuote br {
+  display: none;
+}
 
 .imageContainer {
   position: absolute;
@@ -84,31 +87,41 @@
 /* --- 모바일 반응형 (모바일은 90% 축소 제외) --- */
 @media (max-width: 768px) {
   .sidebar {
-    width: 320px; 
     max-width: 100%;
     height: auto; 
-    display: block; 
+    flex-direction: row;
+    gap: 20px;
   }
   .card {
-    width: 320px;
-    height: 449px; 
+    flex: 1;
+    width: unset;
+    height: unset; 
     max-width: 100%;
     padding: 0; 
+    border-radius: 20px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   }
+  .cardTitle{
+    font-size: 14px;
+  }
   .content {
-    padding: 24px; 
+    padding: 12px; 
   }
   .personName {
-    font-size: 24px;
+    font-size: 18px;
+    margin-bottom: 2px;
   }
   .personQuote {
-    font-size: 16px;
+    font-size: 14px;
+  }
+  .personQuote br{
+    display: inline;
   }
   .imageContainer {
-    width: 400px;
-    height: 400px;
-    left: -80px; 
-    top: 140px; /* (모바일에서는 원본 값 유지) */
+    width: auto;
+    height: calc(100% - 40px);
+    left: unset; right: 0; 
+    top: unset;
+    bottom: 0;
   }
 }
