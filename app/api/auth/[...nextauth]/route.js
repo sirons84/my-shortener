@@ -1,7 +1,7 @@
 // 파일 경로: app/api/auth/[...nextauth]/route.js (새 파일)
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { supabaseAdmin } from "../../../lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // (!! 중요 !!)
 // AIEP 연동을 위해 Supabase Auth 대신 NextAuth를 사용합니다.

@@ -1,7 +1,7 @@
 // 파일 경로: app/api/saml/login/route.js (새 파일)
 // '우리아이 로그인' 버튼이 이 경로로 링크됩니다.
 import { NextResponse } from "next/server";
-import { sp, idp } from "../../../lib/saml";
+import { sp, idp } from "@/lib/saml";
 
 export async function GET() {
   try {

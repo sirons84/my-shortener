@@ -2,7 +2,7 @@
 // AIEP(IdP)가 SAML 응답을 POST할 경로입니다.
 
 import { NextResponse } from "next/server";
-import { sp, idp } from "../../../lib/saml";
+import { sp, idp } from "@/lib/saml";
 import { cookies } from 'next/headers';
 
 export async function POST(req) {
