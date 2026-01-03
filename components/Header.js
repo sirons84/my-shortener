@@ -10,14 +10,31 @@ import { supabase } from '@/lib/supabaseClient';
 export default function Header() {
   const [user, setUser] = useState(null);
   
-  // 로그인 모달 상태 관리
+  // 모달 상태
   const [showModal, setShowModal] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false); // true면 회원가입 모드
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false); 
   const [loading, setLoading] = useState(false);
 
-  // 초기 세션 확인 및 상태 감지
+  // 입력 폼 상태
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); // 성명
+  const [region, setRegion] = useState("서울특별시교육청"); // 지역 (기본값)
+  const [schoolLevel, setSchoolLevel] = useState("초등학교"); // 학교급 (기본값)
+
+  // 교육청 목록
+  const regionList = [
+    "서울특별시교육청", "부산광역시교육청", "대구광역시교육청", "인천광역시교육청", 
+    "광주광역시교육청", "대전광역시교육청", "울산광역시교육청", "세종특별자치시교육청", 
+    "경기도교육청", "강원특별자치도교육청", "충청북도교육청", "충청남도교육청", 
+    "전북특별자치도교육청", "전라남도교육청", "경상북도교육청", "경상남도교육청", 
+    "제주특별자치도교육청"
+  ];
+
+  // 학교급 목록
+  const schoolLevelList = ["초등학교", "중학교", "고등학교", "기타"];
+
+  // 초기 세션 확인
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -34,14 +51,14 @@ export default function Header() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 이메일/비밀번호 인증 처리 함수
+  // 인증 처리 함수
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isSignUp) {
-        // --- 회원가입 로직 ---
+        // --- 회원가입 ---
         
         // 1. 도메인 체크
         if (!email.endsWith("@usedu.ai.kr")) {
@@ -50,31 +67,37 @@ export default function Header() {
           return;
         }
 
-        // 2. Supabase 회원가입 요청
+        // 2. Supabase 가입 요청 (추가 정보 포함)
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              name: name,
+              region: region,
+              school_level: schoolLevel,
+            },
+          },
         });
 
         if (error) throw error;
 
         alert("가입 인증 메일을 보냈습니다!\n이메일을 확인하여 인증 링크를 클릭해주세요.");
-        setShowModal(false); // 모달 닫기
-        setIsSignUp(false); // 로그인 모드로 복귀
+        setShowModal(false);
+        setIsSignUp(false);
 
       } else {
-        // --- 로그인 로직 ---
+        // --- 로그인 ---
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
-        // 로그인 성공 시 onAuthStateChange가 자동으로 감지하여 UI 업데이트
         setShowModal(false); 
       }
     } catch (error) {
-      alert(error.message); // 에러 메시지 표시 (예: 비밀번호 틀림 등)
+      alert(error.message);
     } finally {
       setLoading(false);
     }
@@ -123,75 +146,96 @@ export default function Header() {
         </div>
       </header>
 
-      {/* --- 로그인/회원가입 모달 (팝업) --- */}
+      {/* --- 모달 --- */}
       {showModal && (
         <div 
           style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={() => setShowModal(false)} // 배경 클릭 시 닫기
+          onClick={() => setShowModal(false)}
         >
           <div 
             style={{
-              backgroundColor: 'white',
-              padding: '2rem',
-              borderRadius: '12px',
-              width: '90%',
-              maxWidth: '400px',
+              backgroundColor: 'white', padding: '2rem', borderRadius: '12px',
+              width: '90%', maxWidth: '400px',
+              maxHeight: '90vh', overflowY: 'auto', // 내용이 길어지면 스크롤
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}
-            onClick={e => e.stopPropagation()} // 내부 클릭 시 닫기 방지
+            onClick={e => e.stopPropagation()}
           >
             <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', fontWeight: 'bold' }}>
-              {isSignUp ? "회원가입" : "로그인"}
+              {isSignUp ? "선생님 회원가입" : "로그인"}
             </h2>
             
             <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              
+              {/* 공통: 이메일 & 비밀번호 */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' }}>이메일</label>
+                <label style={labelStyle}>이메일</label>
                 <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@usedu.ai.kr"
-                  required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="example@usedu.ai.kr" required
+                  style={inputStyle}
                 />
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' }}>비밀번호</label>
+                <label style={labelStyle}>비밀번호</label>
                 <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="6자리 이상 입력"
-                  required
-                  minLength={6}
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                  placeholder="6자리 이상 입력" required minLength={6}
+                  style={inputStyle}
                 />
               </div>
 
+              {/* 회원가입 시에만 보이는 추가 정보 */}
+              {isSignUp && (
+                <>
+                  <div>
+                    <label style={labelStyle}>성명</label>
+                    <input 
+                      type="text" value={name} onChange={(e) => setName(e.target.value)}
+                      placeholder="홍길동" required
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>소속 교육청</label>
+                    <select 
+                      value={region} onChange={(e) => setRegion(e.target.value)}
+                      style={inputStyle}
+                    >
+                      {regionList.map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>학교급</label>
+                    <select 
+                      value={schoolLevel} onChange={(e) => setSchoolLevel(e.target.value)}
+                      style={inputStyle}
+                    >
+                      {schoolLevelList.map((lvl) => (
+                        <option key={lvl} value={lvl}>{lvl}</option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+
               <button 
-                type="submit" 
-                disabled={loading}
+                type="submit" disabled={loading}
                 style={{
-                  marginTop: '1rem',
-                  padding: '0.75rem',
-                  backgroundColor: '#0984e3',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  cursor: loading ? 'wait' : 'pointer',
-                  opacity: loading ? 0.7 : 1
+                  marginTop: '1rem', padding: '0.75rem',
+                  backgroundColor: '#0984e3', color: 'white',
+                  border: 'none', borderRadius: '6px',
+                  fontSize: '1rem', fontWeight: 'bold',
+                  cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1
                 }}
               >
                 {loading ? "처리 중..." : (isSignUp ? "가입하기" : "로그인")}
@@ -213,3 +257,7 @@ export default function Header() {
     </>
   );
 }
+
+// 간단한 스타일 객체
+const labelStyle = { display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' };
+const inputStyle = { width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem' };
