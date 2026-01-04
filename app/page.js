@@ -17,7 +17,7 @@ import StyledSelect from "../components/StyledSelect";
 
 // QR코드 설정 (로고 등)
 const qrImageSettings = {
-  src: "/qrlogo.png", 
+  src: "/qrlogo2.png", 
   height: 32,
   width: 32,
   excavate: true,
@@ -225,7 +225,8 @@ export default function Home() {
       </section>
 
       {/* --- 캐릭터 (배경 고정) --- */}
-      <div className={styles.character}></div>
+
+
     </div>
   );
 }
