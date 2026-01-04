@@ -1,68 +1,30 @@
-/* 파일 경로: app/api/shorten/route.js (이 코드로 덮어쓰세요) */
+/* pages/api/shorten.js 내부 (URL 생성 로직 앞부분) */
 
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "../../../lib/supabaseAdmin";   // ✅ 상대경로 유지
-import { supabase } from "../../../lib/supabaseClient";       // ✅ 클라이언트 SDK도 상대경로
-// (!! 1. 삭제 !!) import { v4 as uuidv4 } from "uuid";
-import { toASCII } from "punycode";
+// ... (인증 및 user 정보 가져오는 부분 이후)
 
-export async function POST(req) {
-  const { url, customCode, expiry } = await req.json();
+if (user) {
+  // 1. 현재 유저가 만든 URL 개수 조회
+  const { count, error: countError } = await supabase
+    .from('links') // 테이블 이름이 'links'라고 가정 (다르면 수정 필요)
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id);
 
-  // ✅ Authorization 헤더에서 토큰 추출
-  const authHeader = req.headers.get("authorization");
-  let userId = null;
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    if (error) {
-      console.error("Auth error:", error.message);
-    }
-    userId = user?.id ?? null;
+  if (countError) {
+    return res.status(500).json({ error: "사용량 조회 중 오류가 발생했습니다." });
   }
 
-  // (!! 2. 수정 !!) 
-  // uuidv4() 대신 Math.random()을 사용해 랜덤 문자열 생성
-  const code =
-    customCode && customCode.trim() !== ""
-      ? toASCII(customCode.trim()) // 한글을 Punycode로 변환
-      : Math.random().toString(36).substring(2, 8); // 6자리 랜덤 문자열
+  // 2. 유저의 교육청 정보 확인
+  const userRegion = user.user_metadata?.region || "기타";
+  
+  // 3. 제한 설정 (울산: 200개, 그 외: 50개)
+  const limit = userRegion === "울산광역시교육청" ? 200 : 50;
 
-  // 만료일 계산
-  let expiresAt = null;
-  if (expiry === "1d") {
-    expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  } else if (expiry === "7d") {
-    expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (expiry === "30d") {
-    expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (expiry === "180d") {
-    expiresAt = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (expiry === "365d") {
-    expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-  } else if (expiry === "forever") {
-    expiresAt = null;
+  // 4. 제한 초과 확인
+  if (count >= limit) {
+    return res.status(403).json({ 
+      error: `생성 한도를 초과했습니다. (${userRegion}: 최대 ${limit}개)` 
+    });
   }
-  // 그 외의 경우 (기본값, 7d)
-  else {
-    expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  }
-
-
-  // DB 저장
-  const { data, error } = await supabaseAdmin
-    .from("urls")
-    .insert([{ code, url, expires_at: expiresAt, user_id: userId }])
-    .select() // (!! 중요 !!) 삽입한 데이터를 다시 선택
-    .single();
-
-  if (error) {
-    if (error.code === '23505') { // Supabase 중복 키 오류 코드
-       return NextResponse.json({ error: "duplicate key" }, { status: 409 });
-    }
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // (!! 3. 중요 !!) data.code를 JSON으로 반환
-  return NextResponse.json({ code: data.code });
 }
+
+// ... (이후 URL insert 로직 진행)
