@@ -1,13 +1,15 @@
 /* 파일 경로: app/api/shorten/route.js */
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
-  // 1. Supabase 클라이언트 생성 (App Router 방식)
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  // 1. Supabase 클라이언트 생성 (기본 라이브러리 사용)
+  // (환경변수가 제대로 설정되어 있어야 합니다)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 
   // 2. 요청 데이터(Body) 가져오기
   const body = await request.json();
@@ -17,8 +19,17 @@ export async function POST(request) {
     return NextResponse.json({ error: "URL이 없습니다." }, { status: 400 });
   }
 
-  // 3. 유저 정보 확인
-  const { data: { user } } = await supabase.auth.getUser();
+  // 3. 유저 정보 확인 (헤더에 있는 토큰으로 확인)
+  const authHeader = request.headers.get('authorization');
+  let user = null;
+
+  if (authHeader) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: foundUser }, error } = await supabase.auth.getUser(token);
+    if (!error && foundUser) {
+      user = foundUser;
+    }
+  }
 
   // --- [교육청별 생성 개수 제한 로직] ---
   if (user) {
