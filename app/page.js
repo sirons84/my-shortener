@@ -70,15 +70,19 @@ export default function Home() {
         headers: headers,
         body: JSON.stringify({ url, customCode, expiry }),
       });
+// ▼▼▼ 여기부터 수정해주세요 ▼▼▼
+      const data = await res.json(); // 응답 데이터를 먼저 받습니다.
 
       if (res.ok) {
-        const data = await res.json();
         setShortCode(data.code); 
       } else if (res.status === 409) {
         setError("이미 사용 중인 단축 주소입니다.");
       } else {
-        setError("URL을 줄이는 데 실패했습니다.");
+        // 서버가 보내준 진짜 에러 메시지를 화면에 보여줍니다.
+        setError(data.error || "URL을 줄이는 데 실패했습니다.");
       }
+      // ▲▲▲ 여기까지 수정 ▲▲▲
+            
     } catch (err) {
       setError("네트워크 오류가 발생했습니다.");
     } finally {
