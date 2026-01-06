@@ -4,8 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
-  // 1. Supabase 클라이언트 생성 (기본 라이브러리 사용)
-  // (환경변수가 제대로 설정되어 있어야 합니다)
+  // 1. Supabase 클라이언트 생성
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -19,7 +18,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "URL이 없습니다." }, { status: 400 });
   }
 
-  // 3. 유저 정보 확인 (헤더에 있는 토큰으로 확인)
+  // 3. 유저 정보 확인
   const authHeader = request.headers.get('authorization');
   let user = null;
 
@@ -33,8 +32,9 @@ export async function POST(request) {
 
   // --- [교육청별 생성 개수 제한 로직] ---
   if (user) {
+    // 테이블명 변경: links -> urls
     const { count, error: countError } = await supabase
-      .from('links') 
+      .from('urls') 
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
@@ -53,15 +53,16 @@ export async function POST(request) {
   }
   // ------------------------------------
 
-  // 4. 단축 코드 생성 (라이브러리 없이 직접 생성)
+  // 4. 단축 코드 생성
   let code;
   
   if (customCode) {
     // (1) 사용자 지정 코드인 경우 중복 체크
+    // 테이블명 및 컬럼명 변경: links -> urls, slug -> code
     const { data: existing } = await supabase
-      .from('links')
-      .select('slug')
-      .eq('slug', customCode)
+      .from('urls')
+      .select('code')
+      .eq('code', customCode)
       .single();
     
     if (existing) {
@@ -70,7 +71,7 @@ export async function POST(request) {
     code = customCode;
 
   } else {
-    // (2) 랜덤 코드 생성 (직접 만든 함수 사용)
+    // (2) 랜덤 코드 생성
     let isUnique = false;
     let retryCount = 0;
 
@@ -83,10 +84,11 @@ export async function POST(request) {
       code = generateRandomString(6);
 
       // 중복 확인
+      // 테이블명 및 컬럼명 변경: links -> urls, slug -> code
       const { data: existing } = await supabase
-        .from('links')
-        .select('slug')
-        .eq('slug', code)
+        .from('urls')
+        .select('code')
+        .eq('code', code)
         .single();
         
       if (!existing) isUnique = true;
@@ -95,11 +97,16 @@ export async function POST(request) {
   }
 
   // 5. DB에 저장
-  const { error } = await supabase.from('links').insert({
-    original_url: url,
-    slug: code,
+  // 테이블명 및 컬럼명 변경:
+  // links -> urls
+  // original_url -> url
+  // slug -> code
+  // expiry_date -> expires_at
+  const { error } = await supabase.from('urls').insert({
+    url: url,
+    code: code,
     user_id: user ? user.id : null,
-    expiry_date: calculateExpiry(expiry)
+    expires_at: calculateExpiry(expiry)
   });
 
   if (error) {

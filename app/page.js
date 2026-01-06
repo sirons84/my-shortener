@@ -135,7 +135,7 @@ export default function Home() {
       <InfoSidebar />
 
       <section className={styles.mainContent}>
-        <h2 className={styles.title}>긴~주소 짧게 줄이기</h2>
+        <h2 className={styles.title}>외솔 최현배 선생님과 한글 주소 만들기</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <StyledInput
