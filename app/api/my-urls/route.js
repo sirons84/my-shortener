@@ -1,28 +1,33 @@
-/* pages/api/my-urls.js (예시) */
+import { NextResponse } from "next/server";
+import { supabase } from "../../lib/supabaseClient";
 
-import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
-
-export default async function handler(req, res) {
-  // 1. Supabase 클라이언트 생성
-  const supabase = createPagesServerClient({ req, res });
-
-  // 🚨 [중요] 이 부분이 빠져 있어서 에러가 난 것입니다! 🚨
-  // user 변수를 사용하기 위해 먼저 user 정보를 가져와서 변수에 담아야 합니다.
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // 2. 이제 user 변수를 사용할 수 있습니다.
-  if (!user) {
-    return res.status(401).json({ error: '로그인이 필요합니다.' });
+// Next.js App Router 방식의 GET 핸들러
+export async function GET(req) {
+  // 1. 사용자 인증 (헤더의 Authorization 토큰 확인)
+  const authHeader = req.headers.get("authorization");
+  
+  if (!authHeader) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // ... (기존 로직: DB에서 URL 목록 가져오기 등) ...
-  
-  // 예: user.id를 사용하여 해당 유저의 URL만 가져오는 코드
-  const { data, error } = await supabase
-    .from('links')
-    .select('*')
-    .eq('user_id', user.id); // 여기서 user.id를 쓰려면 위에서 user를 정의했어야 함
+  const token = authHeader.split(" ")[1];
+  const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
-  if (error) return res.status(500).json({ error: error.message });
-  return res.status(200).json(data);
+  if (userError || !user) {
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  }
+
+  // 2. 데이터 조회 (테이블명: links -> urls 로 변경)
+  // 최신순으로 정렬 (created_at이 있다면 사용, 없다면 생략 가능하지만 보통 내림차순 정렬을 선호)
+  const { data, error } = await supabase
+    .from("urls") 
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
 }
