@@ -1,6 +1,3 @@
-// 파일 경로: app/dashboard/page.js
-// (이 코드로 파일 전체를 덮어쓰세요)
-
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
@@ -9,10 +6,10 @@ import { FaTrashAlt, FaQrcode, FaExternalLinkAlt, FaPencilAlt } from "react-icon
 import Link from "next/link";
 import { toUnicode, toASCII } from "punycode";
 
-// QR 코드 로고 설정 (대시보드 전용)
+// QR 코드 로고 설정
 const qrImageSettings = {
   src: "/logo.png",
-  height: 16, // 대시보드용 작은 아이콘
+  height: 16,
   width: 16,
   excavate: true,
 };
@@ -25,6 +22,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
+      // 1. 유저 확인
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
         window.location.href = "/login";
@@ -32,6 +30,7 @@ export default function DashboardPage() {
       }
       setUser(data.user);
 
+      // 2. 현재 도메인 파악 (한글 도메인 처리)
       try {
         const urlObj = new URL(window.location.origin);
         urlObj.hostname = toASCII(urlObj.hostname);
@@ -40,18 +39,28 @@ export default function DashboardPage() {
         setPunycodeOrigin(window.location.origin);
       }
 
+      // 3. 토큰 가져오기
       const sessionToken = (await supabase.auth.getSession()).data.session?.access_token;
       setToken(sessionToken);
 
+      // 4. 내 URL 목록 가져오기
       const res = await fetch("/api/my-urls", {
         headers: { Authorization: `Bearer ${sessionToken}` }
       });
+      
       const d = await res.json();
-      setUrls(d.urls || []);
+      
+      // [수정 핵심] API가 배열을 바로 반환하므로 d.urls가 아니라 d를 사용해야 합니다.
+      if (Array.isArray(d)) {
+        setUrls(d);
+      } else {
+        setUrls([]);
+      }
     }
     load();
   }, []);
 
+  // 삭제 기능
   async function deleteUrl(code) {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     
@@ -60,29 +69,33 @@ export default function DashboardPage() {
       return;
     }
 
-    await fetch(`/api/url/${code}`, {
+    // [수정] 경로를 /api/[code]에 맞춤
+    const res = await fetch(`/api/${code}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     });
-    setUrls(urls.filter((u) => u.code !== code));
+
+    if (res.ok) {
+      setUrls(urls.filter((u) => u.code !== code));
+    } else {
+      alert("삭제 실패");
+    }
   }
   
+  // 수정 기능
   async function handleEdit(code, currentUrl) {
     const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
     
-    // !! FIX: 사용자에게 보여줄 한글 코드 (오류 방지)
     let displayCode = code;
     try {
-      // 'xn--'로 시작할 때만 한글로 변환
       if (code && code.startsWith('xn--')) {
         displayCode = toUnicode(code);
       }
-    } catch (e) {} // 에러 시 Punycode 원본(code) 사용
+    } catch (e) {}
 
     if (newUrl && newUrl !== currentUrl && token) {
-      const res = await fetch(`/api/url/${code}`, {
+      // [수정] 경로를 /api/[code]에 맞춤
+      const res = await fetch(`/api/${code}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -102,14 +115,9 @@ export default function DashboardPage() {
   }
 
   return (
-    /* (!! 수정 !!) 
-      - background: "#f5f6fa" 제거
-      - fontFamily: "Arial, sans-serif" 제거
-      - (globals.css의 그래픽 배경과 폰트가 적용됩니다)
-    */
     <div style={{
       display: "flex", justifyContent: "center", alignItems: "flex-start",
-      minHeight: "calc(100vh - 160px)", /* (헤더/푸터 제외한 높이) */
+      minHeight: "calc(100vh - 160px)",
       padding: "20px"
     }}>
       <div style={{
@@ -121,16 +129,10 @@ export default function DashboardPage() {
           <Link
               href="/"
               style={{
-                padding: "8px 14px",
-                background: "#636e72",
-                color: "#fff",
-                borderRadius: 6,
-                textDecoration: "none",
-                fontWeight: "bold",
-                fontSize: "0.9rem",
-                transition: "background 0.2s ease",
-                display: "inline-block", /* (margin 적용 위해) */
-                marginBottom: "1rem"
+                padding: "8px 14px", background: "#636e72", color: "#fff",
+                borderRadius: 6, textDecoration: "none", fontWeight: "bold",
+                fontSize: "0.9rem", transition: "background 0.2s ease",
+                display: "inline-block", marginBottom: "1rem"
               }}
               onMouseOver={(e) => (e.target.style.background = "#2d3436")}
               onMouseOut={(e) => (e.target.style.background = "#636e72")}
@@ -141,99 +143,60 @@ export default function DashboardPage() {
         {user && <p>안녕하세요, {user.email}</p>}
         
         {punycodeOrigin && ( 
-        <table style={{
-          width: "100%", borderCollapse: "collapse", marginTop: 16
-        }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
           <thead>
             <tr style={{ background: "#f1f2f6" }}>
               <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>코드</th>
               <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>원본 URL</th>
               <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>만료일</th>
-              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                <FaQrcode style={{ marginRight: 6 }} /> QR
-              </th>
+              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>QR</th>
               <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>관리</th>
             </tr>
           </thead>
           <tbody>
             {urls.map((u) => {
               const functionalShortUrl = `${punycodeOrigin}/${u.code}`;
-              
-              // !! FIX:
-              // displayCode: 표시용 (예: 테스트 / ming2)
               let displayCode = u.code;
               try {
-                // 'xn--'로 시작할 때만 한글로 변환 (RangeError 방지)
                 if (u.code && u.code.startsWith('xn--')) {
                   displayCode = toUnicode(u.code);
                 }
-              } catch (e) {
-                console.error("Punycode conversion error in map:", e);
-              }
+              } catch (e) {}
 
               return (
               <tr key={u.code}>
-                <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {displayCode}
-                </td>
+                <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>{displayCode}</td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
                   <a
-                    href={functionalShortUrl} 
+                    href={u.url} 
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }}
                   >
-                    {u.url} 
+                    {u.url.length > 30 ? u.url.slice(0,30) + '...' : u.url}
                     <FaExternalLinkAlt style={{ marginLeft: 6, color: "#636e72" }} />
                   </a>
                 </td>
                 <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {u.expires_at ? new Date(u.expires_at).toLocaleString() : "무제한"}
+                  {u.expires_at ? new Date(u.expires_at).toLocaleDateString() : "무제한"}
                 </td>
-                <td style={{
-                  padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
-                }}>
-                  <QRCodeCanvas 
-                    value={functionalShortUrl} 
-                    size={64} 
-                    level="H"
-                    imageSettings={qrImageSettings}
-                  />
+                <td style={{ padding: 8, border: "1px solid #dfe6e9", textAlign: "center" }}>
+                  <QRCodeCanvas value={functionalShortUrl} size={64} level="H" imageSettings={qrImageSettings} />
                 </td>
-                <td style={{
-                  padding: 8, border: "1px solid #dfe6e9", textAlign: "center"
-                }}>
-                  <button
-                    onClick={() => handleEdit(u.code, u.url)}
-                    style={{
-                      background: "#fff", color: "#333", border: "1px solid #ccc",
-                      padding: "6px 8px", borderRadius: 6,
-                      display: "flex", alignItems: "center", gap: "6px",
-                      justifyContent: "center", cursor: "pointer", marginBottom: "4px", width: "80px"
-                    }}
-                  >
-                    <FaPencilAlt /> 수정
-                  </button>
-                  <button
-                    onClick={() => deleteUrl(u.code)}
-                    style={{
-                      background: "#555", color: "#fff", border: "none",
-                      padding: "6px 8px", borderRadius: 6,
-                      display: "flex", alignItems: "center", gap: "6px",
-                      justifyContent: "center", cursor: "pointer", width: "80px"
-                    }}
-                  >
-                    <FaTrashAlt /> 삭제
-                  </button>
+                <td style={{ padding: 8, border: "1px solid #dfe6e9", textAlign: "center" }}>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                    <button onClick={() => handleEdit(u.code, u.url)} style={{ cursor: "pointer", background:"none", border:"1px solid #ccc", borderRadius:4, padding:4 }}>
+                      <FaPencilAlt />
+                    </button>
+                    <button onClick={() => deleteUrl(u.code)} style={{ cursor: "pointer", background:"#d63031", color:"white", border:"none", borderRadius:4, padding:4 }}>
+                      <FaTrashAlt />
+                    </button>
+                  </div>
                 </td>
               </tr>
             )})}
             {urls.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ textAlign: "center", padding: 16 }}>
-                  등록된 URL이 없습니다.
-                </td>
-              </tr>
+              <tr><td colSpan={5} style={{ textAlign: "center", padding: 16 }}>등록된 URL이 없습니다.</td></tr>
             )}
           </tbody>
         </table>

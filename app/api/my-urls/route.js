@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from '@supabase/supabase-js';
-import { supabaseAdmin } from "../../../lib/supabaseAdmin";
+import { supabaseAdmin } from "../../../lib/supabaseAdmin"; // 관리자 권한 사용
+import { supabase } from "../../../lib/supabaseClient"; // 토큰 검증용
 
 export async function GET(req) {
   const authHeader = req.headers.get("authorization");
@@ -9,12 +9,6 @@ export async function GET(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 1. 토큰 검증
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
-  
   const token = authHeader.split(" ")[1];
   const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
@@ -22,7 +16,7 @@ export async function GET(req) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // 2. 데이터 조회 (urls 테이블, 관리자 권한 사용)
+  // 변경된 테이블(urls)에서 조회
   const { data, error } = await supabaseAdmin
     .from("urls") 
     .select("*")
@@ -33,5 +27,6 @@ export async function GET(req) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // 중요: 배열(data)을 그대로 반환합니다. ({ urls: data } 아님)
   return NextResponse.json(data);
 }

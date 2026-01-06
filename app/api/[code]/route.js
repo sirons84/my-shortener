@@ -2,61 +2,41 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../lib/supabaseAdmin";
 import { supabase } from "../../../lib/supabaseClient";
 
-// 사용자 인증 및 URL 소유권 확인 함수
+// 사용자 및 URL 검증 함수
 async function getUserAndUrl(req, code) {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader) {
-    return { user: null, urlData: null, error: "Unauthorized" };
-  }
+  if (!authHeader) return { error: "Unauthorized", status: 401 };
 
   const token = authHeader.split(" ")[1];
   const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
-  if (userError || !user) {
-    return { user: null, urlData: null, error: "Invalid token" };
-  }
+  if (userError || !user) return { error: "Invalid token", status: 401 };
 
   // 한글 코드 디코딩
   const targetCode = decodeURIComponent(code);
 
-  // DB 조회 (테이블: urls)
   const { data, error } = await supabaseAdmin
-    .from("urls")
+    .from("urls") // urls 테이블 사용
     .select("user_id")
     .eq("code", targetCode)
     .single();
 
-  if (error || !data) {
-    return { user, urlData: null, error: "URL not found" };
-  }
+  if (error || !data) return { error: "URL not found", status: 404 };
+  if (data.user_id !== user.id) return { error: "Forbidden", status: 403 };
 
-  if (data.user_id !== user.id) {
-    return { user, urlData: null, error: "Forbidden" };
-  }
-
-  return { user, urlData: data, error: null };
+  return { user, urlData: data };
 }
 
-// 기능: 목적지 URL 변경 (PATCH)
+// PATCH: URL 수정
 export async function PATCH(req, { params }) {
-  // [핵심 수정] params를 await로 기다림
-  const { code } = await params;
+  const { code } = await params; // await 필수!
   const { newUrl } = await req.json();
 
-  if (!newUrl) {
-    return NextResponse.json({ error: "New URL is required" }, { status: 400 });
-  }
+  if (!newUrl) return NextResponse.json({ error: "New URL is required" }, { status: 400 });
 
-  const { user, error: authError } = await getUserAndUrl(req, code);
+  const { user, error, status } = await getUserAndUrl(req, code);
+  if (error) return NextResponse.json({ error }, { status });
 
-  if (authError) {
-    const status = authError === "Unauthorized" || authError === "Invalid token" ? 401
-                   : authError === "Forbidden" ? 403
-                   : 404;
-    return NextResponse.json({ error: authError }, { status });
-  }
-
-  // 업데이트 (테이블: urls)
   const targetCode = decodeURIComponent(code);
   const { error: updateError } = await supabaseAdmin
     .from("urls")
@@ -64,28 +44,18 @@ export async function PATCH(req, { params }) {
     .eq("code", targetCode)
     .eq("user_id", user.id);
 
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
-  }
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
 
-  return NextResponse.json({ message: "URL updated successfully" });
+  return NextResponse.json({ message: "Updated" });
 }
 
-// 기능: URL 삭제 (DELETE)
+// DELETE: URL 삭제
 export async function DELETE(req, { params }) {
-  // [핵심 수정] params를 await로 기다림
-  const { code } = await params;
-  
-  const { user, error: authError } = await getUserAndUrl(req, code);
+  const { code } = await params; // await 필수!
 
-  if (authError) {
-    const status = authError === "Unauthorized" || authError === "Invalid token" ? 401
-                   : authError === "Forbidden" ? 403
-                   : 404;
-    return NextResponse.json({ error: authError }, { status });
-  }
+  const { user, error, status } = await getUserAndUrl(req, code);
+  if (error) return NextResponse.json({ error }, { status });
 
-  // 삭제 (테이블: urls)
   const targetCode = decodeURIComponent(code);
   const { error: deleteError } = await supabaseAdmin
     .from("urls")
@@ -93,9 +63,7 @@ export async function DELETE(req, { params }) {
     .eq("code", targetCode)
     .eq("user_id", user.id);
 
-  if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 });
-  }
+  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
 
-  return NextResponse.json({ message: "URL deleted successfully" });
+  return NextResponse.json({ message: "Deleted" });
 }
