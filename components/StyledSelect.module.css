@@ -1,98 +1,120 @@
 /* 파일 경로: components/StyledSelect.module.css */
 .wrapper {
   width: 100%;
-  position: relative; /* 힌트 메시지 위치 잡기용 */
-}
-
-.selectWrapper {
-  width: 160px;
-  height: 90px;
-  /* 기존의 강한 노란색 대신, 조금 더 부드러운 스타일이나 흰색 배경 추천 
-     (브랜드 컬러 유지하려면 노란색을 쓰되 그림자를 추가) */
-  background-color: rgba(255, 210, 45, 0.9); 
-  border-radius: 16px; /* 더 둥글게 */
-  border: 2px solid transparent; 
-  padding: 16px 20px; 
-  
-  display: flex;
-  flex-direction: column;
-  justify-content: center; 
-  
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  position: relative;
-  
-  /* 부드러운 그림자 추가 */
-  box-shadow: 0 4px 10px rgba(255, 210, 45, 0.3);
-}
-
-.selectWrapper:hover {
-  transform: translateY(-2px); /* 살짝 떠오르는 효과 */
-  box-shadow: 0 6px 14px rgba(255, 210, 45, 0.4);
-}
-
-.selectWrapper:focus-within {
-  outline: none;
-  border-color: #333; /* 포커스 시 테두리 */
+  position: relative; /* 드롭다운 메뉴 위치 기준점 */
+  user-select: none;  /* 텍스트 드래그 방지 */
 }
 
 .label {
   display: block;
-  font-size: 14px; /* 라벨 크기 살짝 조정 */
+  font-size: 14px;
   font-weight: 600;
   color: #4a4a4a;
   margin-bottom: 8px; 
-  letter-spacing: -0.5px;
 }
 
-.select {
-  width: 100%;
-  height: auto; 
-  background-color: transparent; 
-  border: none;
-  outline: none;
+/* 1. 평소 보이는 버튼 스타일 */
+.trigger {
+  width: 160px;
+  height: 90px;
+  background-color: rgba(255, 210, 45, 0.9); /* 브랜드 컬러 */
+  border-radius: 16px;
+  padding: 16px 20px;
   
-  font-size: 20px; /* 폰트 사이즈 조정 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(255, 210, 45, 0.3);
+}
+
+.trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(255, 210, 45, 0.4);
+}
+
+.triggerOpen {
+  /* 메뉴가 열렸을 때 스타일 (테두리 등 효과를 원하면 추가) */
+  box-shadow: 0 2px 5px rgba(255, 210, 45, 0.2);
+  transform: translateY(0);
+}
+
+.currentValue {
+  font-size: 20px;
   font-weight: 700;
   color: #2d3436;
-  cursor: pointer;
-  
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  
-  padding-right: 20px; 
-  padding-left: 0;
-  margin: 0;
 }
 
-/* (변경) 투박한 삼각형 대신 세련된 꺾쇠(Chevron) 화살표 
-*/
-.selectWrapper::after {
-  content: '';
+/* 2. 화살표 아이콘 */
+.arrowIcon {
   position: absolute;
-  top: 55%;
+  top: 50%;
   right: 20px;
   width: 10px;
   height: 10px;
-  
-  /* L자 모양을 만들고 45도 회전시켜 V자 만들기 */
   border-right: 2.5px solid #2d3436;
   border-bottom: 2.5px solid #2d3436;
   transform: translateY(-50%) rotate(45deg);
-  
-  pointer-events: none;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
-/* 셀렉트 박스를 클릭했을 때(포커스) 화살표가 돌아가는 효과 (선택적) */
-.selectWrapper:focus-within::after {
+/* 메뉴 열렸을 때 화살표 회전 */
+.triggerOpen .arrowIcon {
   transform: translateY(-20%) rotate(225deg);
 }
 
+
+/* 3. 펼쳐지는 드롭다운 메뉴 스타일 (핵심!) */
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px); /* 버튼 바로 아래 + 8px 간격 */
+  left: 0;
+  width: 160px; /* 버튼과 같은 너비 */
+  
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* 부드럽고 진한 그림자 */
+  padding: 8px;
+  z-index: 100; /* 다른 요소보다 위에 뜨게 */
+  
+  list-style: none;
+  animation: fadeIn 0.2s ease-out;
+  border: 1px solid #f1f2f6;
+}
+
+.optionItem {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #636e72;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.optionItem:hover {
+  background-color: #fff7d1; /* 마우스 올렸을 때 연한 노란색 */
+  color: #2d3436;
+}
+
+.selected {
+  background-color: #ffda79; /* 선택된 항목 진한 노란색 */
+  color: #000;
+  font-weight: 700;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 모바일 대응 */
 @media (max-width: 768px) {
-  .selectWrapper {
+  .trigger, .dropdownMenu {
     width: 100%;
-    height: 80px;
   }
 }

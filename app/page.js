@@ -6,9 +6,8 @@ import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
 import { toUnicode, toASCII } from "punycode";
 import Image from 'next/image'; 
-import Link from 'next/link'; // (★추가) 링크 이동을 위해 필요
+import Link from 'next/link';
 
-// --- 컴포넌트 임포트 ---
 import styles from "./page.module.css";
 import InfoSidebar from "../components/InfoSidebar";
 import StyledInput from "../components/StyledInput";
@@ -16,7 +15,6 @@ import SubmitButton from "../components/SubmitButton";
 import PrefixedInput from "../components/PrefixedInput";
 import StyledSelect from "../components/StyledSelect";
 
-// QR코드 설정 (로고 등)
 const qrImageSettings = {
   src: "/qrlogo2.png", 
   height: 32,
@@ -25,7 +23,6 @@ const qrImageSettings = {
 };
 
 export default function Home() {
-  // ... (상태 변수 및 useEffect 코드는 기존과 동일) ...
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
@@ -51,7 +48,6 @@ export default function Home() {
   }, []);
 
   async function handleSubmit(e) {
-    // ... (기존 handleSubmit 코드 동일) ...
     e.preventDefault();
     setLoading(true);
     setShortCode("");
@@ -59,7 +55,6 @@ export default function Home() {
 
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
-
     const headers = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -69,7 +64,6 @@ export default function Home() {
         headers: headers,
         body: JSON.stringify({ url, customCode, expiry }),
       });
-
       const data = await res.json(); 
 
       if (res.ok) {
@@ -86,10 +80,23 @@ export default function Home() {
     }
   }
 
-  // ... (displayShortUrl 계산 로직 등 기존 코드 동일) ...
+  // --- [중요] 드롭다운 메뉴 데이터 생성 ---
+  const expiryOptions = [
+    { value: "7d", label: "1주일" },
+    { value: "30d", label: "1개월" },
+  ];
+
+  if (user) {
+    expiryOptions.push(
+      { value: "180d", label: "6개월" },
+      { value: "365d", label: "1년" },
+      { value: "forever", label: "무제한 (영구)" }
+    );
+  }
+  // ------------------------------------
+
   let functionalShortUrl = "";
   let displayShortUrl = "";    
-
   if (shortCode) {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     try {
@@ -155,25 +162,16 @@ export default function Home() {
               />
             </div>
             
-            {/* ▼▼▼ [수정된 부분] 기간 선택 및 로그인 안내 문구 ▼▼▼ */}
+            {/* ▼▼▼ [수정됨] StyledSelect에 options 배열 전달 ▼▼▼ */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <StyledSelect
                 label="유지 기간"
                 value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-              >
-                <option value="7d">1주일</option>
-                <option value="30d">1개월</option>
-                {user && (
-                  <>
-                    <option value="180d">6개월</option>
-                    <option value="365d">1년</option>
-                    <option value="forever">무제한 (영구)</option>
-                  </>
-                )}
-              </StyledSelect>
+                // (이전 방식: e.target.value) -> (새 방식: 값만 바로 전달됨)
+                onChange={(newValue) => setExpiry(newValue)} 
+                options={expiryOptions} 
+              />
 
-              {/* 로그인을 안 했을 때만 보이는 안내 문구 */}
               {!user && (
                 <Link href="/login" className={styles.loginHintLink}>
                   <span className={styles.loginHintIcon}>🔒</span> 
@@ -181,7 +179,7 @@ export default function Home() {
                 </Link>
               )}
             </div>
-            {/* ▲▲▲ [수정 끝] ▲▲▲ */}
+            {/* ▲▲▲ ------------------------------------ ▲▲▲ */}
 
           </div>
 
@@ -218,7 +216,7 @@ export default function Home() {
                 strokeLinecap="round" strokeLinejoin="round"
               >
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
               </svg>
               <span>주소 복사하기</span>
             </button>
