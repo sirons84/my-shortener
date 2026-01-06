@@ -1,11 +1,9 @@
-/* 파일 경로: app/api/shorten/route.js */
-
 import { NextResponse } from 'next/server';
-// 1. 관리자 권한 클라이언트 가져오기 (경로 주의: ../가 3개)
+import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
-import { supabase } from '../../../lib/supabaseClient'; // 토큰 검증용 일반 클라이언트
 
 export async function POST(request) {
+  // 1. 요청 데이터 가져오기
   const body = await request.json();
   const { url, customCode, expiry } = body;
 
@@ -13,24 +11,28 @@ export async function POST(request) {
     return NextResponse.json({ error: "URL이 없습니다." }, { status: 400 });
   }
 
-  // 2. 유저 정보 확인
+  // 2. 유저 정보 확인 (일반 클라이언트로 토큰 검증)
+  //    (주의: 검증용 클라이언트는 별도로 생성)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+  
   const authHeader = request.headers.get('authorization');
   let user = null;
 
   if (authHeader) {
     const token = authHeader.replace('Bearer ', '');
-    // 토큰 검증은 일반 클라이언트로 해도 됨
     const { data: { user: foundUser }, error } = await supabase.auth.getUser(token);
     if (!error && foundUser) {
       user = foundUser;
     }
   }
 
-  // --- [교육청별 생성 개수 제한 로직] ---
+  // --- [생성 개수 제한 확인] ---
   if (user) {
-    // 3. DB 조회 시 supabaseAdmin 사용 (RLS 우회)
     const { count, error: countError } = await supabaseAdmin
-      .from('urls') 
+      .from('urls')  // 변경됨: links -> urls
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
@@ -47,13 +49,14 @@ export async function POST(request) {
     }
   }
 
-  // 4. 단축 코드 생성
+  // 3. 단축 코드 생성
   let code;
   
   if (customCode) {
+    // 사용자 지정 코드 중복 확인
     const { data: existing } = await supabaseAdmin
-      .from('urls')
-      .select('code')
+      .from('urls') // 변경됨
+      .select('code') // 변경됨: slug -> code
       .eq('code', customCode)
       .single();
     
@@ -63,6 +66,7 @@ export async function POST(request) {
     code = customCode;
 
   } else {
+    // 랜덤 코드 생성
     let isUnique = false;
     let retryCount = 0;
 
@@ -73,8 +77,8 @@ export async function POST(request) {
       code = generateRandomString(6);
 
       const { data: existing } = await supabaseAdmin
-        .from('urls')
-        .select('code')
+        .from('urls') // 변경됨
+        .select('code') // 변경됨
         .eq('code', code)
         .single();
         
@@ -83,12 +87,12 @@ export async function POST(request) {
     }
   }
 
-  // 5. DB에 저장 (관리자 권한으로 저장)
+  // 4. DB에 저장 (관리자 권한 사용)
   const { error } = await supabaseAdmin.from('urls').insert({
-    url: url,
-    code: code,
+    url: url,           // 변경됨: original_url -> url
+    code: code,         // 변경됨: slug -> code
     user_id: user ? user.id : null,
-    expires_at: calculateExpiry(expiry)
+    expires_at: calculateExpiry(expiry) // 변경됨: expiry_date -> expires_at
   });
 
   if (error) {
@@ -99,7 +103,7 @@ export async function POST(request) {
   return NextResponse.json({ code });
 }
 
-// --- [보조 함수들] ---
+// [보조 함수]
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';

@@ -1,8 +1,6 @@
-/* 파일 경로: app/api/my-urls/route.js */
-
 import { NextResponse } from "next/server";
+import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from "../../../lib/supabaseAdmin";
-import { supabase } from "../../../lib/supabaseClient";
 
 export async function GET(req) {
   const authHeader = req.headers.get("authorization");
@@ -11,15 +9,20 @@ export async function GET(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // 1. 토큰 검증
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+  
   const token = authHeader.split(" ")[1];
-  // 토큰 검증
   const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
   if (userError || !user) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // DB 조회 (관리자 권한 사용)
+  // 2. 데이터 조회 (urls 테이블, 관리자 권한 사용)
   const { data, error } = await supabaseAdmin
     .from("urls") 
     .select("*")
