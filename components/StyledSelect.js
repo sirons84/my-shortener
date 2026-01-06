@@ -7,10 +7,8 @@ export default function StyledSelect({ label, value, onChange, options = [] }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // 현재 선택된 옵션의 라벨 찾기
   const selectedOption = options.find(opt => opt.value === value) || options[0];
 
-  // 바깥 클릭 시 닫기 기능
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -22,26 +20,27 @@ export default function StyledSelect({ label, value, onChange, options = [] }) {
   }, []);
 
   const handleSelect = (optionValue) => {
-    onChange(optionValue); // 부모에게 선택된 값 전달
-    setIsOpen(false);      // 메뉴 닫기
+    onChange(optionValue);
+    setIsOpen(false);
   };
 
   return (
     <div className={styles.wrapper} ref={containerRef}>
-      <span className={styles.label}>{label}</span>
+      {/* (수정됨) 라벨을 여기(바깥)에서... */}
       
-      {/* 클릭하는 버튼 부분 */}
       <div 
         className={`${styles.trigger} ${isOpen ? styles.triggerOpen : ''}`} 
         onClick={() => setIsOpen(!isOpen)}
       >
+        {/* ...여기(박스 안)으로 옮겼습니다! */}
+        <span className={styles.label}>{label}</span>
+        
         <span className={styles.currentValue}>
           {selectedOption ? selectedOption.label : '선택'}
         </span>
         <div className={styles.arrowIcon} />
       </div>
 
-      {/* 펼쳐지는 목록 메뉴 */}
       {isOpen && (
         <ul className={styles.dropdownMenu}>
           {options.map((option) => (
