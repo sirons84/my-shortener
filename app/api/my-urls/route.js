@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "../../../lib/supabaseClient";
 
 // Next.js App Router 방식의 GET 핸들러
 export async function GET(req) {
@@ -17,8 +17,7 @@ export async function GET(req) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // 2. 데이터 조회 (테이블명: links -> urls 로 변경)
-  // 최신순으로 정렬 (created_at이 있다면 사용, 없다면 생략 가능하지만 보통 내림차순 정렬을 선호)
+  // 2. 데이터 조회 (테이블명: links -> urls 로 변경됨)
   const { data, error } = await supabase
     .from("urls") 
     .select("*")
