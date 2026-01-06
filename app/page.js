@@ -1,4 +1,4 @@
-/* 파일 경로: app/page.js (이 코드로 전체를 덮어쓰세요) */
+/* 파일 경로: app/page.js */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,6 +6,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
 import { toUnicode, toASCII } from "punycode";
 import Image from 'next/image'; 
+import Link from 'next/link'; // (★추가) 링크 이동을 위해 필요
 
 // --- 컴포넌트 임포트 ---
 import styles from "./page.module.css";
@@ -24,7 +25,7 @@ const qrImageSettings = {
 };
 
 export default function Home() {
-  // --- 상태 변수 ---
+  // ... (상태 변수 및 useEffect 코드는 기존과 동일) ...
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
@@ -33,7 +34,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false); 
   const [user, setUser] = useState(null); 
 
-  // --- 사용자 인증 상태 감지 ---
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -50,9 +50,8 @@ export default function Home() {
     return () => authListener?.subscription.unsubscribe();
   }, []);
 
-  
-  // --- URL 줄이기 함수 ---
   async function handleSubmit(e) {
+    // ... (기존 handleSubmit 코드 동일) ...
     e.preventDefault();
     setLoading(true);
     setShortCode("");
@@ -70,19 +69,16 @@ export default function Home() {
         headers: headers,
         body: JSON.stringify({ url, customCode, expiry }),
       });
-// ▼▼▼ 여기부터 수정해주세요 ▼▼▼
-      const data = await res.json(); // 응답 데이터를 먼저 받습니다.
+
+      const data = await res.json(); 
 
       if (res.ok) {
         setShortCode(data.code); 
       } else if (res.status === 409) {
         setError("이미 사용 중인 단축 주소입니다.");
       } else {
-        // 서버가 보내준 진짜 에러 메시지를 화면에 보여줍니다.
         setError(data.error || "URL을 줄이는 데 실패했습니다.");
       }
-      // ▲▲▲ 여기까지 수정 ▲▲▲
-            
     } catch (err) {
       setError("네트워크 오류가 발생했습니다.");
     } finally {
@@ -90,7 +86,7 @@ export default function Home() {
     }
   }
 
-  // --- 결과 표시용 변수 ---
+  // ... (displayShortUrl 계산 로직 등 기존 코드 동일) ...
   let functionalShortUrl = "";
   let displayShortUrl = "";    
 
@@ -118,7 +114,6 @@ export default function Home() {
       await navigator.clipboard.writeText(textToCopy);
       alert("클립보드에 복사되었습니다: " + textToCopy);
     } catch (err) {
-      // 폴백(Fallback) 복사
       const textArea = document.createElement("textarea");
       textArea.value = textToCopy;
       document.body.appendChild(textArea);
@@ -129,7 +124,6 @@ export default function Home() {
     }
   }
   
-  // --- JSX 렌더링 ---
   return (
     <div className={styles.wrapper}>
       <InfoSidebar />
@@ -160,23 +154,35 @@ export default function Home() {
                 onChange={(e) => setCustomCode(e.target.value)}
               />
             </div>
-            <div>
+            
+            {/* ▼▼▼ [수정된 부분] 기간 선택 및 로그인 안내 문구 ▼▼▼ */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <StyledSelect
                 label="유지 기간"
                 value={expiry}
                 onChange={(e) => setExpiry(e.target.value)}
               >
-                <option value="7d">1주</option>
-                <option value="30d">1달</option>
+                <option value="7d">1주일</option>
+                <option value="30d">1개월</option>
                 {user && (
                   <>
-                    <option value="180d">6달</option>
+                    <option value="180d">6개월</option>
                     <option value="365d">1년</option>
-                    <option value="forever">무제한</option>
+                    <option value="forever">무제한 (영구)</option>
                   </>
                 )}
               </StyledSelect>
+
+              {/* 로그인을 안 했을 때만 보이는 안내 문구 */}
+              {!user && (
+                <Link href="/login" className={styles.loginHintLink}>
+                  <span className={styles.loginHintIcon}>🔒</span> 
+                  로그인하면 무제한 가능
+                </Link>
+              )}
             </div>
+            {/* ▲▲▲ [수정 끝] ▲▲▲ */}
+
           </div>
 
           <SubmitButton disabled={loading} />
@@ -185,7 +191,6 @@ export default function Home() {
         {error && <div style={{ color: 'red', textAlign: 'center', marginTop: '15px' }}>{error}</div>}
         {loading && <div style={{ textAlign: 'center', marginTop: '20px', fontWeight: '600' }}>생성 중...</div>}
         
-        {/* --- 결과 카드 (QR코드 디자인 개선) --- */}
         {shortCode && !loading && ( 
           <div className={styles.resultCard}>
             <p style={{marginBottom: '10px', fontSize: '18px', fontWeight: '600'}}>✅ 생성 완료!</p>
@@ -193,7 +198,6 @@ export default function Home() {
               <strong>{displayShortUrl}</strong>
             </p>
             
-            {/* QR코드 박스 */}
             <div className={styles.qrContainer}>
               <div className={styles.qrBox}>
                 <QRCodeCanvas 
@@ -208,16 +212,10 @@ export default function Home() {
             </div>
 
             <button onClick={copyToClipboard} className={styles.copyButton}>
-              {/* 복사 아이콘 SVG */}
               <svg 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
+                width="20" height="20" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2" 
+                strokeLinecap="round" strokeLinejoin="round"
               >
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -227,10 +225,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* --- 캐릭터 (배경 고정) --- */}
-
-
     </div>
   );
 }

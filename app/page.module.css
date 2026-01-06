@@ -225,3 +225,45 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(9, 132, 227, 0.4);
 }
+
+/* 파일 경로: app/page.module.css */
+/* ... (기존 코드는 그대로 두시고 아래 내용을 추가/수정 하세요) ... */
+
+/* ... 기존 arrowWrapper, selectWrapper 등 ... */
+
+/* selectWrapper 스타일 수정: 
+   기존에는 margin-bottom: 170px 이었으나, 
+   안내 문구가 들어가면서 간격을 조금 조정할 필요가 있습니다.
+*/
+.selectWrapper {
+  display: flex;
+  justify-content: space-between; 
+  align-items: flex-start; /* flex-end -> flex-start (안내문구 정렬 위해) */
+  gap: 20px;
+  margin-bottom: 150px; /* 여백 조정 */
+}
+
+/* (신규) 로그인 유도 텍스트 스타일 */
+.loginHintLink {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #636e72;
+  text-decoration: none;
+  font-weight: 500;
+  
+  background-color: #f1f2f6;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.loginHintLink:hover {
+  background-color: #dfe6e9;
+  color: #2d3436;
+  transform: translateY(-1px);
+}
+
+.loginHintIcon {
+  margin-right: 4px;
+}
