@@ -1,9 +1,10 @@
+/* 파일 경로: app/api/my-urls/route.js */
+
 import { NextResponse } from "next/server";
+import { supabaseAdmin } from "../../../lib/supabaseAdmin";
 import { supabase } from "../../../lib/supabaseClient";
 
-// Next.js App Router 방식의 GET 핸들러
 export async function GET(req) {
-  // 1. 사용자 인증 (헤더의 Authorization 토큰 확인)
   const authHeader = req.headers.get("authorization");
   
   if (!authHeader) {
@@ -11,14 +12,15 @@ export async function GET(req) {
   }
 
   const token = authHeader.split(" ")[1];
+  // 토큰 검증
   const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
   if (userError || !user) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
-  // 2. 데이터 조회 (테이블명: links -> urls 로 변경됨)
-  const { data, error } = await supabase
+  // DB 조회 (관리자 권한 사용)
+  const { data, error } = await supabaseAdmin
     .from("urls") 
     .select("*")
     .eq("user_id", user.id)

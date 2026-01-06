@@ -1,16 +1,11 @@
 /* 파일 경로: app/api/shorten/route.js */
 
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+// 1. 관리자 권한 클라이언트 가져오기 (경로 주의: ../가 3개)
+import { supabaseAdmin } from '../../../lib/supabaseAdmin';
+import { supabase } from '../../../lib/supabaseClient'; // 토큰 검증용 일반 클라이언트
 
 export async function POST(request) {
-  // 1. Supabase 클라이언트 생성
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
-
-  // 2. 요청 데이터(Body) 가져오기
   const body = await request.json();
   const { url, customCode, expiry } = body;
 
@@ -18,12 +13,13 @@ export async function POST(request) {
     return NextResponse.json({ error: "URL이 없습니다." }, { status: 400 });
   }
 
-  // 3. 유저 정보 확인
+  // 2. 유저 정보 확인
   const authHeader = request.headers.get('authorization');
   let user = null;
 
   if (authHeader) {
     const token = authHeader.replace('Bearer ', '');
+    // 토큰 검증은 일반 클라이언트로 해도 됨
     const { data: { user: foundUser }, error } = await supabase.auth.getUser(token);
     if (!error && foundUser) {
       user = foundUser;
@@ -32,15 +28,14 @@ export async function POST(request) {
 
   // --- [교육청별 생성 개수 제한 로직] ---
   if (user) {
-    // 테이블명 변경: links -> urls
-    const { count, error: countError } = await supabase
+    // 3. DB 조회 시 supabaseAdmin 사용 (RLS 우회)
+    const { count, error: countError } = await supabaseAdmin
       .from('urls') 
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id);
 
     if (!countError) {
       const userRegion = user.user_metadata?.region || "기타";
-      // 울산은 200개, 타 지역은 50개 제한
       const limit = userRegion === "울산광역시교육청" ? 200 : 50;
 
       if (count >= limit) {
@@ -51,15 +46,12 @@ export async function POST(request) {
       }
     }
   }
-  // ------------------------------------
 
   // 4. 단축 코드 생성
   let code;
   
   if (customCode) {
-    // (1) 사용자 지정 코드인 경우 중복 체크
-    // 테이블명 및 컬럼명 변경: links -> urls, slug -> code
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseAdmin
       .from('urls')
       .select('code')
       .eq('code', customCode)
@@ -71,7 +63,6 @@ export async function POST(request) {
     code = customCode;
 
   } else {
-    // (2) 랜덤 코드 생성
     let isUnique = false;
     let retryCount = 0;
 
@@ -79,13 +70,9 @@ export async function POST(request) {
       if (retryCount > 5) {
         return NextResponse.json({ error: "코드 생성 실패. 다시 시도해주세요." }, { status: 500 });
       }
-
-      // 6자리 랜덤 문자열 생성
       code = generateRandomString(6);
 
-      // 중복 확인
-      // 테이블명 및 컬럼명 변경: links -> urls, slug -> code
-      const { data: existing } = await supabase
+      const { data: existing } = await supabaseAdmin
         .from('urls')
         .select('code')
         .eq('code', code)
@@ -96,13 +83,8 @@ export async function POST(request) {
     }
   }
 
-  // 5. DB에 저장
-  // 테이블명 및 컬럼명 변경:
-  // links -> urls
-  // original_url -> url
-  // slug -> code
-  // expiry_date -> expires_at
-  const { error } = await supabase.from('urls').insert({
+  // 5. DB에 저장 (관리자 권한으로 저장)
+  const { error } = await supabaseAdmin.from('urls').insert({
     url: url,
     code: code,
     user_id: user ? user.id : null,
@@ -114,13 +96,10 @@ export async function POST(request) {
     return NextResponse.json({ error: "데이터베이스 저장 중 오류가 발생했습니다." }, { status: 500 });
   }
 
-  // 6. 성공 응답
   return NextResponse.json({ code });
 }
 
 // --- [보조 함수들] ---
-
-// 1. 랜덤 문자열 생성 함수
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -130,15 +109,12 @@ function generateRandomString(length) {
   return result;
 }
 
-// 2. 만료일 계산 함수
 function calculateExpiry(expiryOption) {
   if (!expiryOption || expiryOption === 'forever') return null;
-  
   const now = new Date();
   if (expiryOption === '7d') now.setDate(now.getDate() + 7);
   else if (expiryOption === '30d') now.setDate(now.getDate() + 30);
   else if (expiryOption === '180d') now.setDate(now.getDate() + 180);
   else if (expiryOption === '365d') now.setDate(now.getDate() + 365);
-  
   return now.toISOString();
 }
