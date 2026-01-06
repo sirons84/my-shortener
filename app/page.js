@@ -171,12 +171,12 @@ export default function Home() {
                 onChange={(newValue) => setExpiry(newValue)} 
                 options={expiryOptions} 
               />
-
               {!user && (
-                <Link href="/login" className={styles.loginHintLink}>
+                // [수정] Link 태그를 span으로 변경하고 href 제거, 커서 모양 변경
+                <span className={styles.loginHintLink} style={{ cursor: 'default' }}>
                   <span className={styles.loginHintIcon}>🔒</span> 
                   로그인하면 무제한 가능
-                </Link>
+                </span>
               )}
             </div>
             {/* ▲▲▲ ------------------------------------ ▲▲▲ */}
