@@ -1,11 +1,8 @@
-// 파일 경로: app/api/url/[code]/route.js
-// (이 파일은 새로 생성하세요)
-
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../lib/supabaseAdmin";
 import { supabase } from "../../../lib/supabaseClient";
 
-// 사용자 인증 및 URL 소유권 확인
+// 사용자 인증 및 URL 소유권 확인 함수
 async function getUserAndUrl(req, code) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) {
@@ -19,10 +16,14 @@ async function getUserAndUrl(req, code) {
     return { user: null, urlData: null, error: "Invalid token" };
   }
 
+  // 한글 코드 디코딩
+  const targetCode = decodeURIComponent(code);
+
+  // DB 조회 (테이블: urls)
   const { data, error } = await supabaseAdmin
     .from("urls")
     .select("user_id")
-    .eq("code", code)
+    .eq("code", targetCode)
     .single();
 
   if (error || !data) {
@@ -38,7 +39,8 @@ async function getUserAndUrl(req, code) {
 
 // 기능: 목적지 URL 변경 (PATCH)
 export async function PATCH(req, { params }) {
-  const { code } = params;
+  // [핵심 수정] params를 await로 기다림
+  const { code } = await params;
   const { newUrl } = await req.json();
 
   if (!newUrl) {
@@ -54,10 +56,12 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ error: authError }, { status });
   }
 
+  // 업데이트 (테이블: urls)
+  const targetCode = decodeURIComponent(code);
   const { error: updateError } = await supabaseAdmin
     .from("urls")
     .update({ url: newUrl })
-    .eq("code", code)
+    .eq("code", targetCode)
     .eq("user_id", user.id);
 
   if (updateError) {
@@ -69,7 +73,8 @@ export async function PATCH(req, { params }) {
 
 // 기능: URL 삭제 (DELETE)
 export async function DELETE(req, { params }) {
-  const { code } = params;
+  // [핵심 수정] params를 await로 기다림
+  const { code } = await params;
   
   const { user, error: authError } = await getUserAndUrl(req, code);
 
@@ -80,10 +85,12 @@ export async function DELETE(req, { params }) {
     return NextResponse.json({ error: authError }, { status });
   }
 
+  // 삭제 (테이블: urls)
+  const targetCode = decodeURIComponent(code);
   const { error: deleteError } = await supabaseAdmin
     .from("urls")
     .delete()
-    .eq("code", code)
+    .eq("code", targetCode)
     .eq("user_id", user.id);
 
   if (deleteError) {
