@@ -1,207 +1,332 @@
-"use client";
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { QRCodeCanvas } from "qrcode.react";
-import { FaTrashAlt, FaQrcode, FaExternalLinkAlt, FaPencilAlt } from "react-icons/fa";
-import Link from "next/link";
-import { toUnicode, toASCII } from "punycode";
+// app/dashboard/page.js
+'use client';
 
-// QR 코드 로고 설정
-const qrImageSettings = {
-  src: "/logo.png",
-  height: 16,
-  width: 16,
-  excavate: true,
-};
+import { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
+import { FiLink, FiCopy, FiTrash2, FiLogOut, FiSettings, FiX } from 'react-icons/fi';
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const [urls, setUrls] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [punycodeOrigin, setPunycodeOrigin] = useState("");
+  const [urlInput, setUrlInput] = useState('');
+  const [customCode, setCustomCode] = useState('');
+  const [expiry, setExpiry] = useState('forever');
+  const [createLoading, setCreateLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  
+  // 비밀번호 변경 모달 상태
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pwdForm, setPwdForm] = useState({ current: '', new: '', confirm: '' });
+  const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
+
+  const supabase = createClientComponentClient();
+  const router = useRouter();
 
   useEffect(() => {
-    async function load() {
-      // 1. 유저 확인
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        window.location.href = "/login";
-        return;
-      }
-      setUser(data.user);
-
-      // 2. 현재 도메인 파악 (한글 도메인 처리)
-      try {
-        const urlObj = new URL(window.location.origin);
-        urlObj.hostname = toASCII(urlObj.hostname);
-        setPunycodeOrigin(urlObj.origin);
-      } catch (e) {
-        setPunycodeOrigin(window.location.origin);
-      }
-
-      // 3. 토큰 가져오기
-      const sessionToken = (await supabase.auth.getSession()).data.session?.access_token;
-      setToken(sessionToken);
-
-      // 4. 내 URL 목록 가져오기
-      const res = await fetch("/api/my-urls", {
-        headers: { Authorization: `Bearer ${sessionToken}` }
-      });
-      
-      const d = await res.json();
-      
-      // [수정 핵심] API가 배열을 바로 반환하므로 d.urls가 아니라 d를 사용해야 합니다.
-      if (Array.isArray(d)) {
-        setUrls(d);
-      } else {
-        setUrls([]);
-      }
-    }
-    load();
+    checkUser();
+    fetchUrls();
   }, []);
 
-  // 삭제 기능
-  async function deleteUrl(code) {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-    
-    if (!token) {
-      alert("인증 정보가 없습니다. 다시 로그인해주세요.");
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) router.push('/');
+    setUser(user);
+  };
+
+  const fetchUrls = async () => {
+    try {
+      const res = await fetch('/api/my-urls');
+      if (res.ok) {
+        const data = await res.json();
+        setUrls(data.urls || []);
+      }
+    } catch (error) {
+      console.error('URL 불러오기 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setCreateLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput, customCode, expiry }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || '생성 실패');
+
+      setUrlInput('');
+      setCustomCode('');
+      fetchUrls(); // 목록 갱신
+      alert('단축 URL이 생성되었습니다!');
+    } catch (err) {
+      setErrorMsg(err.message);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    try {
+      // 삭제 API 구현 필요 (생략 시 UI에서만 제거 or 별도 API 구현)
+      // 여기서는 예시로 UI 갱신만 처리
+      const { error } = await supabase.from('urls').delete().eq('id', id);
+      if (error) throw error;
+      setUrls(urls.filter(u => u.id !== id));
+    } catch (error) {
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 비밀번호 변경 로직
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwdMsg({ type: '', text: '' });
+
+    if (pwdForm.new !== pwdForm.confirm) {
+      setPwdMsg({ type: 'error', text: '새 비밀번호가 일치하지 않습니다.' });
       return;
     }
 
-    // [수정] 경로를 /api/[code]에 맞춤
-    const res = await fetch(`/api/${code}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (res.ok) {
-      setUrls(urls.filter((u) => u.code !== code));
-    } else {
-      alert("삭제 실패");
+    if (pwdForm.new.length < 6) {
+      setPwdMsg({ type: 'error', text: '비밀번호는 6자 이상이어야 합니다.' });
+      return;
     }
-  }
-  
-  // 수정 기능
-  async function handleEdit(code, currentUrl) {
-    const newUrl = prompt("새로운 원본 URL을 입력하세요:", currentUrl);
-    
-    let displayCode = code;
-    try {
-      if (code && code.startsWith('xn--')) {
-        displayCode = toUnicode(code);
-      }
-    } catch (e) {}
 
-    if (newUrl && newUrl !== currentUrl && token) {
-      // [수정] 경로를 /api/[code]에 맞춤
-      const res = await fetch(`/api/${code}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ newUrl })
+    try {
+      // 1. 현재 비밀번호 확인 (로그인 시도)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: pwdForm.current,
       });
 
-      if (res.ok) {
-        alert(`'${displayCode}'의 URL이 성공적으로 변경되었습니다.`);
-        setUrls(urls.map(u => u.code === code ? { ...u, url: newUrl } : u));
-      } else {
-        const data = await res.json();
-        alert(`오류: ${data.error}`);
+      if (signInError) {
+        setPwdMsg({ type: 'error', text: '현재 비밀번호가 올바르지 않습니다.' });
+        return;
       }
+
+      // 2. 비밀번호 업데이트
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: pwdForm.new
+      });
+
+      if (updateError) throw updateError;
+
+      setPwdMsg({ type: 'success', text: '비밀번호가 성공적으로 변경되었습니다.' });
+      setPwdForm({ current: '', new: '', confirm: '' }); // 폼 초기화
+      setTimeout(() => setShowPasswordModal(false), 2000); // 2초 후 닫기
+
+    } catch (error) {
+      setPwdMsg({ type: 'error', text: '비밀번호 변경 실패: ' + error.message });
     }
-  }
+  };
+
+  if (loading) return <div className="p-8 text-center">로딩 중...</div>;
 
   return (
-    <div style={{
-      display: "flex", justifyContent: "center", alignItems: "flex-start",
-      minHeight: "calc(100vh - 160px)",
-      padding: "20px"
-    }}>
-      <div style={{
-        background: "#fff", padding: "2rem", borderRadius: 12,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)", width: "95%", maxWidth: 900
-      }}>
-        <div>
-          <h1 style={{ marginBottom: "1rem" }}>나의 URL 대시보드</h1>
-          <Link
-              href="/"
-              style={{
-                padding: "8px 14px", background: "#636e72", color: "#fff",
-                borderRadius: 6, textDecoration: "none", fontWeight: "bold",
-                fontSize: "0.9rem", transition: "background 0.2s ease",
-                display: "inline-block", marginBottom: "1rem"
-              }}
-              onMouseOver={(e) => (e.target.style.background = "#2d3436")}
-              onMouseOut={(e) => (e.target.style.background = "#636e72")}
-            >
-              🏠 메인으로
-            </Link>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
+      {/* 상단 헤더 */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>내 단축 URL 관리</h1>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={() => setShowPasswordModal(true)}
+            style={{ ...btnStyle, backgroundColor: '#4b5563' }}
+          >
+            <FiSettings style={{ marginRight: '5px' }} /> 비번 변경
+          </button>
+          <button 
+            onClick={handleLogout}
+            style={{ ...btnStyle, backgroundColor: '#ef4444' }}
+          >
+            <FiLogOut style={{ marginRight: '5px' }} /> 로그아웃
+          </button>
         </div>
-        {user && <p>안녕하세요, {user.email}</p>}
-        
-        {punycodeOrigin && ( 
-        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16 }}>
-          <thead>
-            <tr style={{ background: "#f1f2f6" }}>
-              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>코드</th>
-              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>원본 URL</th>
-              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>만료일</th>
-              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>QR</th>
-              <th style={{ padding: 8, border: "1px solid #dfe6e9" }}>관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            {urls.map((u) => {
-              const functionalShortUrl = `${punycodeOrigin}/${u.code}`;
-              let displayCode = u.code;
-              try {
-                if (u.code && u.code.startsWith('xn--')) {
-                  displayCode = toUnicode(u.code);
-                }
-              } catch (e) {}
+      </header>
 
-              return (
-              <tr key={u.code}>
-                <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>{displayCode}</td>
-                <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  <a
-                    href={u.url} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "#0984e3", textDecoration: "none", wordBreak: "break-all" }}
-                  >
-                    {u.url.length > 30 ? u.url.slice(0,30) + '...' : u.url}
-                    <FaExternalLinkAlt style={{ marginLeft: 6, color: "#636e72" }} />
-                  </a>
-                </td>
-                <td style={{ padding: 8, border: "1px solid #dfe6e9" }}>
-                  {u.expires_at ? new Date(u.expires_at).toLocaleDateString() : "무제한"}
-                </td>
-                <td style={{ padding: 8, border: "1px solid #dfe6e9", textAlign: "center" }}>
-                  <QRCodeCanvas value={functionalShortUrl} size={64} level="H" imageSettings={qrImageSettings} />
-                </td>
-                <td style={{ padding: 8, border: "1px solid #dfe6e9", textAlign: "center" }}>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                    <button onClick={() => handleEdit(u.code, u.url)} style={{ cursor: "pointer", background:"none", border:"1px solid #ccc", borderRadius:4, padding:4 }}>
-                      <FaPencilAlt />
-                    </button>
-                    <button onClick={() => deleteUrl(u.code)} style={{ cursor: "pointer", background:"#d63031", color:"white", border:"none", borderRadius:4, padding:4 }}>
-                      <FaTrashAlt />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )})}
-            {urls.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: "center", padding: 16 }}>등록된 URL이 없습니다.</td></tr>
-            )}
-          </tbody>
-        </table>
-        )} 
+      {/* URL 생성 폼 */}
+      <section style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '18px', marginBottom: '15px', fontWeight: 'bold' }}>새 URL 만들기</h2>
+        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input 
+            type="url" 
+            placeholder="긴 원본 URL을 입력하세요 (https://...)" 
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            required
+            style={inputStyle}
+          />
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input 
+              type="text" 
+              placeholder="원하는 단축 코드 (선택사항)" 
+              value={customCode}
+              onChange={(e) => setCustomCode(e.target.value)}
+              style={inputStyle}
+            />
+            <select 
+              value={expiry} 
+              onChange={(e) => setExpiry(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="forever">영구 보존</option>
+              <option value="7d">7일 후 만료</option>
+              <option value="30d">30일 후 만료</option>
+              <option value="180d">6개월 후 만료</option>
+            </select>
+          </div>
+          {errorMsg && <p style={{ color: 'red', fontSize: '14px' }}>{errorMsg}</p>}
+          <button type="submit" disabled={createLoading} style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>
+            {createLoading ? '생성 중...' : '단축 URL 생성하기'}
+          </button>
+        </form>
+      </section>
+
+      {/* URL 목록 */}
+      <div style={{ display: 'grid', gap: '15px' }}>
+        {urls.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#666' }}>생성된 단축 URL이 없습니다.</p>
+        ) : (
+          urls.map((item) => (
+            <div key={item.id} style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ overflow: 'hidden', flex: 1, paddingRight: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#2563eb' }}>/{item.code}</span>
+                  <span style={{ fontSize: '12px', color: '#9ca3af', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>
+                    {item.count}회 클릭
+                  </span>
+                </div>
+                <p style={{ fontSize: '14px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {item.url}
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => navigator.clipboard.writeText(`${window.location.origin}/r/${item.code}`)}
+                  style={{ ...iconBtnStyle, color: '#059669' }}
+                  title="복사"
+                >
+                  <FiCopy />
+                </button>
+                <button 
+                  onClick={() => handleDelete(item.id)}
+                  style={{ ...iconBtnStyle, color: '#dc2626' }}
+                  title="삭제"
+                >
+                  <FiTrash2 />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
+
+      {/* 비밀번호 변경 모달 */}
+      {showPasswordModal && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold' }}>비밀번호 변경</h3>
+              <button onClick={() => setShowPasswordModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>
+                <FiX />
+              </button>
+            </div>
+            
+            <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div>
+                <label style={labelStyle}>현재 비밀번호</label>
+                <input 
+                  type="password" 
+                  value={pwdForm.current}
+                  onChange={(e) => setPwdForm({...pwdForm, current: e.target.value})}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>새 비밀번호</label>
+                <input 
+                  type="password" 
+                  value={pwdForm.new}
+                  onChange={(e) => setPwdForm({...pwdForm, new: e.target.value})}
+                  required
+                  placeholder="6자 이상 입력"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>새 비밀번호 확인</label>
+                <input 
+                  type="password" 
+                  value={pwdForm.confirm}
+                  onChange={(e) => setPwdForm({...pwdForm, confirm: e.target.value})}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+
+              {pwdMsg.text && (
+                <div style={{ 
+                  padding: '10px', borderRadius: '5px', fontSize: '14px',
+                  backgroundColor: pwdMsg.type === 'error' ? '#fee2e2' : '#dcfce7',
+                  color: pwdMsg.type === 'error' ? '#b91c1c' : '#15803d'
+                }}>
+                  {pwdMsg.text}
+                </div>
+              )}
+
+              <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>
+                변경하기
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// 스타일 정의
+const btnStyle = {
+  padding: '10px 16px', backgroundColor: '#2563eb', color: 'white',
+  border: 'none', borderRadius: '6px', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '500'
+};
+
+const iconBtnStyle = {
+  background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px',
+  padding: '8px', cursor: 'pointer', fontSize: '18px'
+};
+
+const inputStyle = {
+  width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px'
+};
+
+const labelStyle = {
+  display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '5px', color: '#374151'
+};
+
+const modalOverlayStyle = {
+  position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+  backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+};
+
+const modalContentStyle = {
+  backgroundColor: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px',
+  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+};

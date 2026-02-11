@@ -4,9 +4,9 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../lib/supabaseClient";
-import { toUnicode, toASCII } from "punycode";
+import { toUnicode } from "punycode";
 import Image from 'next/image'; 
-import Link from 'next/link';
+import Link from 'next/link'; // 링크 기능 추가
 
 import styles from "./page.module.css";
 import InfoSidebar from "../components/InfoSidebar";
@@ -80,7 +80,7 @@ export default function Home() {
     }
   }
 
-  // --- [중요] 드롭다운 메뉴 데이터 생성 ---
+  // --- 드롭다운 메뉴 데이터 ---
   const expiryOptions = [
     { value: "7d", label: "1주일" },
     { value: "30d", label: "1개월" },
@@ -93,7 +93,6 @@ export default function Home() {
       { value: "forever", label: "무제한 (영구)" }
     );
   }
-  // ------------------------------------
 
   let functionalShortUrl = "";
   let displayShortUrl = "";    
@@ -136,6 +135,19 @@ export default function Home() {
       <InfoSidebar />
 
       <section className={styles.mainContent}>
+        {/* 로그인 상태에 따라 상단 버튼 다르게 표시 */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+          {user ? (
+            <Link href="/dashboard" style={{ fontSize: '14px', color: '#666', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              ⚙️ 내 주소 관리 (대시보드)
+            </Link>
+          ) : (
+            <Link href="/login" style={{ fontSize: '14px', color: '#2563eb', fontWeight: 'bold', textDecoration: 'none' }}>
+              🔑 로그인 / 회원가입
+            </Link>
+          )}
+        </div>
+
         <h2 className={styles.title}>외솔 최현배 선생님과 한글 주소 만들기</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -162,25 +174,22 @@ export default function Home() {
               />
             </div>
             
-            {/* ▼▼▼ [수정됨] StyledSelect에 options 배열 전달 ▼▼▼ */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <StyledSelect
                 label="유지 기간"
                 value={expiry}
-                // (이전 방식: e.target.value) -> (새 방식: 값만 바로 전달됨)
                 onChange={(newValue) => setExpiry(newValue)} 
                 options={expiryOptions} 
               />
+              
               {!user && (
-                // [수정] Link 태그를 span으로 변경하고 href 제거, 커서 모양 변경
-                <span className={styles.loginHintLink} style={{ cursor: 'default' }}>
+                // [수정 포인트] 로그인 페이지로 이동하는 링크 추가
+                <Link href="/login" className={styles.loginHintLink} style={{ cursor: 'pointer', textDecoration: 'none', marginTop: '5px' }}>
                   <span className={styles.loginHintIcon}>🔒</span> 
-                  로그인하면 무제한 가능
-                </span>
+                  <span style={{ textDecoration: 'underline' }}>로그인</span>하면 무제한 가능
+                </Link>
               )}
             </div>
-            {/* ▲▲▲ ------------------------------------ ▲▲▲ */}
-
           </div>
 
           <SubmitButton disabled={loading} />

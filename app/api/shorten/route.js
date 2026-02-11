@@ -12,7 +12,6 @@ export async function POST(request) {
   }
 
   // 2. 유저 정보 확인 (일반 클라이언트로 토큰 검증)
-  //    (주의: 검증용 클라이언트는 별도로 생성)
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -31,20 +30,33 @@ export async function POST(request) {
 
   // --- [생성 개수 제한 확인] ---
   if (user) {
-    const { count, error: countError } = await supabaseAdmin
-      .from('urls')  // 변경됨: links -> urls
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
+    // [수정] 관리자 계정(sirons@usedu.ai.kr)은 제한 없음 (개수 체크 건너뜀)
+    const isAdmin = user.email === 'sirons@usedu.ai.kr';
 
-    if (!countError) {
-      const userRegion = user.user_metadata?.region || "기타";
-      const limit = userRegion === "울산광역시교육청" ? 200 : 50;
+    if (!isAdmin) {
+      const { count, error: countError } = await supabaseAdmin
+        .from('urls')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
-      if (count >= limit) {
-        return NextResponse.json(
-          { error: `생성 한도를 초과했습니다. (${userRegion}: 최대 ${limit}개)` }, 
-          { status: 403 }
-        );
+      if (!countError) {
+        const userRegion = user.user_metadata?.region || "기타";
+        
+        // [수정] 제한 개수 설정 로직
+        let limit = 50; // 기본값
+
+        if (userRegion === "울산광역시교육청") {
+          limit = 200; // 기존 로직 유지 (가장 높은 혜택)
+        } else if (user.email && user.email.endsWith('@usedu.ai.kr')) {
+          limit = 100; // @usedu.ai.kr 계정은 100개로 상향
+        }
+
+        if (count >= limit) {
+          return NextResponse.json(
+            { error: `생성 한도를 초과했습니다. (${userRegion}: 최대 ${limit}개)` }, 
+            { status: 403 }
+          );
+        }
       }
     }
   }
@@ -55,8 +67,8 @@ export async function POST(request) {
   if (customCode) {
     // 사용자 지정 코드 중복 확인
     const { data: existing } = await supabaseAdmin
-      .from('urls') // 변경됨
-      .select('code') // 변경됨: slug -> code
+      .from('urls')
+      .select('code')
       .eq('code', customCode)
       .single();
     
@@ -77,8 +89,8 @@ export async function POST(request) {
       code = generateRandomString(6);
 
       const { data: existing } = await supabaseAdmin
-        .from('urls') // 변경됨
-        .select('code') // 변경됨
+        .from('urls')
+        .select('code')
         .eq('code', code)
         .single();
         
@@ -89,10 +101,10 @@ export async function POST(request) {
 
   // 4. DB에 저장 (관리자 권한 사용)
   const { error } = await supabaseAdmin.from('urls').insert({
-    url: url,           // 변경됨: original_url -> url
-    code: code,         // 변경됨: slug -> code
+    url: url,
+    code: code,
     user_id: user ? user.id : null,
-    expires_at: calculateExpiry(expiry) // 변경됨: expiry_date -> expires_at
+    expires_at: calculateExpiry(expiry)
   });
 
   if (error) {
