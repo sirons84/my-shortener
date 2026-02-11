@@ -3,22 +3,22 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { FiLink, FiCopy, FiTrash2, FiLogOut, FiSettings, FiX } from 'react-icons/fi';
+import { FiCopy, FiTrash2, FiLogOut, FiSettings, FiX, FiGrid } from 'react-icons/fi';
+import { QRCodeCanvas } from 'qrcode.react';
+import { toUnicode } from 'punycode'; // 한글 도메인 변환용
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [urlInput, setUrlInput] = useState('');
-  const [customCode, setCustomCode] = useState('');
-  const [expiry, setExpiry] = useState('forever');
-  const [createLoading, setCreateLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
   
   // 비밀번호 변경 모달 상태
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [pwdForm, setPwdForm] = useState({ current: '', new: '', confirm: '' });
   const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
+
+  // QR코드 모달 상태
+  const [qrModal, setQrModal] = useState({ show: false, url: '', code: '' });
 
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -36,9 +36,7 @@ export default function Dashboard() {
 
   const fetchUrls = async () => {
     try {
-      // [수정 포인트 1] 세션에서 토큰을 가져와 헤더에 실어 보냅니다.
       const { data: { session } } = await supabase.auth.getSession();
-      
       const headers = {};
       if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
@@ -48,10 +46,7 @@ export default function Dashboard() {
       
       if (res.ok) {
         const data = await res.json();
-        // [수정 포인트 2] API가 배열을 바로 반환하므로 data.urls 대신 data를 사용합니다.
         setUrls(Array.isArray(data) ? data : []);
-      } else {
-        console.error("데이터 불러오기 실패:", res.status);
       }
     } catch (error) {
       console.error('URL 불러오기 에러:', error);
@@ -66,52 +61,52 @@ export default function Dashboard() {
     router.refresh();
   };
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    setCreateLoading(true);
-    setErrorMsg(null);
-
-    // [수정 포인트 3] 생성할 때도 토큰을 확실히 보냅니다.
-    const { data: { session } } = await supabase.auth.getSession();
-    const headers = { 'Content-Type': 'application/json' };
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
-    }
-
-    try {
-      const res = await fetch('/api/shorten', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ url: urlInput, customCode, expiry }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || '생성 실패');
-
-      setUrlInput('');
-      setCustomCode('');
-      fetchUrls(); // 목록 갱신
-      alert('단축 URL이 생성되었습니다!');
-    } catch (err) {
-      setErrorMsg(err.message);
-    } finally {
-      setCreateLoading(false);
-    }
-  };
-
   const handleDelete = async (id) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     try {
-      // 삭제 기능 (Supabase 직접 호출)
       const { error } = await supabase.from('urls').delete().eq('id', id);
       if (error) throw error;
-      
-      // 목록에서 즉시 제거
       setUrls(urls.filter(u => u.id !== id));
     } catch (error) {
       alert('삭제 중 오류가 발생했습니다.');
-      console.error(error);
     }
+  };
+
+  // [수정] 한글 주소 복사 기능
+  const handleCopy = (code) => {
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    let displayHost = host;
+
+    // 퓨니코드(xn--)를 한글로 변환
+    try {
+      if (host.includes('xn--')) {
+        displayHost = toUnicode(host);
+      }
+    } catch (e) {
+      // 변환 실패 시 하드코딩된 폴백 (안전을 위해)
+      if (host.includes('xn--vhq94y')) displayHost = '외솔.한국'; 
+    }
+
+    // 최종 복사될 URL (예: https://외솔.한국/코드)
+    const fullUrl = `${protocol}//${displayHost}/${code}`;
+
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      alert(`복사되었습니다:\n${fullUrl}`);
+    }).catch(() => {
+      // 보안상 이유로 실패 시 fallback
+      prompt("이 주소를 복사하세요:", fullUrl);
+    });
+  };
+
+  // QR 코드 모달 열기
+  const openQrModal = (code) => {
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    // QR코드는 기능적으로 작동해야 하므로 퓨니코드(실제 영어 주소)를 사용해도 되지만,
+    // 스캔 시 보여지는 주소를 위해 현재 호스트 기반으로 생성
+    const fullUrl = `${protocol}//${host}/${code}`;
+    setQrModal({ show: true, url: fullUrl, code: code });
   };
 
   // 비밀번호 변경 로직
@@ -178,60 +173,24 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* URL 생성 폼 */}
-      <section style={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '18px', marginBottom: '15px', fontWeight: 'bold' }}>새 URL 만들기</h2>
-        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <input 
-            type="url" 
-            placeholder="긴 원본 URL을 입력하세요 (https://...)" 
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <input 
-              type="text" 
-              placeholder="원하는 단축 코드 (선택사항)" 
-              value={customCode}
-              onChange={(e) => setCustomCode(e.target.value)}
-              style={inputStyle}
-            />
-            <select 
-              value={expiry} 
-              onChange={(e) => setExpiry(e.target.value)}
-              style={inputStyle}
-            >
-              <option value="forever">영구 보존</option>
-              <option value="7d">7일 후 만료</option>
-              <option value="30d">30일 후 만료</option>
-              <option value="180d">6개월 후 만료</option>
-            </select>
-          </div>
-          {errorMsg && <p style={{ color: 'red', fontSize: '14px' }}>{errorMsg}</p>}
-          <button type="submit" disabled={createLoading} style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>
-            {createLoading ? '생성 중...' : '단축 URL 생성하기'}
-          </button>
-        </form>
-      </section>
-
-      {/* URL 목록 */}
+      {/* URL 목록 (생성 기능 제거됨) */}
       <div style={{ display: 'grid', gap: '15px' }}>
         {urls.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#666' }}>생성된 단축 URL이 없습니다.</p>
+          <p style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
+            아직 생성한 단축 URL이 없습니다.<br/>
+            메인 페이지에서 새로운 주소를 만들어보세요!
+          </p>
         ) : (
           urls.map((item) => (
-            <div key={item.id} style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={item.id} style={cardStyle}>
               <div style={{ overflow: 'hidden', flex: 1, paddingRight: '15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
-                  <span style={{ fontWeight: 'bold', color: '#2563eb' }}>/{item.code}</span>
-                  <span style={{ fontSize: '12px', color: '#9ca3af', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#2563eb', fontSize: '18px' }}>/{item.code}</span>
+                  <span style={badgeStyle}>
                     {item.count || 0}회 클릭
                   </span>
-                  {/* 만료일 표시 */}
                   {item.expires_at && (
-                    <span style={{ fontSize: '12px', color: '#ef4444', backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
+                    <span style={{ ...badgeStyle, backgroundColor: '#fee2e2', color: '#dc2626' }}>
                       {new Date(item.expires_at).toLocaleDateString()} 만료
                     </span>
                   )}
@@ -240,18 +199,25 @@ export default function Dashboard() {
                   {item.url}
                 </p>
               </div>
+              
               <div style={{ display: 'flex', gap: '8px' }}>
+                 {/* QR 코드 버튼 추가 */}
+                 <button 
+                  onClick={() => openQrModal(item.code)}
+                  style={{ ...iconBtnStyle, color: '#4f46e5' }}
+                  title="QR코드 보기"
+                >
+                  <FiGrid />
+                </button>
+
                 <button 
-                  onClick={() => {
-                    const origin = window.location.origin;
-                    navigator.clipboard.writeText(`${origin}/r/${item.code}`);
-                    alert('복사되었습니다!');
-                  }}
+                  onClick={() => handleCopy(item.code)}
                   style={{ ...iconBtnStyle, color: '#059669' }}
-                  title="복사"
+                  title="주소 복사"
                 >
                   <FiCopy />
                 </button>
+
                 <button 
                   onClick={() => handleDelete(item.id)}
                   style={{ ...iconBtnStyle, color: '#dc2626' }}
@@ -269,11 +235,9 @@ export default function Dashboard() {
       {showPasswordModal && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={modalHeaderStyle}>
               <h3 style={{ fontSize: '18px', fontWeight: 'bold' }}>비밀번호 변경</h3>
-              <button onClick={() => setShowPasswordModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>
-                <FiX />
-              </button>
+              <button onClick={() => setShowPasswordModal(false)} style={closeBtnStyle}><FiX /></button>
             </div>
             
             <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -326,6 +290,41 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* QR코드 모달 */}
+      {qrModal.show && (
+        <div style={modalOverlayStyle} onClick={() => setQrModal({ ...qrModal, show: false })}>
+          <div style={{ ...modalContentStyle, textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold' }}>QR 코드</h3>
+              <button onClick={() => setQrModal({ ...qrModal, show: false })} style={closeBtnStyle}><FiX /></button>
+            </div>
+            
+            <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
+              <QRCodeCanvas 
+                value={qrModal.url}
+                size={200}
+                level={"H"}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                imageSettings={{
+                    src: "/qrlogo2.png",
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                }}
+              />
+            </div>
+            <p style={{ color: '#666', marginBottom: '20px' }}>/{qrModal.code}</p>
+            <button 
+              onClick={() => setQrModal({ ...qrModal, show: false })}
+              style={{ ...btnStyle, width: '100%' }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -339,7 +338,18 @@ const btnStyle = {
 
 const iconBtnStyle = {
   background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px',
-  padding: '8px', cursor: 'pointer', fontSize: '18px'
+  padding: '10px', cursor: 'pointer', fontSize: '20px', transition: 'background 0.2s'
+};
+
+const cardStyle = {
+  backgroundColor: 'white', padding: '20px', borderRadius: '12px', 
+  border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+};
+
+const badgeStyle = {
+  fontSize: '12px', color: '#4b5563', backgroundColor: '#f3f4f6', 
+  padding: '2px 8px', borderRadius: '12px', fontWeight: '500'
 };
 
 const inputStyle = {
@@ -356,6 +366,14 @@ const modalOverlayStyle = {
 };
 
 const modalContentStyle = {
-  backgroundColor: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px',
-  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+  backgroundColor: 'white', padding: '25px', borderRadius: '16px', width: '90%', maxWidth: '400px',
+  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+};
+
+const modalHeaderStyle = {
+  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'
+};
+
+const closeBtnStyle = {
+  background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', color: '#6b7280'
 };
