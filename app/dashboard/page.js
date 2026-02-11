@@ -1,4 +1,3 @@
-// app/dashboard/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,19 +30,31 @@ export default function Dashboard() {
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) router.push('/');
+    if (!user) router.push('/login');
     setUser(user);
   };
 
   const fetchUrls = async () => {
     try {
-      const res = await fetch('/api/my-urls');
+      // [수정 포인트 1] 세션에서 토큰을 가져와 헤더에 실어 보냅니다.
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const res = await fetch('/api/my-urls', { headers });
+      
       if (res.ok) {
         const data = await res.json();
-        setUrls(data.urls || []);
+        // [수정 포인트 2] API가 배열을 바로 반환하므로 data.urls 대신 data를 사용합니다.
+        setUrls(Array.isArray(data) ? data : []);
+      } else {
+        console.error("데이터 불러오기 실패:", res.status);
       }
     } catch (error) {
-      console.error('URL 불러오기 실패:', error);
+      console.error('URL 불러오기 에러:', error);
     } finally {
       setLoading(false);
     }
@@ -52,6 +63,7 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/');
+    router.refresh();
   };
 
   const handleCreate = async (e) => {
@@ -59,10 +71,17 @@ export default function Dashboard() {
     setCreateLoading(true);
     setErrorMsg(null);
 
+    // [수정 포인트 3] 생성할 때도 토큰을 확실히 보냅니다.
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers = { 'Content-Type': 'application/json' };
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
     try {
       const res = await fetch('/api/shorten', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({ url: urlInput, customCode, expiry }),
       });
       const data = await res.json();
@@ -83,13 +102,15 @@ export default function Dashboard() {
   const handleDelete = async (id) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     try {
-      // 삭제 API 구현 필요 (생략 시 UI에서만 제거 or 별도 API 구현)
-      // 여기서는 예시로 UI 갱신만 처리
+      // 삭제 기능 (Supabase 직접 호출)
       const { error } = await supabase.from('urls').delete().eq('id', id);
       if (error) throw error;
+      
+      // 목록에서 즉시 제거
       setUrls(urls.filter(u => u.id !== id));
     } catch (error) {
       alert('삭제 중 오류가 발생했습니다.');
+      console.error(error);
     }
   };
 
@@ -109,7 +130,6 @@ export default function Dashboard() {
     }
 
     try {
-      // 1. 현재 비밀번호 확인 (로그인 시도)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: pwdForm.current,
@@ -120,7 +140,6 @@ export default function Dashboard() {
         return;
       }
 
-      // 2. 비밀번호 업데이트
       const { error: updateError } = await supabase.auth.updateUser({
         password: pwdForm.new
       });
@@ -128,8 +147,8 @@ export default function Dashboard() {
       if (updateError) throw updateError;
 
       setPwdMsg({ type: 'success', text: '비밀번호가 성공적으로 변경되었습니다.' });
-      setPwdForm({ current: '', new: '', confirm: '' }); // 폼 초기화
-      setTimeout(() => setShowPasswordModal(false), 2000); // 2초 후 닫기
+      setPwdForm({ current: '', new: '', confirm: '' });
+      setTimeout(() => setShowPasswordModal(false), 2000);
 
     } catch (error) {
       setPwdMsg({ type: 'error', text: '비밀번호 변경 실패: ' + error.message });
@@ -208,8 +227,14 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
                   <span style={{ fontWeight: 'bold', color: '#2563eb' }}>/{item.code}</span>
                   <span style={{ fontSize: '12px', color: '#9ca3af', backgroundColor: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>
-                    {item.count}회 클릭
+                    {item.count || 0}회 클릭
                   </span>
+                  {/* 만료일 표시 */}
+                  {item.expires_at && (
+                    <span style={{ fontSize: '12px', color: '#ef4444', backgroundColor: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>
+                      {new Date(item.expires_at).toLocaleDateString()} 만료
+                    </span>
+                  )}
                 </div>
                 <p style={{ fontSize: '14px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {item.url}
@@ -217,7 +242,11 @@ export default function Dashboard() {
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button 
-                  onClick={() => navigator.clipboard.writeText(`${window.location.origin}/r/${item.code}`)}
+                  onClick={() => {
+                    const origin = window.location.origin;
+                    navigator.clipboard.writeText(`${origin}/r/${item.code}`);
+                    alert('복사되었습니다!');
+                  }}
                   style={{ ...iconBtnStyle, color: '#059669' }}
                   title="복사"
                 >
