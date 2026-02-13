@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { FiCopy, FiTrash2, FiLogOut, FiSettings, FiX, FiGrid } from 'react-icons/fi';
+import { FiCopy, FiTrash2, FiLogOut, FiSettings, FiX, FiGrid, FiEdit } from 'react-icons/fi';
 import { QRCodeCanvas } from 'qrcode.react';
-import { toUnicode } from 'punycode'; // 한글 도메인 변환용
+import { toUnicode } from 'punycode'; 
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
@@ -19,6 +19,9 @@ export default function Dashboard() {
 
   // QR코드 모달 상태
   const [qrModal, setQrModal] = useState({ show: false, url: '', code: '' });
+
+  // [추가] URL 수정 모달 상태
+  const [editModal, setEditModal] = useState({ show: false, id: null, url: '', code: '' });
 
   const supabase = createClientComponentClient();
   const router = useRouter();
@@ -72,44 +75,81 @@ export default function Dashboard() {
     }
   };
 
-  // [수정] 한글 주소 복사 기능
+  // [추가] URL 수정 저장 함수
+  const handleUpdateUrl = async (e) => {
+    e.preventDefault();
+    try {
+      // 1. 중복 코드 체크 (본인 거 제외)
+      if (editModal.code) {
+         // 간단하게 Supabase Update 호출 (DB 제약조건에 걸리면 에러 발생)
+         const { error } = await supabase
+           .from('urls')
+           .update({ 
+             url: editModal.url, 
+             code: editModal.code 
+           })
+           .eq('id', editModal.id);
+
+         if (error) throw error;
+
+         // 2. 성공 시 목록 갱신 및 모달 닫기
+         setUrls(urls.map(u => 
+           u.id === editModal.id 
+             ? { ...u, url: editModal.url, code: editModal.code } 
+             : u
+         ));
+         alert('수정되었습니다.');
+         setEditModal({ show: false, id: null, url: '', code: '' });
+      }
+    } catch (error) {
+      // Supabase 에러 코드로 중복 확인 (23505는 unique constraint violation)
+      if (error.code === '23505') {
+        alert('이미 사용 중인 단축 코드입니다. 다른 코드를 입력해주세요.');
+      } else {
+        alert('수정 중 오류가 발생했습니다: ' + error.message);
+      }
+    }
+  };
+
+  // [추가] 수정 모달 열기
+  const openEditModal = (item) => {
+    setEditModal({ 
+      show: true, 
+      id: item.id, 
+      url: item.url, 
+      code: item.code 
+    });
+  };
+
   const handleCopy = (code) => {
     const protocol = window.location.protocol;
     const host = window.location.host;
     let displayHost = host;
 
-    // 퓨니코드(xn--)를 한글로 변환
     try {
       if (host.includes('xn--')) {
         displayHost = toUnicode(host);
       }
     } catch (e) {
-      // 변환 실패 시 하드코딩된 폴백 (안전을 위해)
       if (host.includes('xn--vhq94y')) displayHost = '외솔.한국'; 
     }
 
-    // 최종 복사될 URL (예: https://외솔.한국/코드)
     const fullUrl = `${protocol}//${displayHost}/${code}`;
 
     navigator.clipboard.writeText(fullUrl).then(() => {
       alert(`복사되었습니다:\n${fullUrl}`);
     }).catch(() => {
-      // 보안상 이유로 실패 시 fallback
       prompt("이 주소를 복사하세요:", fullUrl);
     });
   };
 
-  // QR 코드 모달 열기
   const openQrModal = (code) => {
     const protocol = window.location.protocol;
     const host = window.location.host;
-    // QR코드는 기능적으로 작동해야 하므로 퓨니코드(실제 영어 주소)를 사용해도 되지만,
-    // 스캔 시 보여지는 주소를 위해 현재 호스트 기반으로 생성
     const fullUrl = `${protocol}//${host}/${code}`;
     setQrModal({ show: true, url: fullUrl, code: code });
   };
 
-  // 비밀번호 변경 로직
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwdMsg({ type: '', text: '' });
@@ -154,7 +194,6 @@ export default function Dashboard() {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
-      {/* 상단 헤더 */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>내 단축 URL 관리</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -173,7 +212,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* URL 목록 (생성 기능 제거됨) */}
       <div style={{ display: 'grid', gap: '15px' }}>
         {urls.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
@@ -201,7 +239,6 @@ export default function Dashboard() {
               </div>
               
               <div style={{ display: 'flex', gap: '8px' }}>
-                 {/* QR 코드 버튼 추가 */}
                  <button 
                   onClick={() => openQrModal(item.code)}
                   style={{ ...iconBtnStyle, color: '#4f46e5' }}
@@ -218,6 +255,15 @@ export default function Dashboard() {
                   <FiCopy />
                 </button>
 
+                {/* [추가] 수정 버튼 */}
+                <button 
+                  onClick={() => openEditModal(item)}
+                  style={{ ...iconBtnStyle, color: '#d97706' }} // 주황색
+                  title="수정"
+                >
+                  <FiEdit />
+                </button>
+
                 <button 
                   onClick={() => handleDelete(item.id)}
                   style={{ ...iconBtnStyle, color: '#dc2626' }}
@@ -230,6 +276,48 @@ export default function Dashboard() {
           ))
         )}
       </div>
+
+      {/* [추가] URL 수정 모달 */}
+      {editModal.show && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold' }}>단축 주소 수정</h3>
+              <button onClick={() => setEditModal({...editModal, show: false})} style={closeBtnStyle}><FiX /></button>
+            </div>
+            
+            <form onSubmit={handleUpdateUrl} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div>
+                <label style={labelStyle}>원본 URL (이동할 곳)</label>
+                <input 
+                  type="url" 
+                  value={editModal.url}
+                  onChange={(e) => setEditModal({...editModal, url: e.target.value})}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>단축 코드 (별칭)</label>
+                <input 
+                  type="text" 
+                  value={editModal.code}
+                  onChange={(e) => setEditModal({...editModal, code: e.target.value})}
+                  required
+                  style={inputStyle}
+                />
+                <p style={{fontSize: '12px', color: '#666', marginTop: '5px'}}>
+                  * 이미 사용 중인 코드는 사용할 수 없습니다.
+                </p>
+              </div>
+
+              <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>
+                수정 완료
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* 비밀번호 변경 모달 */}
       {showPasswordModal && (
