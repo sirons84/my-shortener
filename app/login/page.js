@@ -7,14 +7,14 @@ import { FiAlertCircle, FiCheckCircle, FiLock, FiMail, FiRefreshCw } from 'react
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [isLoginMode, setIsLoginMode] = useState(true); // 로그인 vs 회원가입 모드
+  const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   
-  // [추가] 로그인 실패 시 비밀번호 초기화 버튼 노출 여부
+  // 로그인 실패 시 비밀번호 초기화 버튼 노출 여부
   const [showResetInError, setShowResetInError] = useState(false);
 
   const router = useRouter();
@@ -34,8 +34,13 @@ export default function LoginPage() {
           email,
           password,
         });
-        if (error) throw error;
         
+        if (error) {
+          // [핵심] 여기서 throw를 해서 catch 블록으로 넘깁니다. alert는 쓰지 않습니다.
+          throw error;
+        }
+        
+        // 로그인 성공
         router.push('/'); 
         router.refresh();
       } else {
@@ -60,20 +65,22 @@ export default function LoginPage() {
         if (data?.user?.identities?.length === 0) {
            setErrorMsg("이미 가입된 이메일입니다. 로그인을 시도해주세요.");
         } else {
-           setSuccessMsg("가입 성공! 이메일 인증 후 로그인해주세요.");
+           setSuccessMsg("가입 성공! 이메일 인증(로그인)을 진행해주세요.");
            setIsLoginMode(true); 
         }
       }
     } catch (err) {
-      // 에러 메시지 처리 및 초기화 버튼 노출 로직
+      // [핵심] 에러 처리 로직 (Alert창 절대 안 뜸)
+      console.error("Auth Error:", err); // 콘솔에 에러 출력 확인용
+
       if (err.message.includes('Invalid login credentials')) {
         setErrorMsg('아이디 또는 비밀번호가 일치하지 않습니다.');
-        // [핵심] 로그인 실패 시 초기화 버튼을 에러 박스 안에 띄움
+        // 틀렸을 때 초기화 버튼 보여주기
         setShowResetInError(true);
       } else if (err.message.includes('User already registered')) {
-        setErrorMsg('이미 가입된 사용자입니다.');
+        setErrorMsg('이미 가입된 사용자입니다. 로그인해주세요.');
       } else {
-        setErrorMsg(err.message);
+        setErrorMsg(err.message || '오류가 발생했습니다.');
       }
     } finally {
       setLoading(false);
@@ -85,6 +92,8 @@ export default function LoginPage() {
       setErrorMsg('비밀번호를 초기화하려면 이메일을 먼저 입력해주세요.');
       return;
     }
+    
+    // confirm은 브라우저 기본 기능을 사용 (이건 의도된 것)
     if (!confirm(`${email} 주소로 임시 비밀번호를 발급하시겠습니까?`)) return;
 
     setLoading(true);
@@ -98,8 +107,14 @@ export default function LoginPage() {
       
       if (!res.ok) throw new Error(data.error || '초기화 실패');
       
-      setSuccessMsg('임시 비밀번호가 발급되었습니다. (서버 로그 확인)');
-      setErrorMsg(null); // 에러 메시지 제거
+      // 성공 시 임시 비밀번호를 화면에 보여줌 (메일 서버가 없을 경우를 대비해 alert 사용)
+      if (data.tempPasswordForDebug) {
+        alert(`임시 비밀번호가 발급되었습니다: ${data.tempPasswordForDebug}\n(복사해서 로그인하세요)`);
+      } else {
+        setSuccessMsg('임시 비밀번호가 발송되었습니다. (서버 로그 확인)');
+      }
+      
+      setErrorMsg(null); 
       setShowResetInError(false);
     } catch (err) {
       setErrorMsg(err.message);
@@ -127,9 +142,10 @@ export default function LoginPage() {
               <span>{errorMsg}</span>
             </div>
             
-            {/* [추가 기능] 로그인 실패 시 바로 뜨는 '비밀번호 초기화' 버튼 */}
+            {/* [기능] 로그인 실패 시 바로 뜨는 '비밀번호 초기화' 버튼 */}
             {showResetInError && isLoginMode && (
               <button 
+                type="button" // type을 button으로 명시하여 폼 제출 방지
                 onClick={handleResetPassword}
                 style={styles.inlineResetBtn}
               >
@@ -190,7 +206,6 @@ export default function LoginPage() {
             {isLoginMode ? '아직 계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
           </button>
 
-          {/* 하단 상시 노출 비밀번호 찾기 */}
           {isLoginMode && !showResetInError && (
             <button 
               type="button" 
@@ -219,7 +234,7 @@ const styles = {
     fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', textAlign: 'center', color: '#1f2937'
   },
   errorBox: {
-    display: 'flex', flexDirection: 'column', // 세로 정렬로 변경
+    display: 'flex', flexDirection: 'column', 
     backgroundColor: '#fee2e2', color: '#b91c1c',
     padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', wordBreak: 'keep-all'
   },
