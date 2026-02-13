@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
+import nodemailer from 'nodemailer'; // 메일 발송 라이브러리
 
 export async function POST(request) {
   try {
@@ -9,55 +10,68 @@ export async function POST(request) {
       return NextResponse.json({ error: '이메일이 필요합니다.' }, { status: 400 });
     }
 
-    // [수정 핵심] 기본값(50명) 제한을 풀기 위해 perPage를 10000으로 설정
+    // 1. 유저 확인
     const { data: { users }, error: searchError } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 10000 
     });
 
-    if (searchError) {
-      console.error(searchError);
-      return NextResponse.json({ error: '사용자 조회 중 오류가 발생했습니다.' }, { status: 500 });
-    }
+    if (searchError) throw searchError;
 
-    // 이메일로 유저 찾기
     const user = users.find(u => u.email === email);
-
     if (!user) {
-      // 보안상 "가입되지 않음"을 알려주는 것이 좋을 수도, 아닐 수도 있으나 편의를 위해 알림
-      return NextResponse.json({ error: '가입되지 않은 이메일입니다. (Auth DB에 없음)' }, { status: 404 });
+      return NextResponse.json({ error: '가입되지 않은 이메일입니다.' }, { status: 404 });
     }
 
-    // 10자리 랜덤 임시 비밀번호 생성
-    const tempPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-2);
+    // 2. 임시 비밀번호 생성 (8자리)
+    const tempPassword = Math.random().toString(36).slice(-8);
 
-    // 비밀번호 강제 업데이트
+    // 3. 비밀번호 업데이트 (Supabase DB)
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       user.id,
       { password: tempPassword }
     );
 
-    if (updateError) {
-      console.error(updateError);
-      return NextResponse.json({ error: '비밀번호 업데이트 실패' }, { status: 500 });
-    }
+    if (updateError) throw updateError;
 
-    // [중요] 실제로는 여기서 이메일 발송 로직(Nodemailer 등)이 필요합니다.
-    // 현재는 개발자 도구(F12)가 아닌 "서버 콘솔(터미널)"에 비밀번호가 뜹니다.
-    console.log(`\n=========================================`);
-    console.log(`[임시 비밀번호 발급 성공]`);
-    console.log(`대상: ${email}`);
-    console.log(`비번: ${tempPassword}`);
-    console.log(`=========================================\n`);
+    // 4. [핵심] 이메일 발송 로직 (Nodemailer)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER, // 발신자 이메일 (환경변수)
+        pass: process.env.EMAIL_PASS, // 발신자 앱 비밀번호 (환경변수)
+      },
+    });
 
+    const mailOptions = {
+      from: `"URL Shortener" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '[외솔] 임시 비밀번호 안내',
+      html: `
+        <div style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; font-family: sans-serif;">
+          <h2 style="color: #2563eb;">임시 비밀번호가 발급되었습니다.</h2>
+          <p>안녕하세요,</p>
+          <p>요청하신 계정(<strong>${email}</strong>)의 비밀번호가 초기화되었습니다.</p>
+          <p>아래 임시 비밀번호로 로그인하신 후, 반드시 비밀번호를 변경해주세요.</p>
+          <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 5px; margin: 20px 0;">
+            <span style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${tempPassword}</span>
+          </div>
+          <p style="color: #666; font-size: 12px;">본 메일은 발신 전용입니다.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    console.log(`[메일 발송 성공] To: ${email}`);
+
+    // 5. 클라이언트 응답 (성공)
     return NextResponse.json({ 
-      message: '임시 비밀번호가 발급되었습니다. (서버 관리자에게 문의하거나 서버 로그 확인)',
-      // 개발 편의를 위해 응답에 포함 (배포 시 제거 권장)
-      tempPasswordForDebug: tempPassword 
+      message: '임시 비밀번호가 이메일로 전송되었습니다.' 
     });
 
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: '서버 에러 발생' }, { status: 500 });
+    console.error("비밀번호 초기화 실패:", error);
+    return NextResponse.json({ error: '메일 전송에 실패했습니다. (서버 설정 확인 필요)' }, { status: 500 });
   }
 }
