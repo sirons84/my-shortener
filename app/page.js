@@ -3,10 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { supabase } from "../lib/supabaseClient";
-import { toUnicode } from "punycode";
+// [수정 핵심 1] 쿠키 기반 인증 클라이언트 불러오기
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { toUnicode, toASCII } from "punycode";
 import Image from 'next/image'; 
-import Link from 'next/link'; // 링크 기능 추가
+import Link from 'next/link';
 
 import styles from "./page.module.css";
 import InfoSidebar from "../components/InfoSidebar";
@@ -23,6 +24,9 @@ const qrImageSettings = {
 };
 
 export default function Home() {
+  // [수정 핵심 2] supabase 객체 생성
+  const supabase = createClientComponentClient();
+  
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
@@ -45,7 +49,7 @@ export default function Home() {
     );
 
     return () => authListener?.subscription.unsubscribe();
-  }, []);
+  }, [supabase.auth]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -80,7 +84,6 @@ export default function Home() {
     }
   }
 
-  // --- 드롭다운 메뉴 데이터 ---
   const expiryOptions = [
     { value: "7d", label: "1주일" },
     { value: "30d", label: "1개월" },
@@ -135,7 +138,7 @@ export default function Home() {
       <InfoSidebar />
 
       <section className={styles.mainContent}>
-        {/* 로그인 상태에 따라 상단 버튼 다르게 표시 */}
+        {/* 상단 버튼 추가: 로그인 상태에 따라 대시보드 또는 로그인 이동 */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
           {user ? (
             <Link href="/dashboard" style={{ fontSize: '14px', color: '#666', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
@@ -181,13 +184,11 @@ export default function Home() {
                 onChange={(newValue) => setExpiry(newValue)} 
                 options={expiryOptions} 
               />
-              
               {!user && (
-                // [수정 포인트] 로그인 페이지로 이동하는 링크 추가
-                <Link href="/login" className={styles.loginHintLink} style={{ cursor: 'pointer', textDecoration: 'none', marginTop: '5px' }}>
+                <span className={styles.loginHintLink} style={{ cursor: 'default' }}>
                   <span className={styles.loginHintIcon}>🔒</span> 
-                  <span style={{ textDecoration: 'underline' }}>로그인</span>하면 무제한 가능
-                </Link>
+                  로그인하면 무제한 가능
+                </span>
               )}
             </div>
           </div>

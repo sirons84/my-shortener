@@ -20,29 +20,37 @@ export default function Dashboard() {
   // QR코드 모달 상태
   const [qrModal, setQrModal] = useState({ show: false, url: '', code: '' });
 
-  // [추가] URL 수정 모달 상태
+  // URL 수정 모달 상태
   const [editModal, setEditModal] = useState({ show: false, id: null, url: '', code: '' });
 
   const supabase = createClientComponentClient();
   const router = useRouter();
 
   useEffect(() => {
-    checkUser();
-    fetchUrls();
+    // [수정 포인트] 로그인 상태 확인 로직을 안정적으로 개선
+    const initDashboard = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // 세션이 없으면 로그인 페이지로 튕겨냄
+        router.push('/login');
+        return;
+      }
+      
+      // 세션이 있으면 유저 정보 저장 및 데이터 불러오기
+      setUser(session.user);
+      await fetchUrls(session.access_token);
+    };
+
+    initDashboard();
   }, []);
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) router.push('/login');
-    setUser(user);
-  };
-
-  const fetchUrls = async () => {
+  // [수정 포인트] 위에서 확인한 토큰을 바로 전달받아 사용하도록 수정
+  const fetchUrls = async (token) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       const headers = {};
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
 
       const res = await fetch('/api/my-urls', { headers });
@@ -75,13 +83,11 @@ export default function Dashboard() {
     }
   };
 
-  // [추가] URL 수정 저장 함수
+  // URL 수정 저장 함수
   const handleUpdateUrl = async (e) => {
     e.preventDefault();
     try {
-      // 1. 중복 코드 체크 (본인 거 제외)
       if (editModal.code) {
-         // 간단하게 Supabase Update 호출 (DB 제약조건에 걸리면 에러 발생)
          const { error } = await supabase
            .from('urls')
            .update({ 
@@ -92,7 +98,6 @@ export default function Dashboard() {
 
          if (error) throw error;
 
-         // 2. 성공 시 목록 갱신 및 모달 닫기
          setUrls(urls.map(u => 
            u.id === editModal.id 
              ? { ...u, url: editModal.url, code: editModal.code } 
@@ -102,7 +107,6 @@ export default function Dashboard() {
          setEditModal({ show: false, id: null, url: '', code: '' });
       }
     } catch (error) {
-      // Supabase 에러 코드로 중복 확인 (23505는 unique constraint violation)
       if (error.code === '23505') {
         alert('이미 사용 중인 단축 코드입니다. 다른 코드를 입력해주세요.');
       } else {
@@ -111,7 +115,7 @@ export default function Dashboard() {
     }
   };
 
-  // [추가] 수정 모달 열기
+  // 수정 모달 열기
   const openEditModal = (item) => {
     setEditModal({ 
       show: true, 
@@ -255,10 +259,9 @@ export default function Dashboard() {
                   <FiCopy />
                 </button>
 
-                {/* [추가] 수정 버튼 */}
                 <button 
                   onClick={() => openEditModal(item)}
-                  style={{ ...iconBtnStyle, color: '#d97706' }} // 주황색
+                  style={{ ...iconBtnStyle, color: '#d97706' }}
                   title="수정"
                 >
                   <FiEdit />
@@ -277,7 +280,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* [추가] URL 수정 모달 */}
+      {/* URL 수정 모달 */}
       {editModal.show && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
