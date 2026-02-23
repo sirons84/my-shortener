@@ -224,7 +224,7 @@ export default function LoginPage() {
 const styles = {
   container: {
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '20px'
+    minHeight: '100vh', backgroundColor: 'transparent', padding: '20px'
   },
   card: {
     backgroundColor: 'white', padding: '40px', borderRadius: '12px',
