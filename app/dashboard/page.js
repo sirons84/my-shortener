@@ -9,38 +9,47 @@ import { toUnicode } from 'punycode';
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // 처음엔 로딩 화면을 보여줌
   const [user, setUser] = useState(null);
   
-  // 비밀번호 변경 모달 상태
+  // 모달 상태
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [pwdForm, setPwdForm] = useState({ current: '', new: '', confirm: '' });
   const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
-
-  // QR코드 모달 상태
   const [qrModal, setQrModal] = useState({ show: false, url: '', code: '' });
-
-  // URL 수정 모달 상태
   const [editModal, setEditModal] = useState({ show: false, id: null, url: '', code: '' });
 
   const supabase = createClientComponentClient();
   const router = useRouter();
 
   useEffect(() => {
+    let isMounted = true;
+
     const initDashboard = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      // [핵심 수정] getSession 대신 서버에 직접 로그인 검증을 요청하는 getUser() 사용
+      // 이렇게 하면 로컬 쿠키 인식 지연으로 인해 튕기는 현상을 막을 수 있습니다.
+      const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (!session) {
-        router.push('/login');
+      if (error || !user) {
+        if (isMounted) router.push('/login');
         return;
       }
       
-      setUser(session.user);
-      await fetchUrls(session.access_token);
+      // 유저 확인이 끝난 후 안전하게 세션 토큰을 가져옵니다.
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (isMounted) {
+        setUser(user);
+        await fetchUrls(session?.access_token);
+      }
     };
 
     initDashboard();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router, supabase.auth]);
 
   const fetchUrls = async (token) => {
     try {
@@ -53,13 +62,12 @@ export default function Dashboard() {
       
       if (res.ok) {
         const data = await res.json();
-        // 배열 여부를 확인하여 저장 (버그 수정됨)
         setUrls(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('URL 불러오기 에러:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); // 데이터를 다 불러오면 로딩 화면을 없앰
     }
   };
 
@@ -104,7 +112,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       if (error.code === '23505') {
-        alert('이미 사용 중인 단축 코드입니다. 다른 코드를 입력해주세요.');
+        alert('이미 사용 중인 단축 코드입니다.');
       } else {
         alert('수정 중 오류가 발생했습니다: ' + error.message);
       }
@@ -112,12 +120,7 @@ export default function Dashboard() {
   };
 
   const openEditModal = (item) => {
-    setEditModal({ 
-      show: true, 
-      id: item.id, 
-      url: item.url, 
-      code: item.code 
-    });
+    setEditModal({ show: true, id: item.id, url: item.url, code: item.code });
   };
 
   const handleCopy = (code) => {
@@ -189,23 +192,21 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">로딩 중...</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+      <div style={{ fontSize: '18px', color: '#666' }}>로그인 상태를 확인 중입니다...</div>
+    </div>
+  );
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>내 단축 URL 관리</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={() => setShowPasswordModal(true)}
-            style={{ ...btnStyle, backgroundColor: '#4b5563' }}
-          >
+          <button onClick={() => setShowPasswordModal(true)} style={{ ...btnStyle, backgroundColor: '#4b5563' }}>
             <FiSettings style={{ marginRight: '5px' }} /> 비번 변경
           </button>
-          <button 
-            onClick={handleLogout}
-            style={{ ...btnStyle, backgroundColor: '#ef4444' }}
-          >
+          <button onClick={handleLogout} style={{ ...btnStyle, backgroundColor: '#ef4444' }}>
             <FiLogOut style={{ marginRight: '5px' }} /> 로그아웃
           </button>
         </div>
@@ -238,35 +239,16 @@ export default function Dashboard() {
               </div>
               
               <div style={{ display: 'flex', gap: '8px' }}>
-                 <button 
-                  onClick={() => openQrModal(item.code)}
-                  style={{ ...iconBtnStyle, color: '#4f46e5' }}
-                  title="QR코드 보기"
-                >
+                 <button onClick={() => openQrModal(item.code)} style={{ ...iconBtnStyle, color: '#4f46e5' }} title="QR코드 보기">
                   <FiGrid />
                 </button>
-
-                <button 
-                  onClick={() => handleCopy(item.code)}
-                  style={{ ...iconBtnStyle, color: '#059669' }}
-                  title="주소 복사"
-                >
+                <button onClick={() => handleCopy(item.code)} style={{ ...iconBtnStyle, color: '#059669' }} title="주소 복사">
                   <FiCopy />
                 </button>
-
-                <button 
-                  onClick={() => openEditModal(item)}
-                  style={{ ...iconBtnStyle, color: '#d97706' }}
-                  title="수정"
-                >
+                <button onClick={() => openEditModal(item)} style={{ ...iconBtnStyle, color: '#d97706' }} title="수정">
                   <FiEdit />
                 </button>
-
-                <button 
-                  onClick={() => handleDelete(item.id)}
-                  style={{ ...iconBtnStyle, color: '#dc2626' }}
-                  title="삭제"
-                >
+                <button onClick={() => handleDelete(item.id)} style={{ ...iconBtnStyle, color: '#dc2626' }} title="삭제">
                   <FiTrash2 />
                 </button>
               </div>
@@ -287,31 +269,14 @@ export default function Dashboard() {
             <form onSubmit={handleUpdateUrl} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label style={labelStyle}>원본 URL (이동할 곳)</label>
-                <input 
-                  type="url" 
-                  value={editModal.url}
-                  onChange={(e) => setEditModal({...editModal, url: e.target.value})}
-                  required
-                  style={inputStyle}
-                />
+                <input type="url" value={editModal.url} onChange={(e) => setEditModal({...editModal, url: e.target.value})} required style={inputStyle} />
               </div>
               <div>
                 <label style={labelStyle}>단축 코드 (별칭)</label>
-                <input 
-                  type="text" 
-                  value={editModal.code}
-                  onChange={(e) => setEditModal({...editModal, code: e.target.value})}
-                  required
-                  style={inputStyle}
-                />
-                <p style={{fontSize: '12px', color: '#666', marginTop: '5px'}}>
-                  * 이미 사용 중인 코드는 사용할 수 없습니다.
-                </p>
+                <input type="text" value={editModal.code} onChange={(e) => setEditModal({...editModal, code: e.target.value})} required style={inputStyle} />
+                <p style={{fontSize: '12px', color: '#666', marginTop: '5px'}}>* 이미 사용 중인 코드는 사용할 수 없습니다.</p>
               </div>
-
-              <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>
-                수정 완료
-              </button>
+              <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>수정 완료</button>
             </form>
           </div>
         </div>
@@ -329,49 +294,24 @@ export default function Dashboard() {
             <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div>
                 <label style={labelStyle}>현재 비밀번호</label>
-                <input 
-                  type="password" 
-                  value={pwdForm.current}
-                  onChange={(e) => setPwdForm({...pwdForm, current: e.target.value})}
-                  required
-                  style={inputStyle}
-                />
+                <input type="password" value={pwdForm.current} onChange={(e) => setPwdForm({...pwdForm, current: e.target.value})} required style={inputStyle} />
               </div>
               <div>
                 <label style={labelStyle}>새 비밀번호</label>
-                <input 
-                  type="password" 
-                  value={pwdForm.new}
-                  onChange={(e) => setPwdForm({...pwdForm, new: e.target.value})}
-                  required
-                  placeholder="6자 이상 입력"
-                  style={inputStyle}
-                />
+                <input type="password" value={pwdForm.new} onChange={(e) => setPwdForm({...pwdForm, new: e.target.value})} required placeholder="6자 이상 입력" style={inputStyle} />
               </div>
               <div>
                 <label style={labelStyle}>새 비밀번호 확인</label>
-                <input 
-                  type="password" 
-                  value={pwdForm.confirm}
-                  onChange={(e) => setPwdForm({...pwdForm, confirm: e.target.value})}
-                  required
-                  style={inputStyle}
-                />
+                <input type="password" value={pwdForm.confirm} onChange={(e) => setPwdForm({...pwdForm, confirm: e.target.value})} required style={inputStyle} />
               </div>
 
               {pwdMsg.text && (
-                <div style={{ 
-                  padding: '10px', borderRadius: '5px', fontSize: '14px',
-                  backgroundColor: pwdMsg.type === 'error' ? '#fee2e2' : '#dcfce7',
-                  color: pwdMsg.type === 'error' ? '#b91c1c' : '#15803d'
-                }}>
+                <div style={{ padding: '10px', borderRadius: '5px', fontSize: '14px', backgroundColor: pwdMsg.type === 'error' ? '#fee2e2' : '#dcfce7', color: pwdMsg.type === 'error' ? '#b91c1c' : '#15803d' }}>
                   {pwdMsg.text}
                 </div>
               )}
 
-              <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>
-                변경하기
-              </button>
+              <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>변경하기</button>
             </form>
           </div>
         </div>
@@ -393,21 +333,11 @@ export default function Dashboard() {
                 level={"H"}
                 bgColor="#ffffff"
                 fgColor="#000000"
-                imageSettings={{
-                    src: "/qrlogo2.png",
-                    height: 40,
-                    width: 40,
-                    excavate: true,
-                }}
+                imageSettings={{ src: "/qrlogo2.png", height: 40, width: 40, excavate: true }}
               />
             </div>
             <p style={{ color: '#666', marginBottom: '20px' }}>/{qrModal.code}</p>
-            <button 
-              onClick={() => setQrModal({ ...qrModal, show: false })}
-              style={{ ...btnStyle, width: '100%' }}
-            >
-              닫기
-            </button>
+            <button onClick={() => setQrModal({ ...qrModal, show: false })} style={{ ...btnStyle, width: '100%' }}>닫기</button>
           </div>
         </div>
       )}
@@ -415,51 +345,13 @@ export default function Dashboard() {
   );
 }
 
-// 스타일 정의
-const btnStyle = {
-  padding: '10px 16px', backgroundColor: '#2563eb', color: 'white',
-  border: 'none', borderRadius: '6px', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '500'
-};
-
-const iconBtnStyle = {
-  background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px',
-  padding: '10px', cursor: 'pointer', fontSize: '20px', transition: 'background 0.2s'
-};
-
-const cardStyle = {
-  backgroundColor: 'white', padding: '20px', borderRadius: '12px', 
-  border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-};
-
-const badgeStyle = {
-  fontSize: '12px', color: '#4b5563', backgroundColor: '#f3f4f6', 
-  padding: '2px 8px', borderRadius: '12px', fontWeight: '500'
-};
-
-const inputStyle = {
-  width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px'
-};
-
-const labelStyle = {
-  display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '5px', color: '#374151'
-};
-
-const modalOverlayStyle = {
-  position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-  backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-};
-
-const modalContentStyle = {
-  backgroundColor: 'white', padding: '25px', borderRadius: '16px', width: '90%', maxWidth: '400px',
-  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-};
-
-const modalHeaderStyle = {
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'
-};
-
-const closeBtnStyle = {
-  background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', color: '#6b7280'
-};
+const btnStyle = { padding: '10px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '500' };
+const iconBtnStyle = { background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '20px', transition: 'background 0.2s' };
+const cardStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
+const badgeStyle = { fontSize: '12px', color: '#4b5563', backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' };
+const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' };
+const labelStyle = { display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '5px', color: '#374151' };
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
+const modalContentStyle = { backgroundColor: 'white', padding: '25px', borderRadius: '16px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' };
+const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' };
+const closeBtnStyle = { background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', color: '#6b7280' };
