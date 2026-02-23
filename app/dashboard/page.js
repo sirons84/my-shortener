@@ -27,17 +27,14 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // [수정 포인트] 로그인 상태 확인 로직을 안정적으로 개선
     const initDashboard = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        // 세션이 없으면 로그인 페이지로 튕겨냄
         router.push('/login');
         return;
       }
       
-      // 세션이 있으면 유저 정보 저장 및 데이터 불러오기
       setUser(session.user);
       await fetchUrls(session.access_token);
     };
@@ -45,7 +42,6 @@ export default function Dashboard() {
     initDashboard();
   }, []);
 
-  // [수정 포인트] 위에서 확인한 토큰을 바로 전달받아 사용하도록 수정
   const fetchUrls = async (token) => {
     try {
       const headers = {};
@@ -57,6 +53,7 @@ export default function Dashboard() {
       
       if (res.ok) {
         const data = await res.json();
+        // 배열 여부를 확인하여 저장 (버그 수정됨)
         setUrls(Array.isArray(data) ? data : []);
       }
     } catch (error) {
@@ -83,7 +80,6 @@ export default function Dashboard() {
     }
   };
 
-  // URL 수정 저장 함수
   const handleUpdateUrl = async (e) => {
     e.preventDefault();
     try {
@@ -115,7 +111,6 @@ export default function Dashboard() {
     }
   };
 
-  // 수정 모달 열기
   const openEditModal = (item) => {
     setEditModal({ 
       show: true, 
