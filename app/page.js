@@ -9,6 +9,7 @@ import { toUnicode, toASCII } from "punycode";
 import Image from 'next/image'; 
 import Link from 'next/link';
 
+import { FiShare2, FiDownload } from 'react-icons/fi';
 import styles from "./page.module.css";
 import InfoSidebar from "../components/InfoSidebar";
 import StyledInput from "../components/StyledInput";
@@ -35,6 +36,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -115,6 +117,36 @@ export default function Home() {
     } catch (e) {
       functionalShortUrl = `${origin}/${shortCode}`;
     }
+  }
+
+  // 공유 (Web Share API → 미지원 시 복사 fallback)
+  async function handleShare() {
+    if (!displayShortUrl) return;
+    const shareUrl = `https://${displayShortUrl}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ url: shareUrl, title: '단축 주소 공유' });
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+      } catch (e) {
+        if (e.name !== 'AbortError') setError('공유에 실패했습니다.');
+      }
+    } else {
+      await copyToClipboard();
+    }
+  }
+
+  // QR PNG 다운로드
+  function handleQrDownload() {
+    const canvas = document.querySelector('#main-qr-canvas canvas');
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `qr-${shortCode}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   async function copyToClipboard() {
@@ -209,10 +241,10 @@ export default function Home() {
             </p>
             
             <div className={styles.qrContainer}>
-              <div className={styles.qrBox}>
-                <QRCodeCanvas 
+              <div id="main-qr-canvas" className={styles.qrBox}>
+                <QRCodeCanvas
                   value={functionalShortUrl}
-                  size={140} 
+                  size={140}
                   level="H"
                   imageSettings={qrImageSettings}
                   bgColor="#ffffff"
@@ -221,19 +253,32 @@ export default function Home() {
               </div>
             </div>
 
-            <button onClick={copyToClipboard} className={styles.copyButton}>
-              {copied ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              )}
-              <span>{copied ? '복사 완료!' : '주소 복사하기'}</span>
-            </button>
+            {/* 버튼 3개: 복사 · 공유 · QR 저장 */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+              <button onClick={copyToClipboard} className={styles.copyButton} style={{ flex: 1 }}>
+                {copied ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                )}
+                <span>{copied ? '복사 완료!' : '복사'}</span>
+              </button>
+
+              <button onClick={handleShare} className={styles.copyButton} style={{ flex: 1, backgroundColor: shared ? '#7c3aed' : undefined }}>
+                <FiShare2 size={18} />
+                <span>{shared ? '공유됨!' : '공유'}</span>
+              </button>
+
+              <button onClick={handleQrDownload} className={styles.copyButton} style={{ flex: 1, backgroundColor: '#059669' }}>
+                <FiDownload size={18} />
+                <span>QR 저장</span>
+              </button>
+            </div>
           </div>
         )}
       </section>
