@@ -8,6 +8,7 @@ const APP_ROUTES = [
   '/',
   '/login',
   '/dashboard',
+  '/admin',
   '/privacy',
   '/terms',
 ];
