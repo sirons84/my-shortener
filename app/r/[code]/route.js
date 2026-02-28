@@ -5,7 +5,6 @@ import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req, { params }) {
-  // [핵심 수정] params를 await로 먼저 기다려야 값이 나옵니다.
   const { code } = await params;
   const homeUrl = new URL('/', req.url);
 
@@ -13,26 +12,29 @@ export async function GET(req, { params }) {
     return NextResponse.redirect(homeUrl);
   }
 
-  // 한글 주소 깨짐 방지 (Punycode 변환 제거, 디코딩 사용)
   const targetCode = decodeURIComponent(code);
 
-  // DB에서 단축 코드 조회 (테이블: urls)
   const { data, error } = await supabaseAdmin
     .from('urls')
-    .select('url, expires_at')
+    .select('url, expires_at, count')
     .eq('code', targetCode)
     .single();
 
   if (error || !data) {
-    // 코드가 없거나 에러면 홈으로
     return NextResponse.redirect(homeUrl);
   }
 
   // 만료일 체크
   if (data.expires_at && new Date(data.expires_at) <= new Date()) {
-    return NextResponse.redirect(homeUrl); // 만료됨
+    return NextResponse.redirect(homeUrl);
   }
 
-  // 최종 목적지로 이동
+  // 클릭 수 증가 (비동기 fire-and-forget, 응답 속도에 영향 없음)
+  supabaseAdmin
+    .from('urls')
+    .update({ count: (data.count || 0) + 1 })
+    .eq('code', targetCode)
+    .then(() => {});
+
   return NextResponse.redirect(data.url);
 }

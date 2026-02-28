@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
-import nodemailer from 'nodemailer'; // 메일 발송 라이브러리
+import nodemailer from 'nodemailer';
 
 export async function POST(request) {
   try {
@@ -10,40 +10,38 @@ export async function POST(request) {
       return NextResponse.json({ error: '이메일이 필요합니다.' }, { status: 400 });
     }
 
-    // 1. 유저 확인
-    const { data: { users }, error: searchError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 10000 
+    // 임시 비밀번호 생성 (8자리)
+    const tempPassword = Math.random().toString(36).slice(-8);
+
+    // generateLink로 사용자 존재 확인 및 ID 조회
+    // - 이메일이 없으면 에러를 반환하므로 전체 유저 목록 불필요
+    const { data: linkData, error: findError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
     });
 
-    if (searchError) throw searchError;
-
-    const user = users.find(u => u.email === email);
-    if (!user) {
+    if (findError || !linkData?.user) {
       return NextResponse.json({ error: '가입되지 않은 이메일입니다.' }, { status: 404 });
     }
 
-    // 2. 임시 비밀번호 생성 (8자리)
-    const tempPassword = Math.random().toString(36).slice(-8);
-
-    // 3. 비밀번호 업데이트 (Supabase DB)
+    // 비밀번호 업데이트
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      linkData.user.id,
       { password: tempPassword }
     );
 
     if (updateError) throw updateError;
 
-    // 4. [핵심] 이메일 발송 로직 (Nodemailer)
+    // 이메일 발송
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER, // 발신자 이메일 (환경변수)
-        pass: process.env.EMAIL_PASS, // 발신자 앱 비밀번호 (환경변수)
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: `"URL Shortener" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: '[외솔] 임시 비밀번호 안내',
@@ -59,16 +57,11 @@ export async function POST(request) {
           <p style="color: #666; font-size: 12px;">본 메일은 발신 전용입니다.</p>
         </div>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
 
     console.log(`[메일 발송 성공] To: ${email}`);
 
-    // 5. 클라이언트 응답 (성공)
-    return NextResponse.json({ 
-      message: '임시 비밀번호가 이메일로 전송되었습니다.' 
-    });
+    return NextResponse.json({ message: '임시 비밀번호가 이메일로 전송되었습니다.' });
 
   } catch (error) {
     console.error("비밀번호 초기화 실패:", error);

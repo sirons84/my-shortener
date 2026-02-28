@@ -11,6 +11,16 @@ export async function POST(request) {
     return NextResponse.json({ error: "URL이 없습니다." }, { status: 400 });
   }
 
+  // URL 유효성 검증 (http/https만 허용)
+  try {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return NextResponse.json({ error: 'http 또는 https URL만 허용됩니다.' }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ error: '유효하지 않은 URL입니다.' }, { status: 400 });
+  }
+
   // 2. 유저 정보 확인 (일반 클라이언트로 토큰 검증)
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,

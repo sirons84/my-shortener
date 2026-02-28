@@ -30,10 +30,11 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [customCode, setCustomCode] = useState("");
   const [expiry, setExpiry] = useState("7d");
-  const [shortCode, setShortCode] = useState(""); 
-  const [error, setError] = useState(""); 
-  const [loading, setLoading] = useState(false); 
-  const [user, setUser] = useState(null); 
+  const [shortCode, setShortCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -121,16 +122,17 @@ export default function Home() {
     const textToCopy = `https://${displayShortUrl}`;
     try {
       await navigator.clipboard.writeText(textToCopy);
-      alert("클립보드에 복사되었습니다: " + textToCopy);
     } catch (err) {
+      // 구형 브라우저 폴백
       const textArea = document.createElement("textarea");
       textArea.value = textToCopy;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      alert("클립보드에 복사되었습니다: " + textToCopy);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
   
   return (
@@ -220,15 +222,17 @@ export default function Home() {
             </div>
 
             <button onClick={copyToClipboard} className={styles.copyButton}>
-              <svg 
-                width="20" height="20" viewBox="0 0 24 24" 
-                fill="none" stroke="currentColor" strokeWidth="2" 
-                strokeLinecap="round" strokeLinejoin="round"
-              >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>주소 복사하기</span>
+              {copied ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              )}
+              <span>{copied ? '복사 완료!' : '주소 복사하기'}</span>
             </button>
           </div>
         )}

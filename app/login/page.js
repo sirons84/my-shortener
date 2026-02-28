@@ -101,11 +101,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.error || '초기화 실패');
       
       // 성공 시 임시 비밀번호를 화면에 보여줌 (메일 서버가 없을 경우를 대비해 alert 사용)
-      if (data.tempPasswordForDebug) {
-        alert(`임시 비밀번호가 발급되었습니다: ${data.tempPasswordForDebug}\n(복사해서 로그인하세요)`);
-      } else {
-        setSuccessMsg('임시 비밀번호가 발송되었습니다. (서버 로그 확인)');
-      }
+      setSuccessMsg('임시 비밀번호가 이메일로 발송되었습니다.');
       
       setErrorMsg(null); 
       setShowResetInError(false);

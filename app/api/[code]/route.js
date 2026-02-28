@@ -27,24 +27,33 @@ async function getUserAndUrl(req, code) {
   return { user, urlData: data };
 }
 
-// PATCH: URL 수정
+// PATCH: URL 및 코드 수정
 export async function PATCH(req, { params }) {
   const { code } = await params; // await 필수!
-  const { newUrl } = await req.json();
+  const { newUrl, newCode } = await req.json();
 
-  if (!newUrl) return NextResponse.json({ error: "New URL is required" }, { status: 400 });
+  if (!newUrl && !newCode) return NextResponse.json({ error: "수정할 내용이 없습니다." }, { status: 400 });
 
   const { user, error, status } = await getUserAndUrl(req, code);
   if (error) return NextResponse.json({ error }, { status });
 
   const targetCode = decodeURIComponent(code);
+  const updateData = {};
+  if (newUrl) updateData.url = newUrl;
+  if (newCode) updateData.code = newCode;
+
   const { error: updateError } = await supabaseAdmin
     .from("urls")
-    .update({ url: newUrl })
+    .update(updateData)
     .eq("code", targetCode)
     .eq("user_id", user.id);
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) {
+    if (updateError.code === '23505') {
+      return NextResponse.json({ error: '이미 사용 중인 단축 코드입니다.' }, { status: 409 });
+    }
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ message: "Updated" });
 }
