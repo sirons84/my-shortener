@@ -14,9 +14,10 @@ export async function GET(req, { params }) {
 
   const targetCode = decodeURIComponent(code);
 
+  // count는 여기서 선택하지 않음 - 컬럼 존재 여부와 관계없이 리다이렉트 보장
   const { data, error } = await supabaseAdmin
     .from('urls')
-    .select('url, expires_at, count')
+    .select('url, expires_at')
     .eq('code', targetCode)
     .single();
 
@@ -29,12 +30,22 @@ export async function GET(req, { params }) {
     return NextResponse.redirect(homeUrl);
   }
 
-  // 클릭 수 증가 (비동기 fire-and-forget, 응답 속도에 영향 없음)
+  // 클릭 수 증가 (fire-and-forget - 실패해도 리다이렉트에 영향 없음)
   supabaseAdmin
     .from('urls')
-    .update({ count: (data.count || 0) + 1 })
+    .select('count')
     .eq('code', targetCode)
-    .then(() => {});
+    .single()
+    .then(({ data: row, error: e }) => {
+      if (!e && row !== null) {
+        supabaseAdmin
+          .from('urls')
+          .update({ count: (row.count || 0) + 1 })
+          .eq('code', targetCode)
+          .then(() => {});
+      }
+    })
+    .catch(() => {});
 
   return NextResponse.redirect(data.url);
 }
