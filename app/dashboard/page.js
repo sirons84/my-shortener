@@ -5,9 +5,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import {
   FiCopy, FiTrash2, FiLogOut, FiSettings, FiX, FiGrid, FiEdit,
-  FiCheck, FiSearch, FiShare2, FiDownload,
+  FiCheck, FiSearch, FiShare2, FiDownload, FiBarChart2,
 } from 'react-icons/fi';
 import { QRCodeCanvas } from 'qrcode.react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
 
@@ -28,6 +29,9 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  // 통계 모달
+  const [statsModal, setStatsModal] = useState({ show: false, code: '', data: null, loading: false });
 
   // 모달
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -214,6 +218,21 @@ export default function Dashboard() {
     setQrModal({ show: true, url: fullUrl, code });
   };
 
+  // 통계 모달 열기
+  const openStatsModal = async (code) => {
+    setStatsModal({ show: true, code, data: null, loading: true });
+    const token = await getToken();
+    try {
+      const res = await fetch(`/api/stats/${encodeURIComponent(code)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setStatsModal(prev => ({ ...prev, data, loading: false }));
+    } catch {
+      setStatsModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   // QR PNG 다운로드
   const handleQrDownload = () => {
     const canvas = document.querySelector('#qr-modal-canvas canvas');
@@ -284,9 +303,16 @@ export default function Dashboard() {
 
       {/* 홈 링크 + 유저 */}
       <div style={{ marginBottom: '20px' }}>
-        <Link href="/" style={{ padding: '8px 14px', background: '#636e72', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem', display: 'inline-block', marginBottom: '1rem' }}>
-          🏠 메인으로
-        </Link>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+          <Link href="/" style={{ padding: '8px 14px', background: '#636e72', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem' }}>
+            🏠 메인으로
+          </Link>
+          {user?.email === 'sirons@usedu.ai.kr' && (
+            <Link href="/admin" style={{ padding: '8px 14px', background: '#dc2626', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem' }}>
+              🛠 관리자
+            </Link>
+          )}
+        </div>
         {user && <p style={{ color: '#4b5563' }}>안녕하세요, <strong>{user.email}</strong>님</p>}
       </div>
 
@@ -383,6 +409,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <button onClick={() => openStatsModal(item.code)} style={{ ...iconBtnStyle, color: '#0891b2' }} title="통계 보기"><FiBarChart2 /></button>
                     <button onClick={() => openQrModal(item.code)} style={{ ...iconBtnStyle, color: '#4f46e5' }} title="QR코드 보기"><FiGrid /></button>
                     <button onClick={() => handleCopy(item.code)} style={{ ...iconBtnStyle, color: copiedCode === item.code ? '#059669' : '#6b7280' }} title={copiedCode === item.code ? '복사됨!' : '주소 복사'}>
                       {copiedCode === item.code ? <FiCheck /> : <FiCopy />}
@@ -468,6 +495,52 @@ export default function Dashboard() {
               )}
               <button type="submit" style={{ ...btnStyle, width: '100%', marginTop: '10px' }}>변경하기</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── 통계 모달 ── */}
+      {statsModal.show && (
+        <div style={modalOverlayStyle} onClick={() => setStatsModal({ ...statsModal, show: false })}>
+          <div style={{ ...modalContentStyle, maxWidth: '560px', width: '95%' }} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold' }}>클릭 통계 — /{statsModal.code}</h3>
+              <button onClick={() => setStatsModal({ ...statsModal, show: false })} style={closeBtnStyle}><FiX /></button>
+            </div>
+
+            {statsModal.loading ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>불러오는 중...</div>
+            ) : statsModal.data?.unavailable ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '14px' }}>
+                <p>📊 통계 수집 준비 중입니다.</p>
+                <p style={{ marginTop: '8px', fontSize: '12px' }}>Supabase에 url_clicks 테이블을 생성하면 활성화됩니다.</p>
+                <p style={{ marginTop: '12px', fontSize: '16px', fontWeight: 'bold', color: '#374151' }}>
+                  누적 클릭: {statsModal.data?.totalClicks || 0}회
+                </p>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+                  누적 클릭: <strong style={{ color: '#1f2937', fontSize: '16px' }}>{statsModal.data?.totalClicks || 0}회</strong>
+                  &nbsp;· 최근 30일
+                </p>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={statsModal.data?.stats || []} margin={{ top: 0, right: 4, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={4} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(v) => [`${v}회`, '클릭']}
+                      labelFormatter={(l) => `날짜: ${l}`}
+                      contentStyle={{ fontSize: '13px' }}
+                    />
+                    <Bar dataKey="clicks" fill="#2563eb" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </>
+            )}
+
+            <button onClick={() => setStatsModal({ ...statsModal, show: false })} style={{ ...btnStyle, width: '100%', marginTop: '20px', backgroundColor: '#6b7280' }}>닫기</button>
           </div>
         </div>
       )}

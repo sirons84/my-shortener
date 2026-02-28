@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
+import { checkUrlSafety } from '../../../lib/urlSafety';
 
 export async function POST(request) {
   // 1. 요청 데이터 가져오기
@@ -19,6 +20,12 @@ export async function POST(request) {
     }
   } catch {
     return NextResponse.json({ error: '유효하지 않은 URL입니다.' }, { status: 400 });
+  }
+
+  // 악성 URL 차단
+  const safety = await checkUrlSafety(url);
+  if (!safety.safe) {
+    return NextResponse.json({ error: safety.reason || '안전하지 않은 URL입니다.' }, { status: 400 });
   }
 
   // 2. 유저 정보 확인 (일반 클라이언트로 토큰 검증)

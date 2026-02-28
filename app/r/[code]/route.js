@@ -30,22 +30,29 @@ export async function GET(req, { params }) {
     return NextResponse.redirect(homeUrl);
   }
 
-  // 클릭 수 증가 (fire-and-forget - 실패해도 리다이렉트에 영향 없음)
-  supabaseAdmin
-    .from('urls')
-    .select('count')
-    .eq('code', targetCode)
-    .single()
-    .then(({ data: row, error: e }) => {
-      if (!e && row !== null) {
-        supabaseAdmin
-          .from('urls')
-          .update({ count: (row.count || 0) + 1 })
-          .eq('code', targetCode)
-          .then(() => {});
-      }
-    })
-    .catch(() => {});
+  // 클릭 수 증가 + 클릭 이벤트 기록 (fire-and-forget)
+  Promise.all([
+    // urls.count 증가
+    supabaseAdmin
+      .from('urls')
+      .select('count')
+      .eq('code', targetCode)
+      .single()
+      .then(({ data: row, error: e }) => {
+        if (!e && row !== null) {
+          return supabaseAdmin
+            .from('urls')
+            .update({ count: (row.count || 0) + 1 })
+            .eq('code', targetCode);
+        }
+      }),
+
+    // url_clicks 에 이벤트 기록 (테이블 없으면 조용히 실패)
+    supabaseAdmin
+      .from('url_clicks')
+      .insert({ code: targetCode })
+      .then(() => {}),
+  ]).catch(() => {});
 
   return NextResponse.redirect(data.url);
 }
