@@ -43,7 +43,7 @@ export async function POST(request) {
         const userRegion = user.user_metadata?.region || "기타";
         
         // [수정] 제한 개수 설정 로직
-        let limit = 50; // 기본값
+        let limit = 30; // 기본값
 
         if (userRegion === "울산광역시교육청") {
           limit = 200; // 기존 로직 유지 (가장 높은 혜택)

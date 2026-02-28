@@ -17,11 +17,6 @@ export const authOptions = {
           throw new Error("이메일을 입력해주세요.");
         }
 
-        // 1. 도메인 체크 (핵심 기능)
-        if (!email.endsWith("@usedu.ai.kr")) {
-          throw new Error("@usedu.ai.kr 이메일만 사용할 수 있습니다.");
-        }
-
         try {
           // 2. Supabase DB에서 사용자 찾기
           let { data: user, error: findError } = await supabaseAdmin

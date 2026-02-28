@@ -45,13 +45,6 @@ export default function LoginPage() {
         router.refresh();
       } else {
         // --- 회원가입 시도 ---
-        const isAllowedDomain = email.endsWith('@usedu.ai.kr');
-        const isAdmin = email === 'sirons@usedu.ai.kr';
-        
-        if (!isAllowedDomain && !isAdmin) {
-           throw new Error("죄송합니다. @usedu.ai.kr 이메일만 가입할 수 있습니다.");
-        }
-
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -167,7 +160,7 @@ export default function LoginPage() {
             <FiMail style={styles.icon} />
             <input
               type="email"
-              placeholder="이메일 (@usedu.ai.kr)"
+              placeholder="이메일"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={styles.input}
