@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { FiAlertCircle, FiCheckCircle, FiLock, FiMail, FiRefreshCw } from 'react-icons/fi'; 
+import { FiAlertCircle, FiCheckCircle, FiLock, FiMail, FiRefreshCw, FiInfo } from 'react-icons/fi';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -163,6 +163,19 @@ export default function LoginPage() {
               required
             />
           </div>
+          {/* 회원가입 모드 + usedu.ai.kr 계정이 아닐 때 안내 문구 */}
+          {!isLoginMode && !email.endsWith('@usedu.ai.kr') && (
+            <div style={styles.infoBox}>
+              <FiInfo size={16} style={{ flexShrink: 0, marginTop: '1px' }} />
+              <span>
+                울산 교사이신가요?{' '}
+                <strong>@usedu.ai.kr</strong> 계정으로 가입하시면
+                단축 주소를 최대 <strong>100개</strong>까지 만드실 수 있습니다.
+                (일반 계정: 30개)
+              </span>
+            </div>
+          )}
+
           <div style={styles.inputGroup}>
             <FiLock style={styles.icon} />
             <input
@@ -242,6 +255,12 @@ const styles = {
   successBox: {
     display: 'flex', alignItems: 'center', backgroundColor: '#dcfce7', color: '#15803d',
     padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', wordBreak: 'keep-all'
+  },
+  infoBox: {
+    display: 'flex', alignItems: 'flex-start', gap: '8px',
+    backgroundColor: '#eff6ff', color: '#1d4ed8',
+    padding: '12px', borderRadius: '8px', fontSize: '13px',
+    lineHeight: '1.5', wordBreak: 'keep-all', border: '1px solid #bfdbfe',
   },
   form: { display: 'flex', flexDirection: 'column', gap: '16px' },
   inputGroup: { position: 'relative' },
