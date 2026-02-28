@@ -21,14 +21,15 @@ export default function AdminPage() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== ADMIN_EMAIL) {
+      // getSession()은 로컬 캐시에서 즉시 읽어 네트워크 오류 없이 안정적으로 동작
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session || session.user?.email !== ADMIN_EMAIL) {
         router.push('/');
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const token = session.access_token;
       const headers = { Authorization: `Bearer ${token}` };
 
       const [statsRes, usersRes] = await Promise.all([
@@ -41,7 +42,7 @@ export default function AdminPage() {
       setLoading(false);
     };
     init();
-  }, [router, supabase.auth]);
+  }, []);
 
   const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(userSearch.toLowerCase())
