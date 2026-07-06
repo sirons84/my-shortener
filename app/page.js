@@ -17,6 +17,8 @@ import Link from 'next/link';
 import { FiShare2, FiDownload } from 'react-icons/fi';
 import styles from "./page.module.css";
 import InfoSidebar from "../components/InfoSidebar";
+import HomeStats from "../components/HomeStats";
+import BookRecommendations from "../components/BookRecommendations";
 import StyledInput from "../components/StyledInput";
 import SubmitButton from "../components/SubmitButton";
 import PrefixedInput from "../components/PrefixedInput";
@@ -172,6 +174,7 @@ export default function Home() {
   }
   
   return (
+    <>
     <div className={styles.wrapper}>
       <InfoSidebar />
 
@@ -287,5 +290,9 @@ export default function Home() {
         )}
       </section>
     </div>
+
+    <HomeStats />
+    <BookRecommendations />
+    </>
   );
 }
