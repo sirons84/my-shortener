@@ -5,9 +5,11 @@ import styles from './StyledSelect.module.css';
 
 export default function StyledSelect({ label, value, onChange, options = [] }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [highlight, setHighlight] = useState(-1); // 키보드 탐색 중 강조된 항목
   const containerRef = useRef(null);
 
   const selectedOption = options.find(opt => opt.value === value) || options[0];
+  const selectedIndex = options.findIndex(opt => opt.value === value);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -19,22 +21,58 @@ export default function StyledSelect({ label, value, onChange, options = [] }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const open = () => {
+    setHighlight(selectedIndex >= 0 ? selectedIndex : 0);
+    setIsOpen(true);
+  };
+  const close = () => setIsOpen(false);
+
   const handleSelect = (optionValue) => {
     onChange(optionValue);
     setIsOpen(false);
   };
 
+  // 키보드 지원: Enter/Space 열기·선택, 방향키 이동, Esc 닫기
+  const handleKeyDown = (e) => {
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (isOpen && highlight >= 0) handleSelect(options[highlight].value);
+        else open();
+        break;
+      case 'Escape':
+        close();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (!isOpen) open();
+        else setHighlight(h => Math.min(options.length - 1, h + 1));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (!isOpen) open();
+        else setHighlight(h => Math.max(0, h - 1));
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className={styles.wrapper} ref={containerRef}>
-      {/* (수정됨) 라벨을 여기(바깥)에서... */}
-      
-      <div 
-        className={`${styles.trigger} ${isOpen ? styles.triggerOpen : ''}`} 
-        onClick={() => setIsOpen(!isOpen)}
+      <div
+        className={`${styles.trigger} ${isOpen ? styles.triggerOpen : ''}`}
+        onClick={() => (isOpen ? close() : open())}
+        onKeyDown={handleKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={label}
       >
-        {/* ...여기(박스 안)으로 옮겼습니다! */}
         <span className={styles.label}>{label}</span>
-        
+
         <span className={styles.currentValue}>
           {selectedOption ? selectedOption.label : '선택'}
         </span>
@@ -42,12 +80,15 @@ export default function StyledSelect({ label, value, onChange, options = [] }) {
       </div>
 
       {isOpen && (
-        <ul className={styles.dropdownMenu}>
-          {options.map((option) => (
+        <ul className={styles.dropdownMenu} role="listbox" aria-label={label}>
+          {options.map((option, i) => (
             <li
               key={option.value}
-              className={`${styles.optionItem} ${option.value === value ? styles.selected : ''}`}
+              role="option"
+              aria-selected={option.value === value}
+              className={`${styles.optionItem} ${option.value === value ? styles.selected : ''} ${i === highlight ? styles.highlighted : ''}`}
               onClick={() => handleSelect(option.value)}
+              onMouseEnter={() => setHighlight(i)}
             >
               {option.label}
             </li>

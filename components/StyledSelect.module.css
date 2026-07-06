@@ -33,6 +33,12 @@
   transform: translateY(0);
 }
 
+/* 키보드 포커스 표시 (접근성) */
+.trigger:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
 /* 2. 라벨 (유지 기간) 스타일 */
 .label {
   display: block;
@@ -98,7 +104,8 @@
   transition: background 0.1s;
 }
 
-.optionItem:hover {
+.optionItem:hover,
+.highlighted {
   background-color: #fff7d1;
   color: #2d3436;
 }

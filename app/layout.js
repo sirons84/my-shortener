@@ -42,7 +42,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <head>
-        {/* (head 내용은 그대로) */}
+        {/* Pretendard 폰트: 초기 HTML에서 바로 발견되도록 <link>로 로드 + preconnect로 연결 예열.
+            dynamic-subset은 페이지에 실제로 쓰인 글자 조각만 내려받아 효율적. */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css"
+        />
       </head>
       <body>
         <Header /> 

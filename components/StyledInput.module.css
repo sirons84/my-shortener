@@ -2,11 +2,8 @@
 
 .container {
   width: 100%;
-  
-  /* 1. (!! 핵심 수정 !!) 
-     margin-bottom을 24px에서 84px로 변경합니다.
-  */
-  margin-bottom: 84px; 
+  /* URL 입력칸과 아래 화살표/단축주소 행 사이 간격 (한 화면에 맞게 축소) */
+  margin-bottom: 40px;
 }
 
 /* 2. 회색 박스 */

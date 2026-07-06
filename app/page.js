@@ -2,10 +2,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { QRCodeCanvas } from "qrcode.react";
+import dynamic from "next/dynamic";
+// QR 코드는 URL 생성 후에만 필요하므로 초기 번들에서 분리(지연 로딩)
+const QRCodeCanvas = dynamic(
+  () => import("qrcode.react").then((m) => m.QRCodeCanvas),
+  { ssr: false }
+);
 // [수정 핵심 1] 쿠키 기반 인증 클라이언트 불러오기
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { toUnicode, toASCII } from "punycode";
+import { toUnicode } from "punycode";
 import Image from 'next/image'; 
 import Link from 'next/link';
 
@@ -39,12 +44,8 @@ export default function Home() {
   const [shared, setShared] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    fetchUser();
-
+    // onAuthStateChange가 마운트 시 초기 세션(INITIAL_SESSION)을 즉시 발화하므로
+    // 별도의 getUser() 네트워크 호출 없이 이 리스너 하나로 초기 상태까지 처리한다.
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
@@ -121,8 +122,10 @@ export default function Home() {
 
   // 공유 (Web Share API → 미지원 시 복사 fallback)
   async function handleShare() {
-    if (!displayShortUrl) return;
-    const shareUrl = `https://${displayShortUrl}`;
+    // 실제 공유되는 값은 퓨니코드(ASCII) URL로 통일 — 유니코드 도메인을
+    // 제대로 열지 못하는 앱/메신저에서도 안전하게 동작하도록.
+    if (!functionalShortUrl) return;
+    const shareUrl = functionalShortUrl;
     if (navigator.share) {
       try {
         await navigator.share({ url: shareUrl, title: '단축 주소 공유' });
@@ -150,8 +153,9 @@ export default function Home() {
   }
 
   async function copyToClipboard() {
-    if (!displayShortUrl) return;
-    const textToCopy = `https://${displayShortUrl}`;
+    // 표시는 유니코드로 예쁘게, 복사되는 실제 값은 퓨니코드(functional) URL로 통일
+    if (!functionalShortUrl) return;
+    const textToCopy = functionalShortUrl;
     try {
       await navigator.clipboard.writeText(textToCopy);
     } catch (err) {
