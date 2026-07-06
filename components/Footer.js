@@ -33,7 +33,7 @@ export default function Footer() {
 
         {/* 3. 하단 저작권 텍스트 */}
         <p className={styles.copyright}>
-          © 2026 울산교육청 (개발자: 정윤호, 석희철, 오재경, 이강현, 이충민, 박창현, 김지현, 황정훈) 디자인 (요즘사람주식회사, 퍼스널컬러다이브). All rights reserved.
+          © 2026 울산교육청 (개발자: 정윤호, 석희철, 오재경, 이강현, 김지현, 이충민, 박창현, 황정훈) 디자인 (요즘사람주식회사, 퍼스널컬러다이브). All rights reserved.
         </p>
 
       </div>
