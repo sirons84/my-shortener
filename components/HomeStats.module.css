@@ -1,14 +1,21 @@
 .wrap {
-  max-width: 981px;
+  max-width: 1368px;
   margin: 28px auto 0;
   padding: 0 30px;
 }
 
 .heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 18px;
   font-weight: 700;
   color: #2d3436;
   margin-bottom: 14px;
+}
+
+.headingIcon {
+  color: #f6a609;
 }
 
 .grid {

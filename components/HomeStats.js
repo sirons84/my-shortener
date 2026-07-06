@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { FiBarChart2 } from 'react-icons/fi';
 import styles from './HomeStats.module.css';
 
 export default function HomeStats() {
@@ -24,7 +25,10 @@ export default function HomeStats() {
 
   return (
     <section className={styles.wrap} aria-label="서비스 현황">
-      <h2 className={styles.heading}>📊 외솔.한국 현황</h2>
+      <h2 className={styles.heading}>
+        <FiBarChart2 className={styles.headingIcon} size={20} />
+        외솔.한국 현황
+      </h2>
       <div className={styles.grid}>
         {tiles.map((t) => (
           <div key={t.label} className={styles.tile}>

@@ -1,3 +1,4 @@
+import { FiBookOpen, FiBook, FiClock } from 'react-icons/fi';
 import styles from './BookRecommendations.module.css';
 
 // 추천 도서 (null = 준비 중 자리)
@@ -18,7 +19,10 @@ const BOOKS = [
 export default function BookRecommendations() {
   return (
     <section className={styles.wrap} aria-label="추천 도서">
-      <h2 className={styles.heading}>📚 외솔이 추천하는 책</h2>
+      <h2 className={styles.heading}>
+        <FiBookOpen className={styles.headingIcon} size={20} />
+        추천 도서
+      </h2>
       <div className={styles.grid}>
         {BOOKS.map((book, i) =>
           book ? (
@@ -29,7 +33,9 @@ export default function BookRecommendations() {
               rel="noopener noreferrer"
               className={styles.card}
             >
-              <div className={styles.cover} aria-hidden="true">📖</div>
+              <div className={styles.cover} aria-hidden="true">
+                <FiBook size={24} />
+              </div>
               <div className={styles.info}>
                 <div className={styles.title}>{book.title}</div>
                 <div className={styles.author}>{book.author}</div>
@@ -38,7 +44,9 @@ export default function BookRecommendations() {
             </a>
           ) : (
             <div key={i} className={`${styles.card} ${styles.placeholder}`}>
-              <div className={styles.cover} aria-hidden="true">✨</div>
+              <div className={styles.cover} aria-hidden="true">
+                <FiClock size={24} />
+              </div>
               <div className={styles.info}>
                 <div className={styles.title}>추천 도서 준비 중</div>
                 <div className={styles.author}>곧 공개됩니다</div>

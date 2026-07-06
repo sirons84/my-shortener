@@ -1,14 +1,21 @@
 .wrap {
-  max-width: 981px;
+  max-width: 1368px;
   margin: 28px auto 40px;
   padding: 0 30px;
 }
 
 .heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 18px;
   font-weight: 700;
   color: #2d3436;
   margin-bottom: 14px;
+}
+
+.headingIcon {
+  color: #0984e3;
 }
 
 .grid {
@@ -43,7 +50,7 @@ a.card:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  color: #e59500;
   background: #fff7d1;
   border-radius: 14px;
 }
@@ -83,6 +90,7 @@ a.card:hover {
 
 .placeholder .cover {
   background: #f1f2f6;
+  color: #9ca3af;
 }
 
 .placeholder .title {
