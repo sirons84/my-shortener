@@ -369,7 +369,7 @@ export default function Dashboard() {
       )}
 
       {/* URL 목록 */}
-      <div style={{ display: 'grid', gap: '15px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '15px' }}>
         {displayUrls.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
             {searchQuery || filterStatus !== 'all'
