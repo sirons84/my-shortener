@@ -5,7 +5,11 @@ import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const nowIso = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
   try {
     // 사용 중인(만료 안 된) 단축 주소 수
     const { count: activeUrls } = await supabaseAdmin
@@ -13,21 +17,24 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
 
-    // 총 리디렉션 수 (urls.count 합계)
-    const { data: rows } = await supabaseAdmin.from('urls').select('count');
-    const totalRedirects = (rows || []).reduce((s, r) => s + (r.count || 0), 0);
-
-    // 방문(클릭) 기록 수 — url_clicks 이벤트 수
-    const { count: totalVisits } = await supabaseAdmin
+    // 총 리디렉션 수 — url_clicks 이벤트 기록 기준
+    // (urls.count는 최근 추가돼 과거 이력이 없으므로 사용하지 않음)
+    const { count: totalRedirects } = await supabaseAdmin
       .from('url_clicks')
       .select('*', { count: 'exact', head: true });
 
+    // 오늘 방문 수
+    const { count: todayVisits } = await supabaseAdmin
+      .from('url_clicks')
+      .select('*', { count: 'exact', head: true })
+      .gte('clicked_at', todayStart.toISOString());
+
     return NextResponse.json({
       activeUrls: activeUrls || 0,
-      totalRedirects,
-      totalVisits: totalVisits || 0,
+      totalRedirects: totalRedirects || 0,
+      todayVisits: todayVisits || 0,
     });
   } catch (e) {
-    return NextResponse.json({ activeUrls: 0, totalRedirects: 0, totalVisits: 0 });
+    return NextResponse.json({ activeUrls: 0, totalRedirects: 0, todayVisits: 0 });
   }
 }
