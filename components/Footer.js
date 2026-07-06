@@ -23,9 +23,9 @@ export default function Footer() {
           </a>
         </div>
 
-        {/* 2. 문의 이메일 */}
+        {/* 2. 문의 / 담당자 */}
         <p className={styles.contact}>
-          문의사항:{' '}
+          문의 · 화진초 교사 석희철 ·{' '}
           <a href="mailto:sirons1124@gmail.com" className={styles.contactLink}>
             sirons1124@gmail.com
           </a>
