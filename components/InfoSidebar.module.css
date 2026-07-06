@@ -4,8 +4,8 @@
   width: 100%;
   /* 320px * 0.9 = 288px */
   max-width: 288px;
-  /* 본문(.mainContent)과 높이를 맞춤 — 한 화면에 들어오도록 축소 */
-  height: 560px;
+  /* 본문(.mainContent)과 높이를 맞춤 — 로고와 카드 사이 간격 확보 겸 한 화면 유지 */
+  height: 580px;
 
   display: flex;
   flex-direction: column;
