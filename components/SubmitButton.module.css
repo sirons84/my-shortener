@@ -33,13 +33,14 @@
 .character {
   position: absolute;
   z-index: 1;
-  pointer-events: none; 
-  
-  width: 480px; 
+  pointer-events: none;
+
+  /* 유지기간 셀렉트를 덮지 않도록 살짝 축소 (480→430) */
+  width: 430px;
   height: auto;
-  
+
   right: 40px;
-  bottom: 10px; 
+  bottom: 10px;
 }
 
 /* 모바일 반응형 */
