@@ -43,6 +43,23 @@
   opacity: 0.6; /* (링크와 투명도 통일) */
 }
 
+.contact {
+  font-size: 13px;
+  color: var(--color-text-secondary, #767676);
+  margin-bottom: 8px;
+  opacity: 0.7;
+}
+
+.contactLink {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.contactLink:hover {
+  color: var(--color-text-primary, #333);
+}
+
 .copyright {
   font-size: 12px;
   color: var(--color-text-secondary, #767676);
