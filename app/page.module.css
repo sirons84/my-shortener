@@ -5,7 +5,8 @@
   margin: 0 auto;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  /* 상단 정렬: URL 결과 카드가 생겨 본문이 길어져도 사이드바(로고+카드)는 위에 고정 */
+  align-items: flex-start;
   gap: 27px;
   padding: 30px;
   position: relative;
