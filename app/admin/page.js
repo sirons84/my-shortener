@@ -7,8 +7,7 @@ import Link from 'next/link';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
-
-const ADMIN_EMAIL = 'sirons@usedu.ai.kr';
+import { ADMIN_EMAIL } from '../../lib/constants';
 
 export default function AdminPage() {
   const supabase = createClientComponentClient();

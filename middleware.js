@@ -11,6 +11,7 @@ const APP_ROUTES = [
   '/admin',
   '/privacy',
   '/terms',
+  '/auth/callback',
 ];
 
 export function middleware(req) {

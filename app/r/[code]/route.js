@@ -32,19 +32,24 @@ export async function GET(req, { params }) {
 
   // 클릭 수 증가 + 클릭 이벤트 기록 (fire-and-forget)
   Promise.all([
-    // urls.count 증가
+    // urls.count 원자적 증가 (RPC). 마이그레이션 002 미적용 시 기존 방식으로 폴백
     supabaseAdmin
-      .from('urls')
-      .select('count')
-      .eq('code', targetCode)
-      .single()
-      .then(({ data: row, error: e }) => {
-        if (!e && row !== null) {
-          return supabaseAdmin
-            .from('urls')
-            .update({ count: (row.count || 0) + 1 })
-            .eq('code', targetCode);
-        }
+      .rpc('increment_click', { p_code: targetCode })
+      .then(({ error: rpcError }) => {
+        if (!rpcError) return;
+        return supabaseAdmin
+          .from('urls')
+          .select('count')
+          .eq('code', targetCode)
+          .single()
+          .then(({ data: row, error: e }) => {
+            if (!e && row !== null) {
+              return supabaseAdmin
+                .from('urls')
+                .update({ count: (row.count || 0) + 1 })
+                .eq('code', targetCode);
+            }
+          });
       }),
 
     // url_clicks 에 이벤트 기록 (테이블 없으면 조용히 실패)

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
-
-const ADMIN_EMAIL = 'sirons@usedu.ai.kr';
+import { ADMIN_EMAIL } from '../../../../lib/constants';
 
 export async function GET(req) {
   const token = req.headers.get('authorization')?.split(' ')[1];

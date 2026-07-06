@@ -11,6 +11,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
+import { ADMIN_EMAIL } from '../../lib/constants';
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
@@ -289,7 +290,7 @@ export default function Dashboard() {
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
 
       {/* 헤더 */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>내 단축 URL 관리</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => setShowPasswordModal(true)} style={{ ...btnStyle, backgroundColor: '#4b5563' }}>
@@ -307,7 +308,7 @@ export default function Dashboard() {
           <Link href="/" style={{ padding: '8px 14px', background: '#636e72', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem' }}>
             🏠 메인으로
           </Link>
-          {user?.email === 'sirons@usedu.ai.kr' && (
+          {user?.email === ADMIN_EMAIL && (
             <Link href="/admin" style={{ padding: '8px 14px', background: '#dc2626', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem' }}>
               🛠 관리자
             </Link>
@@ -386,7 +387,7 @@ export default function Dashboard() {
 
             return (
               <div key={item.id} style={cardStyle}>
-                <div style={{ overflow: 'hidden', flex: 1, paddingRight: '15px' }}>
+                <div style={{ overflow: 'hidden', flex: '1 1 240px', minWidth: 0, paddingRight: '15px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 'bold', color: '#2563eb', fontSize: '18px' }}>/{displayCode}</span>
                     <span style={badgeStyle}>{item.count || 0}회 클릭</span>
@@ -402,13 +403,13 @@ export default function Dashboard() {
                 </div>
 
                 {isPendingDelete ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     <span style={{ fontSize: '13px', color: '#dc2626', whiteSpace: 'nowrap' }}>정말 삭제할까요?</span>
                     <button onClick={() => handleDeleteConfirm(item)} style={{ ...btnStyle, backgroundColor: '#dc2626', padding: '6px 12px', fontSize: '13px' }}>예</button>
                     <button onClick={() => setConfirmDeleteId(null)} style={{ ...btnStyle, backgroundColor: '#6b7280', padding: '6px 12px', fontSize: '13px' }}>취소</button>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     <button onClick={() => openStatsModal(item.code)} style={{ ...iconBtnStyle, color: '#0891b2' }} title="통계 보기"><FiBarChart2 /></button>
                     <button onClick={() => openQrModal(item.code)} style={{ ...iconBtnStyle, color: '#4f46e5' }} title="QR코드 보기"><FiGrid /></button>
                     <button onClick={() => handleCopy(item.code)} style={{ ...iconBtnStyle, color: copiedCode === item.code ? '#059669' : '#6b7280' }} title={copiedCode === item.code ? '복사됨!' : '주소 복사'}>
@@ -583,7 +584,7 @@ export default function Dashboard() {
 
 const btnStyle = { padding: '10px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '500' };
 const iconBtnStyle = { background: 'none', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '10px', cursor: 'pointer', fontSize: '20px', transition: 'background 0.2s' };
-const cardStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
+const cardStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
 const badgeStyle = { fontSize: '12px', color: '#4b5563', backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' };
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' };
 const labelStyle = { display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '5px', color: '#374151' };

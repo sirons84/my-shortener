@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
+import { randomInt } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { checkUrlSafety } from '../../../lib/urlSafety';
+import { validateCustomCode, ADMIN_EMAIL } from '../../../lib/constants';
+import { rateLimit, getClientIp } from '../../../lib/rateLimit';
 
 export async function POST(request) {
   // 1. 요청 데이터 가져오기
@@ -28,6 +31,16 @@ export async function POST(request) {
     return NextResponse.json({ error: safety.reason || '안전하지 않은 URL입니다.' }, { status: 400 });
   }
 
+  // 커스텀 코드 사전 검증 (허용 문자·길이·예약어)
+  let validatedCustomCode = null;
+  if (customCode) {
+    const result = validateCustomCode(customCode);
+    if (!result.valid) {
+      return NextResponse.json({ error: result.reason }, { status: 400 });
+    }
+    validatedCustomCode = result.code;
+  }
+
   // 2. 유저 정보 확인 (일반 클라이언트로 토큰 검증)
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -45,10 +58,23 @@ export async function POST(request) {
     }
   }
 
+  // 비로그인(익명) 생성은 IP 기반으로 남용 방지 (10분당 20개)
+  // 주의: 학교 등 공용 IP를 고려해 넉넉하게 설정
+  if (!user) {
+    const ip = getClientIp(request);
+    const { allowed } = rateLimit(`shorten:anon:${ip}`, { max: 20, windowMs: 10 * 60 * 1000 });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: '요청이 너무 많습니다. 잠시 후 다시 시도하거나 로그인해주세요.' },
+        { status: 429 }
+      );
+    }
+  }
+
   // --- [생성 개수 제한 확인] ---
   if (user) {
-    // [수정] 관리자 계정(sirons@usedu.ai.kr)은 제한 없음 (개수 체크 건너뜀)
-    const isAdmin = user.email === 'sirons@usedu.ai.kr';
+    // [수정] 관리자 계정은 제한 없음 (개수 체크 건너뜀)
+    const isAdmin = user.email === ADMIN_EMAIL;
 
     if (!isAdmin) {
       const { count, error: countError } = await supabaseAdmin
@@ -80,19 +106,19 @@ export async function POST(request) {
 
   // 3. 단축 코드 생성
   let code;
-  
-  if (customCode) {
+
+  if (validatedCustomCode) {
     // 사용자 지정 코드 중복 확인
     const { data: existing } = await supabaseAdmin
       .from('urls')
       .select('code')
-      .eq('code', customCode)
+      .eq('code', validatedCustomCode)
       .single();
-    
+
     if (existing) {
       return NextResponse.json({ error: '이미 사용 중인 단축 주소입니다.' }, { status: 409 });
     }
-    code = customCode;
+    code = validatedCustomCode;
 
   } else {
     // 랜덤 코드 생성
@@ -132,12 +158,12 @@ export async function POST(request) {
   return NextResponse.json({ code });
 }
 
-// [보조 함수]
+// [보조 함수] 암호학적으로 안전한 난수로 코드 생성
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
+    result += characters.charAt(randomInt(characters.length));
   }
   return result;
 }
