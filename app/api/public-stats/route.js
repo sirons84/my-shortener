@@ -29,12 +29,17 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .gte('clicked_at', todayStart.toISOString());
 
+    // 총 회원 수 — 목록은 1명만 받고 페이지네이션의 total만 사용
+    const { data: usersPage } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 });
+    const totalUsers = usersPage?.total ?? usersPage?.users?.length ?? 0;
+
     return NextResponse.json({
       activeUrls: activeUrls || 0,
       totalRedirects: totalRedirects || 0,
       todayVisits: todayVisits || 0,
+      totalUsers,
     });
   } catch (e) {
-    return NextResponse.json({ activeUrls: 0, totalRedirects: 0, todayVisits: 0 });
+    return NextResponse.json({ activeUrls: 0, totalRedirects: 0, todayVisits: 0, totalUsers: 0 });
   }
 }
