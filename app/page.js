@@ -261,8 +261,8 @@ export default function Home() {
             </div>
 
             {/* 버튼 3개: 복사 · 공유 · QR 저장 */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-              <button onClick={copyToClipboard} className={styles.copyButton} style={{ flex: 1 }}>
+            <div className={styles.actionRow}>
+              <button onClick={copyToClipboard} className={styles.copyButton}>
                 {copied ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
@@ -276,12 +276,12 @@ export default function Home() {
                 <span>{copied ? '복사 완료!' : '복사'}</span>
               </button>
 
-              <button onClick={handleShare} className={styles.copyButton} style={{ flex: 1, backgroundColor: shared ? '#7c3aed' : undefined }}>
+              <button onClick={handleShare} className={styles.copyButton} style={{ backgroundColor: shared ? '#7c3aed' : undefined }}>
                 <FiShare2 size={18} />
                 <span>{shared ? '공유됨!' : '공유'}</span>
               </button>
 
-              <button onClick={handleQrDownload} className={styles.copyButton} style={{ flex: 1, backgroundColor: '#059669' }}>
+              <button onClick={handleQrDownload} className={styles.copyButton} style={{ backgroundColor: '#059669' }}>
                 <FiDownload size={18} />
                 <span>QR 저장</span>
               </button>

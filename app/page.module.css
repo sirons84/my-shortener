@@ -147,6 +147,26 @@
     position: static;
     margin: 20px 0;
   }
+
+  .resultCard {
+    padding: 20px 14px;
+  }
+
+  /* 버튼 3개가 좁은 화면에서도 한 줄에 들어가도록 축소 */
+  .copyButton {
+    padding: 12px 8px;
+    gap: 6px;
+    font-size: 0.95rem;
+    max-width: none;
+  }
+}
+
+/* 결과 카드 하단 버튼 행 (복사 · 공유 · QR 저장) */
+.actionRow {
+  display: flex;
+  flex-wrap: wrap; /* 좁은 화면에서 넘치는 대신 다음 줄로 */
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .copyButton {
@@ -155,12 +175,15 @@
   align-items: center;
   justify-content: center;
   gap: 10px; /* 아이콘과 글자 사이 간격 */
-  
+
   margin-top: 15px;
-  padding: 14px 32px;
-  width: 100%; /* 모바일에서는 꽉 차게, PC에서는 적당히 */
+  padding: 14px 16px;
+  /* 행 안에서 균등 분배하되, 콘텐츠보다 좁아지지 않게(글자 두 줄 꺾임 방지) */
+  flex: 1 1 0;
+  min-width: max-content;
+  white-space: nowrap;
   max-width: 280px; /* 너무 길어지지 않게 제한 */
-  
+
   /* 색상 및 배경 (그라데이션 적용) */
   background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%);
   color: white;
@@ -179,11 +202,14 @@
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* 마우스 올렸을 때 (살짝 떠오르는 효과) */
-.copyButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(9, 132, 227, 0.6);
-  background: linear-gradient(135deg, #0769b5 0%, #0984e3 100%);
+/* 마우스 올렸을 때 (살짝 떠오르는 효과) — 터치 기기에서는 hover가 눌린 채
+   고정되는 문제가 있어 실제 포인터가 있는 기기에서만 적용 */
+@media (hover: hover) {
+  .copyButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(9, 132, 227, 0.6);
+    background: linear-gradient(135deg, #0769b5 0%, #0984e3 100%);
+  }
 }
 
 /* 클릭했을 때 (눌리는 효과) */
