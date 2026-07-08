@@ -11,10 +11,10 @@ const BOOKS = [
     cover: '/books/9791193379813.jpg',
   },
   {
-    title: '한글이 목숨',
-    author: '최현배',
-    url: 'https://product.kyobobook.co.kr/detail/S000001946563',
-    cover: '/books/9791190965309.jpg',
+    title: '질문 수업 어떻게 시작할까',
+    author: '양경윤',
+    url: 'https://product.kyobobook.co.kr/detail/S000213661269',
+    cover: '/books/9791163461913.jpg',
   },
   {
     title: '아울렛',
