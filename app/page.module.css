@@ -35,6 +35,9 @@
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 24px;
+  /* 한국어 어절 단위 줄바꿈 (글자 중간에서 꺾이지 않게) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .form {
@@ -123,12 +126,17 @@
   
   .mainContent {
     width: 100%;
-    max-width: 450px; 
-    height: auto; 
+    max-width: 450px;
+    height: auto;
     min-height: auto;
     border-radius: 24px;
     padding: 24px 20px 40px;
-    overflow: visible; 
+    overflow: visible;
+  }
+
+  .title {
+    font-size: 22px;
+    line-height: 1.4;
   }
   
   .selectWrapper {
