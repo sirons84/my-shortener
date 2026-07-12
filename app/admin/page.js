@@ -17,6 +17,14 @@ export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userSearch, setUserSearch] = useState('');
+  const [token, setToken] = useState(null);
+  const [reportMonth, setReportMonth] = useState(() => {
+    // 기본값: 지난달 (보고서는 보통 전월 기준)
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -29,6 +37,7 @@ export default function AdminPage() {
       }
 
       const token = session.access_token;
+      setToken(token);
       const headers = { Authorization: `Bearer ${token}` };
 
       const [statsRes, usersRes] = await Promise.all([
@@ -46,6 +55,33 @@ export default function AdminPage() {
   const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(userSearch.toLowerCase())
   );
+
+  // 월간 통계 보고서(xlsx) 다운로드
+  const downloadReport = async () => {
+    if (!token || !reportMonth) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/admin/report?month=${reportMonth}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({}));
+        alert(error || '보고서 생성에 실패했습니다.');
+        return;
+      }
+      const blob = await res.blob();
+      const [year, month] = reportMonth.split('-');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `외솔.한국 단축URL 이용 통계(${year}년 ${Number(month)}월).xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', fontSize: '18px', color: '#666' }}>
@@ -93,6 +129,33 @@ export default function AdminPage() {
             <Bar dataKey="count" fill="#2563eb" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* 월간 보고서 다운로드 */}
+      <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>📊 월간 이용 통계 보고서</h2>
+        <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '16px' }}>
+          선택한 월의 단축URL별 이용 현황과 일별 추이를 엑셀 파일로 내려받습니다. (교육청 보고용)
+        </p>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            type="month"
+            value={reportMonth}
+            onChange={e => setReportMonth(e.target.value)}
+            style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+          />
+          <button
+            onClick={downloadReport}
+            disabled={downloading || !reportMonth}
+            style={{
+              padding: '9px 18px', borderRadius: '6px', border: 'none',
+              backgroundColor: downloading ? '#93c5fd' : '#2563eb', color: 'white',
+              fontSize: '14px', fontWeight: '600', cursor: downloading ? 'default' : 'pointer',
+            }}
+          >
+            {downloading ? '생성 중...' : '엑셀 다운로드'}
+          </button>
+        </div>
       </div>
 
       {/* 사용자 목록 */}
