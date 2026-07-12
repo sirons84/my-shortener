@@ -4,8 +4,22 @@ import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
 import { ADMIN_EMAIL } from '../../../../lib/constants';
 
-// 월간 이용 통계 보고서(xlsx) 생성 — 교육청 보고용
+// 월간 이용 통계 보고서(xlsx) — 교육청 「통합누리집 통계」 양식 준용
 // GET /api/admin/report?month=YYYY-MM (생략 시 지난달)
+//
+// 시트1: 누리집 이용 현황 — 연번/누리집/URL/페이지뷰/페이지뷰어/순 페이지뷰/방문수/방문자수/
+//        페이지당 평균 체류시간/바운스 방문율/접속 종료율
+// 시트2: 기기별 이용현황 — 연번/기기 유형/방문수/방문자수/페이지뷰/신규 방문수/신규 방문율/
+//        방문당 사이트 체류시간/방문당 페이지뷰/바운스 방문율
+//
+// 지표 정의 (page_views 테이블 기준):
+// - 페이지뷰: 페이지 조회 건수 전체
+// - 페이지뷰어: (방문자, 페이지) 조합의 고유 수
+// - 순 페이지뷰: (방문, 페이지) 조합의 고유 수
+// - 방문수: 고유 세션 수 (30분 비활동 시 새 방문)
+// - 방문자수: 고유 방문자 수 (쿠키 1년 기준)
+// - 바운스 방문율: 페이지 1개만 보고 떠난 방문 비율
+// - 접속 종료율: 방문수 ÷ 페이지뷰 (모든 방문은 1회 종료됨)
 
 export const dynamic = 'force-dynamic';
 
@@ -14,12 +28,6 @@ async function verifyAdmin(req) {
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user || user.email !== ADMIN_EMAIL) return null;
   return user;
-}
-
-// KST 기준 날짜 문자열(YYYY-MM-DD)
-function toKstDateStr(isoString) {
-  const d = new Date(new Date(isoString).getTime() + 9 * 60 * 60 * 1000);
-  return d.toISOString().split('T')[0];
 }
 
 // supabase는 한 번에 최대 1000행만 반환하므로 페이지 단위로 전부 수집
@@ -34,6 +42,8 @@ async function fetchAll(buildQuery) {
   }
   return rows;
 }
+
+const DEVICE_ORDER = ['PC', '스마트폰', '태블릿', '기타'];
 
 export async function GET(req) {
   const user = await verifyAdmin(req);
@@ -58,64 +68,87 @@ export async function GET(req) {
   }
 
   const mm = String(month).padStart(2, '0');
+  const daysInMonth = new Date(year, month, 0).getDate();
   const monthStart = new Date(`${year}-${mm}-01T00:00:00+09:00`);
   const monthEnd = month === 12
     ? new Date(`${year + 1}-01-01T00:00:00+09:00`)
     : new Date(`${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00+09:00`);
-  const daysInMonth = new Date(year, month, 0).getDate();
 
-  let urls, clicks;
+  // ── 데이터 수집 ──
+  let views = [];
+  let collectError = false;
   try {
-    [urls, clicks] = await Promise.all([
-      fetchAll(() => supabaseAdmin
-        .from('urls')
-        .select('code, url, created_at, count')
-        .order('created_at', { ascending: true })),
-      fetchAll(() => supabaseAdmin
-        .from('url_clicks')
-        .select('code, clicked_at')
-        .gte('clicked_at', monthStart.toISOString())
-        .lt('clicked_at', monthEnd.toISOString())
-        .order('clicked_at', { ascending: true })),
-    ]);
+    views = await fetchAll(() => supabaseAdmin
+      .from('page_views')
+      .select('visitor_id, session_id, path, device, is_new_visitor, duration_sec')
+      .gte('viewed_at', monthStart.toISOString())
+      .lt('viewed_at', monthEnd.toISOString())
+      .order('viewed_at', { ascending: true }));
   } catch (e) {
-    console.error('Report query error:', e);
-    return NextResponse.json({ error: '통계 조회 중 오류가 발생했습니다.' }, { status: 500 });
+    console.error('page_views query error:', e);
+    collectError = true; // 테이블 미생성 등 — 0으로 채운 보고서 생성
   }
 
-  // 코드별·일별 집계
-  const monthlyByCode = {};
-  const dailyClicks = {};
-  for (const { code, clicked_at } of clicks) {
-    monthlyByCode[code] = (monthlyByCode[code] || 0) + 1;
-    const day = toKstDateStr(clicked_at);
-    dailyClicks[day] = (dailyClicks[day] || 0) + 1;
-  }
+  // ── 집계 ──
+  const visitors = new Set();
+  const viewerPages = new Set();   // (visitor, path)
+  const sessionPages = new Set();  // (session, path)
+  const sessions = new Map();      // sessionId → { device, pvCount, isNew, dwellSum, visitorId }
+  let dwellTotal = 0;
+  let dwellCount = 0;
+  const pvByDevice = {};
 
-  const dailyNewUrls = {};
-  for (const { created_at } of urls) {
-    const t = new Date(created_at);
-    if (t >= monthStart && t < monthEnd) {
-      const day = toKstDateStr(created_at);
-      dailyNewUrls[day] = (dailyNewUrls[day] || 0) + 1;
+  for (const v of views) {
+    const device = DEVICE_ORDER.includes(v.device) ? v.device : '기타';
+    visitors.add(v.visitor_id);
+    viewerPages.add(`${v.visitor_id}|${v.path}`);
+    sessionPages.add(`${v.session_id}|${v.path}`);
+    pvByDevice[device] = (pvByDevice[device] || 0) + 1;
+
+    if (v.duration_sec !== null && v.duration_sec !== undefined) {
+      dwellTotal += Number(v.duration_sec);
+      dwellCount += 1;
     }
+
+    let s = sessions.get(v.session_id);
+    if (!s) {
+      s = { device, pvCount: 0, isNew: false, dwellSum: 0, visitorId: v.visitor_id };
+      sessions.set(v.session_id, s);
+    }
+    s.pvCount += 1;
+    if (v.is_new_visitor) s.isNew = true;
+    if (v.duration_sec !== null && v.duration_sec !== undefined) s.dwellSum += Number(v.duration_sec);
   }
 
-  // 보고 대상: 당월 클릭이 있거나 당월에 생성된 URL (당월 클릭 많은 순)
-  const rows = urls
-    .map(u => ({
-      code: u.code,
-      url: u.url,
-      createdAt: toKstDateStr(u.created_at),
-      monthClicks: monthlyByCode[u.code] || 0,
-      totalClicks: u.count || 0,
-      createdThisMonth: new Date(u.created_at) >= monthStart && new Date(u.created_at) < monthEnd,
-    }))
-    .filter(r => r.monthClicks > 0 || r.createdThisMonth)
-    .sort((a, b) => b.monthClicks - a.monthClicks || b.totalClicks - a.totalClicks);
+  const pvTotal = views.length;
+  const visitCount = sessions.size;
+  const visitorCount = visitors.size;
+  const bounceCount = [...sessions.values()].filter(s => s.pvCount === 1).length;
+  const avgDwellPerPage = dwellCount ? dwellTotal / dwellCount : 0;
+  const bounceRate = visitCount ? bounceCount / visitCount : 0;
+  const exitRate = pvTotal ? visitCount / pvTotal : 0;
 
-  const sumMonthClicks = rows.reduce((s, r) => s + r.monthClicks, 0);
-  const newUrlCount = rows.filter(r => r.createdThisMonth).length;
+  // 기기별 집계
+  const deviceStats = DEVICE_ORDER.map(device => {
+    const devSessions = [...sessions.values()].filter(s => s.device === device);
+    const devVisitors = new Set(devSessions.map(s => s.visitorId));
+    const visits = devSessions.length;
+    const newVisits = devSessions.filter(s => s.isNew).length;
+    const bounces = devSessions.filter(s => s.pvCount === 1).length;
+    const dwellSum = devSessions.reduce((a, s) => a + s.dwellSum, 0);
+    const pv = pvByDevice[device] || 0;
+    return {
+      device,
+      visits,
+      visitors: devVisitors.size,
+      pv,
+      newVisits,
+      newRate: visits ? newVisits / visits : 0,
+      dwellPerVisit: visits ? dwellSum / visits : 0,
+      pvPerVisit: visits ? pv / visits : 0,
+      bounceRate: visits ? bounces / visits : 0,
+    };
+  });
 
   // ───────────────────────── 엑셀 생성 ─────────────────────────
   const wb = new ExcelJS.Workbook();
@@ -125,112 +158,142 @@ export async function GET(req) {
   const border = { top: thin, left: thin, bottom: thin, right: thin };
   const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCE6F1' } };
   const totalFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+  const center = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-  // ── 시트 1: 단축URL 이용 현황 ──
-  const ws1 = wb.addWorksheet(`단축URL 이용 현황(${month}월)`);
-  ws1.columns = [
-    { width: 6 },   // 순위
-    { width: 22 },  // 단축 주소
-    { width: 55 },  // 원본 URL
-    { width: 13 },  // 생성일
-    { width: 12 },  // 당월 클릭
-    { width: 12 },  // 누적 클릭
-  ];
+  const periodLine = `Domain: 외솔.한국  ( From: ${year}${mm}01  To: ${year}${mm}${String(daysInMonth).padStart(2, '0')} )`;
 
-  ws1.mergeCells('A1:F1');
-  const title1 = ws1.getCell('A1');
-  title1.value = `${year}년 ${month}월 외솔.한국 단축URL 서비스 이용 현황`;
-  title1.font = { size: 16, bold: true };
-  title1.alignment = { horizontal: 'center', vertical: 'middle' };
-  ws1.getRow(1).height = 30;
-
-  ws1.mergeCells('A2:F2');
-  const sub1 = ws1.getCell('A2');
-  sub1.value = `(집계 기간: ${year}.${mm}.01 ~ ${year}.${mm}.${String(daysInMonth).padStart(2, '0')})`;
-  sub1.alignment = { horizontal: 'center' };
-  sub1.font = { size: 10, color: { argb: 'FF666666' } };
-
-  ws1.mergeCells('A3:F3');
-  const summary = ws1.getCell('A3');
-  summary.value = `전체 등록 URL ${urls.length.toLocaleString()}개  |  당월 신규 ${newUrlCount.toLocaleString()}개  |  당월 클릭 ${sumMonthClicks.toLocaleString()}회`;
-  summary.alignment = { horizontal: 'center' };
-  summary.font = { size: 10, color: { argb: 'FF666666' } };
-
-  const headerRow1 = ws1.addRow(['순위', '단축 주소', '원본 URL', '생성일', '당월 클릭수', '누적 클릭수']);
-  headerRow1.eachCell(c => {
+  const styleHeader = (row) => row.eachCell(c => {
     c.font = { bold: true };
     c.fill = headerFill;
     c.border = border;
-    c.alignment = { horizontal: 'center', vertical: 'middle' };
+    c.alignment = center;
   });
 
-  rows.forEach((r, i) => {
-    const row = ws1.addRow([
-      i + 1,
-      `외솔.한국/${r.code}`,
-      r.url,
-      r.createdAt,
-      r.monthClicks,
-      r.totalClicks,
-    ]);
-    row.eachCell((c, col) => {
-      c.border = border;
-      if (col === 1 || col === 4) c.alignment = { horizontal: 'center' };
-      if (col >= 5) c.numFmt = '#,##0';
-    });
+  // ── 시트 1: 누리집 이용 현황 ──
+  const ws1 = wb.addWorksheet(`누리집 이용 현황(${month}월)`);
+  ws1.columns = [
+    { width: 6 },  // 연번
+    { width: 26 }, // 누리집
+    { width: 16 }, // URL
+    { width: 12 }, // 페이지뷰
+    { width: 12 }, // 페이지뷰어
+    { width: 12 }, // 순 페이지뷰
+    { width: 12 }, // 방문수
+    { width: 12 }, // 방문자수
+    { width: 16 }, // 체류시간
+    { width: 12 }, // 바운스 방문율
+    { width: 12 }, // 접속 종료율
+  ];
+
+  ws1.mergeCells('A1:K1');
+  ws1.getCell('A1').value = `${year}년 ${month}월 외솔.한국 단축URL 서비스 이용 현황`;
+  ws1.getCell('A1').font = { size: 16, bold: true };
+  ws1.getCell('A1').alignment = center;
+  ws1.getRow(1).height = 30;
+
+  ws1.mergeCells('A2:K2');
+  ws1.getCell('A2').value = periodLine;
+  ws1.getCell('A2').font = { size: 10, color: { argb: 'FF666666' } };
+  ws1.getCell('A2').alignment = { horizontal: 'center' };
+
+  styleHeader(ws1.addRow([
+    '연번', '누리집', 'URL', '페이지뷰', '페이지뷰어', '순 페이지뷰',
+    '방문수', '방문자수', '페이지당 평균 체류시간(sec)', '바운스 방문율', '접속 종료율',
+  ]));
+  ws1.getRow(3).height = 30;
+
+  const siteRow = ws1.addRow([
+    1, '외솔.한국 (한글 URL 단축 서비스)', '외솔.한국',
+    pvTotal, viewerPages.size, sessionPages.size, visitCount, visitorCount,
+    `${avgDwellPerPage.toFixed(2)} s`, bounceRate, exitRate,
+  ]);
+  siteRow.eachCell((c, col) => {
+    c.border = border;
+    if (col === 1 || col === 3 || col === 9) c.alignment = { horizontal: 'center' };
+    if (col >= 4 && col <= 8) c.numFmt = '#,##0';
+    if (col >= 10) { c.numFmt = '0.00%'; c.alignment = { horizontal: 'center' }; }
   });
 
-  const totalRow1 = ws1.addRow(['합계', `${rows.length}개`, '', '', sumMonthClicks, '']);
+  const totalRow1 = ws1.addRow([
+    '합계', 1, '', pvTotal, viewerPages.size, sessionPages.size, visitCount, visitorCount, '', '', '',
+  ]);
   totalRow1.eachCell((c, col) => {
     c.border = border;
     c.fill = totalFill;
     c.font = { bold: true };
-    if (col <= 2) c.alignment = { horizontal: 'center' };
-    if (col >= 5) c.numFmt = '#,##0';
+    if (col <= 3) c.alignment = { horizontal: 'center' };
+    if (col >= 4 && col <= 8) c.numFmt = '#,##0';
   });
 
-  // ── 시트 2: 일별 이용 현황 ──
-  const ws2 = wb.addWorksheet('일별 이용 현황');
-  ws2.columns = [{ width: 14 }, { width: 12 }, { width: 14 }];
+  const note1 = collectError
+    ? '※ 방문 통계 테이블(page_views)이 아직 생성되지 않았습니다. supabase/migrations/004_page_views.sql 적용 후부터 집계됩니다.'
+    : '※ 방문 통계는 수집 기능 배포 시점 이후의 데이터부터 집계됩니다.';
+  const noteRowNum = ws1.rowCount + 2;
+  ws1.mergeCells(`A${noteRowNum}:K${noteRowNum}`);
+  const noteCell1 = ws1.getCell(`A${noteRowNum}`);
+  noteCell1.value = note1;
+  noteCell1.font = { size: 9, color: { argb: 'FF888888' } };
 
-  ws2.mergeCells('A1:C1');
-  const title2 = ws2.getCell('A1');
-  title2.value = `${year}년 ${month}월 일별 이용 현황`;
-  title2.font = { size: 14, bold: true };
-  title2.alignment = { horizontal: 'center', vertical: 'middle' };
+  // ── 시트 2: 기기별 이용현황 ──
+  const ws2 = wb.addWorksheet('기기별 이용현황');
+  ws2.columns = [
+    { width: 6 },  // 연번
+    { width: 14 }, // 기기 유형
+    { width: 12 }, // 방문수
+    { width: 12 }, // 방문자수
+    { width: 12 }, // 페이지뷰
+    { width: 12 }, // 신규 방문수
+    { width: 12 }, // 신규 방문율
+    { width: 18 }, // 방문당 사이트 체류시간
+    { width: 14 }, // 방문당 페이지뷰
+    { width: 12 }, // 바운스 방문율
+  ];
+
+  ws2.mergeCells('A1:J1');
+  ws2.getCell('A1').value = '기기별 사이트 방문 현황';
+  ws2.getCell('A1').font = { size: 14, bold: true };
+  ws2.getCell('A1').alignment = center;
   ws2.getRow(1).height = 26;
 
-  const headerRow2 = ws2.addRow(['날짜', '클릭 수', '신규 URL 수']);
-  headerRow2.eachCell(c => {
-    c.font = { bold: true };
-    c.fill = headerFill;
-    c.border = border;
-    c.alignment = { horizontal: 'center', vertical: 'middle' };
-  });
+  ws2.mergeCells('A2:J2');
+  ws2.getCell('A2').value = periodLine;
+  ws2.getCell('A2').font = { size: 10, color: { argb: 'FF666666' } };
+  ws2.getCell('A2').alignment = { horizontal: 'center' };
 
-  let sumDailyNew = 0;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const key = `${year}-${mm}-${String(d).padStart(2, '0')}`;
-    sumDailyNew += dailyNewUrls[key] || 0;
-    const row = ws2.addRow([key, dailyClicks[key] || 0, dailyNewUrls[key] || 0]);
+  styleHeader(ws2.addRow([
+    '연번', '기기 유형', '방문수', '방문자수', '페이지뷰', '신규 방문수',
+    '신규 방문율', '방문당 사이트 체류시간', '방문당 페이지뷰', '바운스 방문율',
+  ]));
+  ws2.getRow(3).height = 30;
+
+  deviceStats.forEach((d, i) => {
+    const row = ws2.addRow([
+      i + 1, d.device, d.visits, d.visitors, d.pv, d.newVisits,
+      d.newRate, `${d.dwellPerVisit.toFixed(2)} s`, Number(d.pvPerVisit.toFixed(2)), d.bounceRate,
+    ]);
     row.eachCell((c, col) => {
       c.border = border;
-      c.alignment = { horizontal: 'center' };
-      if (col >= 2) c.numFmt = '#,##0';
+      if (col <= 2 || col === 8) c.alignment = { horizontal: 'center' };
+      if (col >= 3 && col <= 6) c.numFmt = '#,##0';
+      if (col === 7 || col === 10) { c.numFmt = '0.00%'; c.alignment = { horizontal: 'center' }; }
+      if (col === 9) { c.numFmt = '0.00'; c.alignment = { horizontal: 'center' }; }
     });
-  }
+  });
 
-  const totalRow2 = ws2.addRow(['합계', sumMonthClicks, sumDailyNew]);
-  totalRow2.eachCell(c => {
+  const totalRow2 = ws2.addRow([
+    '합계', '', visitCount, visitorCount, pvTotal,
+    deviceStats.reduce((a, d) => a + d.newVisits, 0), '', '', '', '',
+  ]);
+  totalRow2.eachCell((c, col) => {
     c.border = border;
     c.fill = totalFill;
     c.font = { bold: true };
-    c.alignment = { horizontal: 'center' };
-    c.numFmt = '#,##0';
+    if (col <= 2) c.alignment = { horizontal: 'center' };
+    if (col >= 3 && col <= 6) c.numFmt = '#,##0';
   });
 
   const buffer = await wb.xlsx.writeBuffer();
-  const filename = `외솔.한국 단축URL 이용 통계(${year}년 ${month}월).xlsx`;
+  const filename = `외솔.한국 이용 통계(${year}년 ${month}월).xlsx`;
 
   return new NextResponse(buffer, {
     headers: {
