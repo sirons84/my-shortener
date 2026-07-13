@@ -104,15 +104,18 @@ export default function Home() {
   }
 
   let functionalShortUrl = "";
-  let displayShortUrl = "";    
+  let displayShortUrl = "";
+  let unicodeShortUrl = "";
   if (shortCode) {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     try {
       const displayCode = shortCode.startsWith('xn--') ? toUnicode(shortCode) : shortCode;
       const displayHost = toUnicode(window.location.hostname);
       displayShortUrl = `${displayHost}/${displayCode}`;
+      unicodeShortUrl = `https://${displayShortUrl}`;
     } catch (e) {
       displayShortUrl = `${window.location.hostname}/${shortCode}`;
+      unicodeShortUrl = `${origin}/${shortCode}`;
     }
     try {
       const punycodeHost = window.location.hostname;
@@ -155,9 +158,9 @@ export default function Home() {
   }
 
   async function copyToClipboard() {
-    // 표시는 유니코드로 예쁘게, 복사되는 실제 값은 퓨니코드(functional) URL로 통일
-    if (!functionalShortUrl) return;
-    const textToCopy = functionalShortUrl;
+    // 복사되는 값도 표시와 동일하게 유니코드 URL (예: https://외솔.한국/코드)
+    if (!unicodeShortUrl) return;
+    const textToCopy = unicodeShortUrl;
     try {
       await navigator.clipboard.writeText(textToCopy);
     } catch (err) {

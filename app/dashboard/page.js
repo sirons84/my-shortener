@@ -184,7 +184,11 @@ export default function Dashboard() {
   };
 
   const handleCopy = async (code) => {
-    const fullUrl = `${punycodeOrigin || window.location.origin}/${code}`;
+    let unicodeCode = code;
+    try {
+      if (code?.startsWith('xn--')) unicodeCode = toUnicode(code);
+    } catch (e) {}
+    const fullUrl = `${punycodeOrigin || window.location.origin}/${unicodeCode}`;
     try {
       await navigator.clipboard.writeText(fullUrl);
     } catch {
