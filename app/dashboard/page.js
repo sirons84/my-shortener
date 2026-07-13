@@ -11,7 +11,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
-import { ADMIN_EMAIL } from '../../lib/constants';
+import { ADMIN_EMAIL, getCreationLimit } from '../../lib/constants';
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
@@ -319,6 +319,28 @@ export default function Dashboard() {
           )}
         </div>
         {user && <p style={{ color: '#4b5563' }}>안녕하세요, <strong>{user.email}</strong>님</p>}
+        {user && !loading && (() => {
+          const limit = getCreationLimit(user.email, user.user_metadata?.region);
+          if (limit === null) {
+            return (
+              <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px' }}>
+                생성한 단축 URL: <strong>{urls.length}개</strong> / 무제한
+              </p>
+            );
+          }
+          const ratio = Math.min(urls.length / limit, 1);
+          const barColor = ratio >= 1 ? '#ef4444' : ratio >= 0.8 ? '#f59e0b' : '#2563eb';
+          return (
+            <div style={{ marginTop: '6px', maxWidth: '320px' }}>
+              <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px' }}>
+                생성한 단축 URL: <strong style={{ color: barColor }}>{urls.length}</strong> / {limit}개
+              </p>
+              <div style={{ height: '6px', borderRadius: '3px', backgroundColor: '#e5e7eb', overflow: 'hidden' }}>
+                <div style={{ width: `${ratio * 100}%`, height: '100%', borderRadius: '3px', backgroundColor: barColor, transition: 'width 0.3s' }} />
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 검색 · 정렬 · 필터 툴바 */}
