@@ -90,6 +90,8 @@ export async function POST(request) {
 
         if (userRegion === "울산광역시교육청") {
           limit = 200; // 기존 로직 유지 (가장 높은 혜택)
+        } else if (user.email === 'gwsh1590@use.go.kr') {
+          limit = 200; // 개별 상향 계정
         } else if (user.email && user.email.endsWith('@usedu.ai.kr')) {
           limit = 100; // @usedu.ai.kr 계정은 100개로 상향
         }
