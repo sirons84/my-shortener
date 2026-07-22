@@ -25,6 +25,9 @@ export default function AdminPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
   const [downloading, setDownloading] = useState(false);
+  const emptyBook = { title: '', author: '', url: '', cover: '' };
+  const [books, setBooks] = useState([{ ...emptyBook }, { ...emptyBook }, { ...emptyBook }]);
+  const [savingBooks, setSavingBooks] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -40,13 +43,23 @@ export default function AdminPage() {
       setToken(token);
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [statsRes, usersRes] = await Promise.all([
+      const [statsRes, usersRes, booksRes] = await Promise.all([
         fetch('/api/admin/stats', { headers }),
         fetch('/api/admin/users', { headers }),
+        fetch('/api/books'),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
       if (usersRes.ok) setUsers(await usersRes.json());
+      if (booksRes.ok) {
+        const rows = await booksRes.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          setBooks([1, 2, 3].map(p => {
+            const r = rows.find(x => x.position === p) || {};
+            return { title: r.title || '', author: r.author || '', url: r.url || '', cover: r.cover || '' };
+          }));
+        }
+      }
       setLoading(false);
     };
     init();
@@ -80,6 +93,32 @@ export default function AdminPage() {
       URL.revokeObjectURL(a.href);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  // 추천도서 입력값 수정
+  const updateBook = (i, field, value) => {
+    setBooks(prev => prev.map((b, idx) => (idx === i ? { ...b, [field]: value } : b)));
+  };
+
+  // 추천도서 저장
+  const saveBooks = async () => {
+    if (!token) return;
+    setSavingBooks(true);
+    try {
+      const res = await fetch('/api/admin/books', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(books),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || '저장에 실패했습니다.');
+        return;
+      }
+      alert('추천도서가 저장되었습니다. 메인 화면에 바로 반영됩니다.');
+    } finally {
+      setSavingBooks(false);
     }
   };
 
@@ -156,6 +195,54 @@ export default function AdminPage() {
             {downloading ? '생성 중...' : '엑셀 다운로드'}
           </button>
         </div>
+      </div>
+
+      {/* 금주의 추천도서 관리 */}
+      <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '6px', color: '#1f2937' }}>📚 금주의 추천도서 관리</h2>
+        <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '16px' }}>
+          메인 화면에 표시되는 추천도서 3권입니다. 제목을 비워 두면 해당 자리는 &quot;준비 중&quot;으로 표시됩니다.
+          표지는 이미지 주소(서점 표지 이미지 우클릭 → 이미지 주소 복사)를 붙여넣으세요.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+          {books.map((book, i) => (
+            <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '13px', fontWeight: '600', color: '#6b7280' }}>{i + 1}번 도서</span>
+                {book.cover && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={book.cover} alt="표지 미리보기" width={32} height={40} style={{ objectFit: 'cover', borderRadius: '4px', border: '1px solid #e5e7eb' }} />
+                )}
+              </div>
+              {[
+                { field: 'title', placeholder: '책 제목' },
+                { field: 'author', placeholder: '지은이' },
+                { field: 'url', placeholder: '책 소개 링크 (https://...)' },
+                { field: 'cover', placeholder: '표지 이미지 주소 (선택)' },
+              ].map(({ field, placeholder }) => (
+                <input
+                  key={field}
+                  type="text"
+                  value={book[field]}
+                  placeholder={placeholder}
+                  onChange={e => updateBook(i, field, e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', marginBottom: '8px', boxSizing: 'border-box' }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={saveBooks}
+          disabled={savingBooks}
+          style={{
+            padding: '9px 18px', borderRadius: '6px', border: 'none',
+            backgroundColor: savingBooks ? '#93c5fd' : '#2563eb', color: 'white',
+            fontSize: '14px', fontWeight: '600', cursor: savingBooks ? 'default' : 'pointer',
+          }}
+        >
+          {savingBooks ? '저장 중...' : '추천도서 저장'}
+        </button>
       </div>
 
       {/* 사용자 목록 */}
