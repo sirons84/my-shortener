@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
-import { ADMIN_EMAIL } from '../../lib/constants';
+import { isAdmin } from '../../lib/constants';
 
 export default function AdminPage() {
   const supabase = createClientComponentClient();
@@ -34,7 +34,7 @@ export default function AdminPage() {
       // getSession()은 로컬 캐시에서 즉시 읽어 네트워크 오류 없이 안정적으로 동작
       const { data: { session } } = await supabase.auth.getSession();
 
-      if (!session || session.user?.email !== ADMIN_EMAIL) {
+      if (!session || !isAdmin(session.user?.email)) {
         router.push('/');
         return;
       }
@@ -274,10 +274,10 @@ export default function AdminPage() {
                 <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '10px 12px', color: '#1f2937' }}>
                     {u.email}
-                    {u.email === ADMIN_EMAIL && (
+                    {isAdmin(u.email) && (
                       <span style={{ marginLeft: '6px', fontSize: '11px', backgroundColor: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: '10px' }}>관리자</span>
                     )}
-                    {u.email.endsWith('@usedu.ai.kr') && u.email !== ADMIN_EMAIL && (
+                    {u.email.endsWith('@usedu.ai.kr') && !isAdmin(u.email) && (
                       <span style={{ marginLeft: '6px', fontSize: '11px', backgroundColor: '#dbeafe', color: '#2563eb', padding: '1px 6px', borderRadius: '10px' }}>교원</span>
                     )}
                   </td>

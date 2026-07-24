@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
-import { ADMIN_EMAIL } from '../../../../lib/constants';
+import { isAdmin } from '../../../../lib/constants';
 
 export async function GET(req, { params }) {
   const { code } = await params;
@@ -18,8 +18,8 @@ export async function GET(req, { params }) {
     .eq('code', decodeURIComponent(code))
     .single();
 
-  const isAdmin = user.email === ADMIN_EMAIL;
-  if (!urlData || (urlData.user_id !== user.id && !isAdmin)) {
+  const admin = isAdmin(user.email);
+  if (!urlData || (urlData.user_id !== user.id && !admin)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

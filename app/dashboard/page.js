@@ -11,7 +11,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
-import { ADMIN_EMAIL, getCreationLimit } from '../../lib/constants';
+import { isAdmin, getCreationLimit } from '../../lib/constants';
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
@@ -312,7 +312,7 @@ export default function Dashboard() {
           <Link href="/" style={{ padding: '8px 14px', background: '#636e72', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem' }}>
             🏠 메인으로
           </Link>
-          {user?.email === ADMIN_EMAIL && (
+          {isAdmin(user?.email) && (
             <Link href="/admin" style={{ padding: '8px 14px', background: '#dc2626', color: '#fff', borderRadius: 6, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem' }}>
               🛠 관리자
             </Link>

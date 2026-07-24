@@ -3,7 +3,7 @@ import { randomInt } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { checkUrlSafety } from '../../../lib/urlSafety';
-import { validateCustomCode, getCreationLimit, ADMIN_EMAIL } from '../../../lib/constants';
+import { validateCustomCode, getCreationLimit, isAdmin } from '../../../lib/constants';
 import { rateLimit, getClientIp } from '../../../lib/rateLimit';
 
 export async function POST(request) {
@@ -74,9 +74,7 @@ export async function POST(request) {
   // --- [생성 개수 제한 확인] ---
   if (user) {
     // [수정] 관리자 계정은 제한 없음 (개수 체크 건너뜀)
-    const isAdmin = user.email === ADMIN_EMAIL;
-
-    if (!isAdmin) {
+    if (!isAdmin(user.email)) {
       const { count, error: countError } = await supabaseAdmin
         .from('urls')
         .select('*', { count: 'exact', head: true })

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import ExcelJS from 'exceljs';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
-import { ADMIN_EMAIL } from '../../../../lib/constants';
+import { isAdmin } from '../../../../lib/constants';
 
 // 월간 이용 통계 보고서(xlsx) — 교육청 「통합누리집 통계」 양식 준용
 // GET /api/admin/report?month=YYYY-MM (생략 시 지난달)
@@ -26,7 +26,7 @@ export const dynamic = 'force-dynamic';
 async function verifyAdmin(req) {
   const token = req.headers.get('authorization')?.split(' ')[1];
   const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user || user.email !== ADMIN_EMAIL) return null;
+  if (error || !user || !isAdmin(user.email)) return null;
   return user;
 }
 

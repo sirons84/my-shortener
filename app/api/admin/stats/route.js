@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
-import { ADMIN_EMAIL } from '../../../../lib/constants';
+import { isAdmin } from '../../../../lib/constants';
 
 async function verifyAdmin(req) {
   const token = req.headers.get('authorization')?.split(' ')[1];
   const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user || user.email !== ADMIN_EMAIL) return null;
+  if (error || !user || !isAdmin(user.email)) return null;
   return user;
 }
 
