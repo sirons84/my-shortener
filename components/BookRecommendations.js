@@ -28,8 +28,8 @@ export default function BookRecommendations({ books = [] }) {
                   <Image
                     src={book.cover}
                     alt={`${book.title} 표지`}
-                    width={56}
-                    height={70}
+                    width={72}
+                    height={94}
                     className={styles.coverImage}
                   />
                 ) : (
@@ -38,8 +38,8 @@ export default function BookRecommendations({ books = [] }) {
                   <img
                     src={book.cover}
                     alt={`${book.title} 표지`}
-                    width={56}
-                    height={70}
+                    width={72}
+                    height={94}
                     className={styles.coverImage}
                   />
                 )
