@@ -22,12 +22,15 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  align-items: stretch;
 }
 
 .card {
   display: flex;
   align-items: center;
   gap: 16px;
+  /* 수상 마크(리본까지, 108px 폭 → 130px 높이)가 들어가도 3장 높이가 같도록 고정 */
+  min-height: 172px;
   background: #ffffff;
   border-radius: 20px;
   padding: 20px;
@@ -65,6 +68,25 @@ a.card:hover {
 
 .info {
   min-width: 0;
+  flex: 1;
+}
+
+/* 수상 월계관 마크 컬럼 */
+.awardCol {
+  flex-shrink: 0;
+  width: 108px;
+  margin-left: auto;
+  padding-left: 14px;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.awardSvg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .title {
@@ -105,6 +127,16 @@ a.card:hover {
   color: #9ca3af;
 }
 
+/* 반응형 마크 크기: ≥1024 → 108px / 768–1023 → 96px / 640–767 → 84px / <640 → 72px */
+@media (max-width: 1023px) {
+  .awardCol {
+    width: 96px;
+  }
+  .card {
+    min-height: 156px;
+  }
+}
+
 @media (max-width: 768px) {
   .wrap {
     padding: 0 16px;
@@ -112,5 +144,25 @@ a.card:hover {
   .grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .awardCol {
+    width: 84px;
+  }
+  .card {
+    min-height: 142px;
+  }
+}
+
+@media (max-width: 639px) {
+  /* 카드가 세로로 쌓이는 구간 — 마크는 우측 상단에 72px로 유지 */
+  .awardCol {
+    width: 72px;
+    align-self: flex-start;
+  }
+  .card {
+    min-height: 128px;
   }
 }

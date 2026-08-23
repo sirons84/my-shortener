@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FiBookOpen, FiBook, FiClock } from 'react-icons/fi';
 import Image from 'next/image';
+import BookAwardBadge from './BookAwardBadge';
 import styles from './BookRecommendations.module.css';
 
 // 기본 추천 도서 — DB(recommended_books)를 읽지 못할 때의 폴백
@@ -88,6 +89,20 @@ export default function BookRecommendations() {
                 <div className={styles.author}>{book.author}</div>
                 <span className={styles.link}>책 보러 가기 ↗</span>
               </div>
+              {book.award && (
+                // 카드에서는 리본까지만 표시하고, 출처·날짜(캡션)는 툴팁으로만 노출
+                <div
+                  className={styles.awardCol}
+                  title={book.award.captions.length ? book.award.captions.join(' · ') : undefined}
+                >
+                  <BookAwardBadge
+                    rank={book.award.rank}
+                    ribbon={book.award.ribbon}
+                    tone={book.award.tone}
+                    className={styles.awardSvg}
+                  />
+                </div>
+              )}
             </a>
           ) : (
             <div key={i} className={`${styles.card} ${styles.placeholder}`}>

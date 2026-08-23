@@ -8,6 +8,10 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { isAdmin } from '../../lib/constants';
+import BookAwardBadge from '../../components/BookAwardBadge';
+
+// 리본 문구 원클릭 입력 칩
+const RIBBON_PRESETS = ['교육 베스트 1위', '사회 정치 TOP20', '종합 베스트 1위', '주간 베스트 1위'];
 
 export default function AdminPage() {
   const supabase = createClientComponentClient();
@@ -25,8 +29,9 @@ export default function AdminPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
   const [downloading, setDownloading] = useState(false);
-  const emptyBook = { title: '', author: '', url: '', cover: '' };
-  const [books, setBooks] = useState([{ ...emptyBook }, { ...emptyBook }, { ...emptyBook }]);
+  const emptyAward = { enabled: false, rank: '', ribbon: '', caption1: '', caption2: '', tone: 'gold' };
+  const emptyBook = { title: '', author: '', url: '', cover: '', award: { ...emptyAward } };
+  const [books, setBooks] = useState([{ ...emptyBook }, { ...emptyBook }, { ...emptyBook }].map(b => ({ ...b, award: { ...emptyAward } })));
   const [savingBooks, setSavingBooks] = useState(false);
 
   useEffect(() => {
@@ -56,7 +61,17 @@ export default function AdminPage() {
         if (Array.isArray(rows) && rows.length > 0) {
           setBooks([1, 2, 3].map(p => {
             const r = rows.find(x => x.position === p) || {};
-            return { title: r.title || '', author: r.author || '', url: r.url || '', cover: r.cover || '' };
+            return {
+              title: r.title || '', author: r.author || '', url: r.url || '', cover: r.cover || '',
+              award: {
+                enabled: !!(r.award_rank && r.award_ribbon),
+                rank: r.award_rank ? String(r.award_rank) : '',
+                ribbon: r.award_ribbon || '',
+                caption1: r.award_caption1 || '',
+                caption2: r.award_caption2 || '',
+                tone: r.award_tone || 'gold',
+              },
+            };
           }));
         }
       }
@@ -99,6 +114,11 @@ export default function AdminPage() {
   // 추천도서 입력값 수정
   const updateBook = (i, field, value) => {
     setBooks(prev => prev.map((b, idx) => (idx === i ? { ...b, [field]: value } : b)));
+  };
+
+  // 수상 마크 입력값 수정
+  const updateAward = (i, field, value) => {
+    setBooks(prev => prev.map((b, idx) => (idx === i ? { ...b, award: { ...b.award, [field]: value } } : b)));
   };
 
   // 추천도서 저장
@@ -229,6 +249,97 @@ export default function AdminPage() {
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', marginBottom: '8px', boxSizing: 'border-box' }}
                 />
               ))}
+
+              {/* 수상 마크 */}
+              <div style={{ marginTop: '4px', paddingTop: '12px', borderTop: '1px dashed #e5e7eb' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: '#374151', cursor: 'pointer', marginBottom: '10px' }}>
+                  <input
+                    type="checkbox"
+                    checked={book.award.enabled}
+                    onChange={e => updateAward(i, 'enabled', e.target.checked)}
+                  />
+                  🏆 수상 마크 표시
+                </label>
+
+                {book.award.enabled && (
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                    {/* 입력 필드 */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={book.award.rank}
+                        placeholder="순위 숫자 (1~99)"
+                        onChange={e => updateAward(i, 'rank', e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', marginBottom: '8px', boxSizing: 'border-box' }}
+                      />
+                      <input
+                        type="text"
+                        maxLength={14}
+                        value={book.award.ribbon}
+                        placeholder="리본 문구 (예: 교육 베스트 1위)"
+                        onChange={e => updateAward(i, 'ribbon', e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                      <div style={{ fontSize: '11px', textAlign: 'right', margin: '2px 0 6px', color: book.award.ribbon.length > 9 ? '#ea580c' : '#9ca3af' }}>
+                        {book.award.ribbon.length}/14{book.award.ribbon.length > 9 ? ' — 9자 이하 권장' : ''}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                        {RIBBON_PRESETS.map(preset => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => updateAward(i, 'ribbon', preset)}
+                            style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '999px', border: '1px solid #d1d5db', backgroundColor: book.award.ribbon === preset ? '#eff6ff' : 'white', color: '#374151', cursor: 'pointer' }}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        maxLength={30}
+                        value={book.award.caption1}
+                        placeholder="부가 설명 1 (예: 예스24 '26.8.23)"
+                        onChange={e => updateAward(i, 'caption1', e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', marginBottom: '8px', boxSizing: 'border-box' }}
+                      />
+                      <input
+                        type="text"
+                        maxLength={30}
+                        value={book.award.caption2}
+                        placeholder="부가 설명 2 (예: 일간 기준)"
+                        onChange={e => updateAward(i, 'caption2', e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', marginBottom: '8px', boxSizing: 'border-box' }}
+                      />
+                      <select
+                        value={book.award.tone}
+                        onChange={e => updateAward(i, 'tone', e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '13px', boxSizing: 'border-box', backgroundColor: 'white' }}
+                      >
+                        <option value="gold">금 (gold)</option>
+                        <option value="silver">은 (silver)</option>
+                        <option value="bronze">동 (bronze)</option>
+                      </select>
+                    </div>
+
+                    {/* 실시간 미리보기 — 카드와 같은 BookAwardBadge 재사용 */}
+                    <div style={{ flexShrink: 0, textAlign: 'center' }}>
+                      <BookAwardBadge
+                        rank={book.award.rank || '1'}
+                        ribbon={book.award.ribbon || '리본 문구'}
+                        captions={[book.award.caption1, book.award.caption2]}
+                        tone={book.award.tone}
+                        width={140}
+                      />
+                      <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px', width: '140px' }}>
+                        실제 카드에서는 108px로 표시됩니다
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

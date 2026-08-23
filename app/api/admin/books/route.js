@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
 import { isAdmin } from '../../../../lib/constants';
+import { AWARD_TONE_VALUES } from '../../../../lib/mappers/book';
 
 async function verifyAdmin(req) {
   const token = req.headers.get('authorization')?.split(' ')[1];
@@ -41,7 +42,38 @@ export async function PUT(req) {
       return NextResponse.json({ error: `${i + 1}번 도서의 링크를 입력해 주세요.` }, { status: 400 });
     }
 
-    rows.push({ position: i + 1, title, author, url, cover, updated_at: new Date().toISOString() });
+    // 수상 마크 — 토글이 꺼져 있으면 전부 NULL 저장
+    const a = b.award || {};
+    let award = { award_rank: null, award_ribbon: null, award_caption1: null, award_caption2: null, award_tone: 'gold' };
+    if (a.enabled) {
+      if (!title) {
+        return NextResponse.json({ error: `${i + 1}번 도서 정보를 먼저 입력해야 수상 마크를 켤 수 있습니다.` }, { status: 400 });
+      }
+      const rank = Number(a.rank);
+      if (!Number.isInteger(rank) || rank < 1 || rank > 99) {
+        return NextResponse.json({ error: `${i + 1}번 도서의 순위 숫자는 1~99 사이여야 합니다.` }, { status: 400 });
+      }
+      const ribbon = String(a.ribbon || '').trim();
+      if (!ribbon) {
+        return NextResponse.json({ error: `${i + 1}번 도서의 리본 문구를 입력해 주세요.` }, { status: 400 });
+      }
+      if (ribbon.length > 14) {
+        return NextResponse.json({ error: `${i + 1}번 도서의 리본 문구는 최대 14자입니다.` }, { status: 400 });
+      }
+      const toneValue = String(a.tone || 'gold');
+      if (!AWARD_TONE_VALUES.includes(toneValue)) {
+        return NextResponse.json({ error: `${i + 1}번 도서의 색상 톤이 올바르지 않습니다.` }, { status: 400 });
+      }
+      award = {
+        award_rank: rank,
+        award_ribbon: ribbon,
+        award_caption1: String(a.caption1 || '').trim().slice(0, 30) || null,
+        award_caption2: String(a.caption2 || '').trim().slice(0, 30) || null,
+        award_tone: toneValue,
+      };
+    }
+
+    rows.push({ position: i + 1, title, author, url, cover, ...award, updated_at: new Date().toISOString() });
   }
 
   const { error } = await supabaseAdmin.from('recommended_books').upsert(rows);
