@@ -29,8 +29,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  /* 수상 마크(리본까지, 108px 폭 → 130px 높이)가 들어가도 3장 높이가 같도록 고정 */
-  min-height: 172px;
+  /* 수상 마크(캡션 포함, 108px 폭 → 153px 높이)가 들어가도 3장 높이가 같도록 고정 */
+  min-height: 194px;
   background: #ffffff;
   border-radius: 20px;
   padding: 20px;
@@ -133,7 +133,7 @@ a.card:hover {
     width: 96px;
   }
   .card {
-    min-height: 156px;
+    min-height: 178px;
   }
 }
 
@@ -152,7 +152,7 @@ a.card:hover {
     width: 84px;
   }
   .card {
-    min-height: 142px;
+    min-height: 160px;
   }
 }
 
@@ -163,6 +163,6 @@ a.card:hover {
     align-self: flex-start;
   }
   .card {
-    min-height: 128px;
+    min-height: 144px;
   }
 }

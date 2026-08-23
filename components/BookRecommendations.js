@@ -1,48 +1,12 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import { FiBookOpen, FiBook, FiClock } from 'react-icons/fi';
 import Image from 'next/image';
 import BookAwardBadge from './BookAwardBadge';
 import styles from './BookRecommendations.module.css';
 
-// 기본 추천 도서 — DB(recommended_books)를 읽지 못할 때의 폴백
-// (null = 준비 중 자리, cover = public/books/ 안의 표지 이미지)
-const DEFAULT_BOOKS = [
-  {
-    title: '나도 어린이는 처음이니까!',
-    author: '김종원',
-    url: 'https://product.kyobobook.co.kr/detail/S000218906837',
-    cover: '/books/9791193379813.jpg',
-  },
-  {
-    title: '질문 수업 어떻게 시작할까',
-    author: '양경윤',
-    url: 'https://product.kyobobook.co.kr/detail/S000213661269',
-    cover: '/books/9791163461913.jpg',
-  },
-  {
-    title: '아울렛',
-    author: '송광용',
-    url: 'https://product.kyobobook.co.kr/detail/S000215792705',
-    cover: '/books/9791161572123.jpg',
-  },
-];
-
-export default function BookRecommendations() {
-  const [books, setBooks] = useState(DEFAULT_BOOKS);
-
-  useEffect(() => {
-    fetch('/api/books')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((rows) => {
-        if (!Array.isArray(rows) || rows.length === 0) return;
-        // 제목이 비어 있는 슬롯은 "준비 중" 자리로 표시
-        setBooks(rows.map((r) => (r.title ? r : null)));
-      })
-      .catch(() => {}); // 실패 시 기본 도서 유지
-  }, []);
-
+// 금주의 추천도서 — 데이터는 서버(app/page.js)에서 조회해 props로 받는다.
+// (예전에는 이 컴포넌트가 직접 fetch해서 폴백 도서가 먼저 보이는 깜빡임이 있었음)
+// books: (book | null)[] — null은 "준비 중" 자리
+export default function BookRecommendations({ books = [] }) {
   return (
     <section className={styles.wrap} aria-label="금주의 추천도서">
       <h2 className={styles.heading}>
@@ -90,14 +54,11 @@ export default function BookRecommendations() {
                 <span className={styles.link}>책 보러 가기 ↗</span>
               </div>
               {book.award && (
-                // 카드에서는 리본까지만 표시하고, 출처·날짜(캡션)는 툴팁으로만 노출
-                <div
-                  className={styles.awardCol}
-                  title={book.award.captions.length ? book.award.captions.join(' · ') : undefined}
-                >
+                <div className={styles.awardCol}>
                   <BookAwardBadge
                     rank={book.award.rank}
                     ribbon={book.award.ribbon}
+                    captions={book.award.captions}
                     tone={book.award.tone}
                     className={styles.awardSvg}
                   />

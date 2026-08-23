@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
 import { isAdmin } from '../../../../lib/constants';
@@ -78,6 +79,9 @@ export async function PUT(req) {
 
   const { error } = await supabaseAdmin.from('recommended_books').upsert(rows);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // 메인 화면은 5분 캐시(ISR)이므로 저장 즉시 반영되도록 강제 갱신
+  revalidatePath('/');
 
   return NextResponse.json({ ok: true });
 }

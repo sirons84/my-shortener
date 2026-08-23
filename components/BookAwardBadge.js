@@ -46,6 +46,20 @@ const BRANCHES = [-1, 1].flatMap((side) =>
   [INNER, OUTER].map((p) => buildBranch(390, 420, 300, side, p))
 );
 
+// 대략적인 렌더 폭 추정 (한글 ≈ 1em, 영문·숫자 ≈ 0.55em) — 넘침 방지용
+function estTextWidth(text, fontSize) {
+  let units = 0;
+  for (const ch of text) units += ch.charCodeAt(0) > 0x2e80 ? 1 : 0.55;
+  return units * fontSize;
+}
+
+// 추정 폭이 한도를 넘으면 textLength로 글자 간격을 압축해 잘림을 막는다
+function fitProps(text, fontSize, maxWidth) {
+  return estTextWidth(text, fontSize) > maxWidth
+    ? { textLength: maxWidth, lengthAdjust: 'spacingAndGlyphs' }
+    : {};
+}
+
 /**
  * 세로형 월계관 수상 마크 (인라인 SVG)
  *
@@ -154,13 +168,13 @@ export default function BookAwardBadge({
         stroke={D}
         strokeWidth={2}
       />
-      <text x="120" y="263" fontSize={rf} fontWeight="900" fill={t.text} textAnchor="middle">
+      <text x="120" y="263" fontSize={rf} fontWeight="900" fill={t.text} textAnchor="middle" {...fitProps(rbText, rf, 164)}>
         {rbText}
       </text>
 
       {/* 부가 설명 (최대 2줄) */}
       {caps.map((ln, i) => (
-        <text key={i} x="120" y={capY[i]} fontSize="17" fontWeight="700" fill={t.caption} textAnchor="middle">
+        <text key={i} x="120" y={capY[i]} fontSize="17" fontWeight="700" fill={t.caption} textAnchor="middle" {...fitProps(ln, 17, 228)}>
           {ln}
         </text>
       ))}
