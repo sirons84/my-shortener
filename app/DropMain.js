@@ -174,10 +174,8 @@ export default function DropMain() {
 
   return (
     <div className={styles.wrapper}>
-      {/* 위 카드의 사이드바 자리 — 좌우 폭을 단축 주소 카드와 맞추기 위해 비워 둔다 */}
-      <div className={styles.sidebarSpacer} aria-hidden="true" />
-
-      <section className={styles.mainContent}>
+      {/* 사이드바 자리까지 포함해 한 줄 전체를 쓰는 넓은 카드 */}
+      <section className={`${styles.mainContent} ${styles.mainContentWide}`}>
         <h2 className={styles.title}>
           외솔 드롭 <span className={styles.betaBadge}>베타</span>
         </h2>

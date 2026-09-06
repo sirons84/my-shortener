@@ -254,11 +254,10 @@
    외솔 드롭(베타) — 위쪽 단축 주소 카드와 결을 맞춘 스타일
    ───────────────────────────────────────────────────────── */
 
-/* 위 카드의 사이드바 자리를 그대로 비워 두어 좌우 폭·위치를 맞춘다
-   (InfoSidebar .sidebar 와 같은 폭 규칙이어야 같이 줄어든다) */
-.sidebarSpacer {
-  width: 100%;
-  max-width: 288px;
+/* 드롭 카드는 사이드바 자리까지 포함해 한 줄 전체를 쓴다
+   (288px 사이드바 + 27px 간격 + 981px 본문 = 1296px) */
+.mainContentWide {
+  max-width: 1296px;
 }
 
 /* 울리 캐릭터가 없는 폼은 버튼 위 여백을 그만큼 줄인다 */
@@ -453,9 +452,9 @@
     margin: 14px 0;
   }
 
-  /* 모바일에서는 사이드바가 없으므로 자리도 비우지 않는다 */
-  .sidebarSpacer {
-    display: none;
+  /* 모바일에서는 위 카드와 같은 폭으로 돌아온다 */
+  .mainContentWide {
+    max-width: 450px;
   }
 
   .selectWrapperTight {
