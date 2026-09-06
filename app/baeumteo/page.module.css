@@ -41,7 +41,8 @@
 }
 
 .wrap {
-  max-width: 1000px;
+  /* 홈(사이드바 288 + 간격 27 + 본문 981)과 같은 폭 */
+  max-width: 1296px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -165,7 +166,7 @@
 
 .heroLead {
   margin: 22px 0 30px;
-  max-width: 24em;
+  max-width: 34em;
 }
 
 .cwrap {
@@ -194,7 +195,7 @@
 .lead {
   color: var(--muted);
   margin: 0 0 32px;
-  max-width: 40em;
+  max-width: 64em;
 }
 
 /* ── 인물 ──────────────────────────────────────────────── */
@@ -258,7 +259,7 @@
 
 .faqBody {
   padding: 0 0 22px;
-  max-width: 40em;
+  max-width: 64em;
   color: #3a3732;
 }
 
