@@ -600,7 +600,7 @@ export default function Dashboard() {
                 {myDrops.length === 0 ? '아직 배포한 페이지가 없습니다.' : '한 개 더 배포할 수 있습니다.'}
               </p>
               <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px', lineHeight: 1.7 }}>
-                AI로 만든 HTML 파일 한 장을 외솔.한국 주소로 배포해 보세요.
+                HTML 파일 한 장을 외솔.한국 주소로 배포해 보세요.
               </p>
               <Link href="/" style={{ ...btnStyle, backgroundColor: '#2563eb', textDecoration: 'none' }}>
                 메인에서 배포하기

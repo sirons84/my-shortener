@@ -89,9 +89,6 @@ export default function BaeumteoPage() {
                 height={466}
                 priority
               />
-              <span className={`${styles.small} ${styles.muted}`}>
-                외솔의 친필. 사진 제공: {calligraphy.credit}
-              </span>
             </div>
           )}
         </div>
@@ -115,9 +112,6 @@ export default function BaeumteoPage() {
                     width={300}
                     height={446}
                   />
-                  <p className={`${styles.small} ${styles.muted}`} style={{ margin: "8px 0 0" }}>
-                    사진 제공: {portrait.credit}
-                  </p>
                 </>
               )}
             </div>
@@ -315,7 +309,6 @@ export default function BaeumteoPage() {
       <div className={styles.pageFoot}>
         <div className={styles.wrap}>
           <div>{site.host} · 미래교육창작소</div>
-          <div>사진 제공: 외솔기념관</div>
         </div>
       </div>
     </div>

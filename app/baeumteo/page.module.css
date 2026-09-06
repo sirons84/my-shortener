@@ -15,6 +15,11 @@
   color: var(--ink);
   font-size: 17px;
   line-height: 1.85;
+
+  /* 한국어는 기본값이 글자 단위로 꺾여서 어절 중간에서 줄이 바뀐다.
+     어절 단위로 줄바꿈하고, 긴 영문·주소만 잘라 넘긴다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .page a {
@@ -50,27 +55,29 @@
 .muted { color: var(--muted); }
 .small { font-size: 14px; }
 
-.btn {
+.page .btn {
   display: inline-block;
   border: 1px solid var(--ink);
   padding: 9px 20px;
   font-size: 15px;
   background: transparent;
+  color: var(--ink);
 }
 
-.btn:hover {
+.page .btn:hover {
   background: var(--ink);
   color: var(--paper);
   text-decoration: none;
 }
 
-.btnPine {
+.page .btnPine,
+.page .btnPine:hover {
   background: var(--pine);
   border-color: var(--pine);
   color: #fff;
 }
 
-.btnPine:hover { background: #243a31; }
+.page .btnPine:hover { background: #243a31; }
 
 .soon {
   font-size: 12px;

@@ -199,7 +199,7 @@ export default function DropMain() {
         </h2>
 
         <p className={styles.dropIntro}>
-          AI로 만든 <strong>HTML 파일 한 장</strong>을 아래에 끌어다 놓으면,
+          <strong>HTML 파일 한 장</strong>을 아래에 끌어다 놓으면,
           <strong> 외솔.한국 주소로 바로 배포</strong>해 드립니다.
           따로 서버를 빌리거나 프로그램을 설치할 필요 없이,
           학급 안내장·학습 자료·설문 페이지를 주소 하나로 나눠 보세요.
