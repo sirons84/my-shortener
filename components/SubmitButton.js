@@ -3,7 +3,12 @@ import Image from 'next/image';
 import styles from './SubmitButton.module.css';
 
 // (!! 수정 !!) disabled prop을 받도록 수정
-export default function SubmitButton({ disabled, label = 'URL 줄이기', loadingLabel = '생성 중...' }) {
+export default function SubmitButton({
+  disabled,
+  label = 'URL 줄이기',
+  loadingLabel = '생성 중...',
+  showCharacter = true,
+}) {
   return (
     <button 
       type="submit" 
@@ -18,14 +23,16 @@ export default function SubmitButton({ disabled, label = 'URL 줄이기', loadin
         {disabled ? loadingLabel : label}
       </span>
       
-      <Image
-        src="/images/character-wooli.svg"
-        alt="울리 캐릭터"
-        width={240}  
-        height={240} 
-        className={styles.character}
-        priority
-      />
+      {showCharacter && (
+        <Image
+          src="/images/character-wooli.svg"
+          alt="울리 캐릭터"
+          width={240}
+          height={240}
+          className={styles.character}
+          priority
+        />
+      )}
     </button>
   );
 }

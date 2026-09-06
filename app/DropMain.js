@@ -174,6 +174,9 @@ export default function DropMain() {
 
   return (
     <div className={styles.wrapper}>
+      {/* 위 카드의 사이드바 자리 — 좌우 폭을 단축 주소 카드와 맞추기 위해 비워 둔다 */}
+      <div className={styles.sidebarSpacer} aria-hidden="true" />
+
       <section className={styles.mainContent}>
         <h2 className={styles.title}>
           외솔 드롭 <span className={styles.betaBadge}>베타</span>
@@ -241,7 +244,7 @@ export default function DropMain() {
           </div>
 
           {/* 2. 주소 + 유지 기간 */}
-          <div className={styles.selectWrapper}>
+          <div className={`${styles.selectWrapper} ${styles.selectWrapperTight}`}>
             <div className={styles.customCodeInput}>
               <PrefixedInput
                 label="배포 주소"
@@ -267,7 +270,12 @@ export default function DropMain() {
             </div>
           </div>
 
-          <SubmitButton disabled={loading} label="배포하기" loadingLabel="배포 중..." />
+          <SubmitButton
+            disabled={loading}
+            label="배포하기"
+            loadingLabel="배포 중..."
+            showCharacter={false}
+          />
         </form>
 
         {error && <div style={{ color: "red", textAlign: "center", marginTop: "15px" }}>{error}</div>}
