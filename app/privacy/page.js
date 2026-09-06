@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 
+export const metadata = {
+  title: "개인정보 처리방침",
+  description: "외솔.한국 URL 단축 서비스의 개인정보 처리방침입니다.",
+  alternates: { canonical: "/privacy" },
+};
+
 export default function PrivacyPage() {
   const styles = {
     container: {
@@ -115,7 +121,7 @@ export default function PrivacyPage() {
         <h2 style={styles.h2}>제11조 (개인정보 보호책임자)</h2>
         <p>서비스는 개인정보 처리에 관한 업무를 총괄하고, 이용자의 불만 처리 및 피해 구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.</p>
         <ul style={{ ...styles.ul, listStyle: "none", paddingLeft: 0 }}>
-          <li><strong>개인정보 보호책임자</strong>: 석희철 (화진초등학교 교사)</li>
+          <li><strong>개인정보 보호책임자</strong>: 석희철 (울산교육청 교사)</li>
           <li><strong>이메일</strong>: <a href="mailto:sirons1124@gmail.com" style={styles.link}>sirons1124@gmail.com</a></li>
         </ul>
 

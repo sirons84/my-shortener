@@ -22,10 +22,21 @@ import SubmitButton from "../components/SubmitButton";
 import PrefixedInput from "../components/PrefixedInput";
 import StyledSelect from "../components/StyledSelect";
 
+const QR_DISPLAY_SIZE = 140;
 const qrImageSettings = {
   src: "/qrlogo2.png", 
   height: 32,
   width: 32,
+  excavate: true,
+};
+
+// 다운로드용 고해상도 QR: 화면 표시용과 같은 비율로 확대해 숨겨진 캔버스에 렌더링
+const QR_DOWNLOAD_SIZE = 1024;
+const QR_DOWNLOAD_SCALE = QR_DOWNLOAD_SIZE / QR_DISPLAY_SIZE;
+const qrDownloadImageSettings = {
+  src: "/qrlogo2.png",
+  height: Math.round(qrImageSettings.height * QR_DOWNLOAD_SCALE),
+  width: Math.round(qrImageSettings.width * QR_DOWNLOAD_SCALE),
   excavate: true,
 };
 
@@ -144,7 +155,10 @@ export default function HomeMain() {
 
   // QR PNG 다운로드
   function handleQrDownload() {
-    const canvas = document.querySelector('#main-qr-canvas canvas');
+    // 고해상도 캔버스를 우선 사용하고, 없으면 화면 표시용으로 폴백
+    const canvas =
+      document.querySelector('#qr-download-canvas canvas') ||
+      document.querySelector('#main-qr-canvas canvas');
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     const a = document.createElement('a');
@@ -251,13 +265,29 @@ export default function HomeMain() {
               <div id="main-qr-canvas" className={styles.qrBox}>
                 <QRCodeCanvas
                   value={functionalShortUrl}
-                  size={140}
+                  size={QR_DISPLAY_SIZE}
                   level="H"
                   imageSettings={qrImageSettings}
                   bgColor="#ffffff"
                   fgColor="#000000"
                 />
               </div>
+            </div>
+
+            {/* 다운로드 전용 고해상도 QR (화면에는 보이지 않음) */}
+            <div
+              id="qr-download-canvas"
+              aria-hidden="true"
+              style={{ position: 'absolute', left: '-99999px', top: 0, pointerEvents: 'none' }}
+            >
+              <QRCodeCanvas
+                value={functionalShortUrl}
+                size={QR_DOWNLOAD_SIZE}
+                level="H"
+                imageSettings={qrDownloadImageSettings}
+                bgColor="#ffffff"
+                fgColor="#000000"
+              />
             </div>
 
             {/* 버튼 3개: 복사 · 공유 · QR 저장 */}

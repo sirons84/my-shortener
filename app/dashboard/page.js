@@ -8,6 +8,18 @@ import {
   FiCheck, FiSearch, FiShare2, FiDownload, FiBarChart2,
 } from 'react-icons/fi';
 import { QRCodeCanvas } from 'qrcode.react';
+
+// QR 표시용 크기와, 인쇄에도 쓸 수 있는 다운로드용 고해상도 크기
+const QR_DISPLAY_SIZE = 200;
+const qrImageSettings = { src: '/qrlogo2.png', height: 40, width: 40, excavate: true };
+const QR_DOWNLOAD_SIZE = 1024;
+const QR_DOWNLOAD_SCALE = QR_DOWNLOAD_SIZE / QR_DISPLAY_SIZE;
+const qrDownloadImageSettings = {
+  src: '/qrlogo2.png',
+  height: Math.round(qrImageSettings.height * QR_DOWNLOAD_SCALE),
+  width: Math.round(qrImageSettings.width * QR_DOWNLOAD_SCALE),
+  excavate: true,
+};
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
@@ -240,7 +252,10 @@ export default function Dashboard() {
 
   // QR PNG 다운로드
   const handleQrDownload = () => {
-    const canvas = document.querySelector('#qr-modal-canvas canvas');
+    // 고해상도 캔버스를 우선 사용하고, 없으면 화면 표시용으로 폴백
+    const canvas =
+      document.querySelector('#qr-download-canvas canvas') ||
+      document.querySelector('#qr-modal-canvas canvas');
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
     const a = document.createElement('a');
@@ -584,11 +599,27 @@ export default function Dashboard() {
             <div id="qr-modal-canvas" style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
               <QRCodeCanvas
                 value={qrModal.url}
-                size={200}
+                size={QR_DISPLAY_SIZE}
                 level="H"
                 bgColor="#ffffff"
                 fgColor="#000000"
-                imageSettings={{ src: '/qrlogo2.png', height: 40, width: 40, excavate: true }}
+                imageSettings={qrImageSettings}
+              />
+            </div>
+
+            {/* 다운로드 전용 고해상도 QR (화면에는 보이지 않음) */}
+            <div
+              id="qr-download-canvas"
+              aria-hidden="true"
+              style={{ position: 'absolute', left: '-99999px', top: 0, pointerEvents: 'none' }}
+            >
+              <QRCodeCanvas
+                value={qrModal.url}
+                size={QR_DOWNLOAD_SIZE}
+                level="H"
+                bgColor="#ffffff"
+                fgColor="#000000"
+                imageSettings={qrDownloadImageSettings}
               />
             </div>
             <p style={{ color: '#666', marginBottom: '20px' }}>/{qrModal.code}</p>
