@@ -1,0 +1,553 @@
+/* 파일 경로: app/배움터/page.module.css
+   시안 외솔배움터_v0.2.html 의 디자인 토큰과 조판을 그대로 옮긴 것.
+   기념관 도록의 미감: 라운드·그림자·아이콘 없이 1px 괘선으로만 구획한다. */
+
+.page {
+  --ink: #1f1d1a;
+  --paper: #faf8f2;
+  --paper2: #f3efe5;
+  --rule: #d8d2c4;
+  --pine: #2f4a3e;
+  --muted: #6f6a60;
+  --soft: #a89f8c;
+
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.page h1,
+.page h2,
+.page h3 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+.btn {
+  display: inline-block;
+  border: 1px solid var(--ink);
+  padding: 9px 20px;
+  font-size: 15px;
+  background: transparent;
+}
+
+.btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+
+.btnPine {
+  background: var(--pine);
+  border-color: var(--pine);
+  color: #fff;
+}
+
+.btnPine:hover { background: #243a31; }
+
+.soon {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  padding: 1px 8px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* 확인 예정 표시 (verified:false) */
+.pending {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px dotted var(--soft);
+  padding: 1px 8px;
+  border-radius: 2px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* ── 섹션 내비 ─────────────────────────────────────────── */
+.subnav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(250, 248, 242, 0.94);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.subnav .wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.brand span {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 10px;
+  letter-spacing: 0;
+}
+
+.navLinks {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+/* ── 첫 화면 ───────────────────────────────────────────── */
+.hero .wrap {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: center;
+  padding: 72px 24px 80px;
+}
+
+.hero h1 {
+  font-size: 56px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.heroSub {
+  display: block;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+  margin-top: 14px;
+}
+
+.heroLead {
+  margin: 22px 0 30px;
+  max-width: 24em;
+}
+
+.cwrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.calimg {
+  max-height: 460px;
+  width: auto;
+  max-width: 100%;
+  display: block;
+  mix-blend-mode: multiply;
+}
+
+/* ── 공통 섹션 ─────────────────────────────────────────── */
+.section .wrap { padding: 64px 24px; }
+
+.section h2 {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.lead {
+  color: var(--muted);
+  margin: 0 0 32px;
+  max-width: 40em;
+}
+
+/* ── 인물 ──────────────────────────────────────────────── */
+.person {
+  display: grid;
+  grid-template-columns: 0.9fr 1.3fr;
+  gap: 44px;
+  align-items: start;
+}
+
+.portrait {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  filter: grayscale(1);
+  display: block;
+}
+
+.info {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 16px;
+}
+
+.info th,
+.info td {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  text-align: left;
+}
+
+.info th {
+  width: 6.5em;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ── 질문 ──────────────────────────────────────────────── */
+.faq {
+  border-top: 1px solid var(--rule);
+}
+
+.faq:last-of-type {
+  border-bottom: 1px solid var(--rule);
+}
+
+.faqSummary {
+  cursor: pointer;
+  padding: 18px 0;
+  font-size: 19px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.faqSummary::-webkit-details-marker { display: none; }
+.faqSummary::after { content: "+"; color: var(--muted); font-weight: 400; }
+.faq[open] .faqSummary::after { content: "–"; }
+
+.faqBody {
+  padding: 0 0 22px;
+  max-width: 40em;
+  color: #3a3732;
+}
+
+.faqBody p { margin: 0 0 10px; }
+
+.src {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── 연표 ──────────────────────────────────────────────── */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.timeline li {
+  position: relative;
+  padding: 0 0 22px 28px;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 13px;
+  width: 7px;
+  height: 7px;
+  background: var(--rule);
+  border-radius: 50%;
+}
+
+.timeline li.inGame::before { background: var(--pine); }
+
+.yr {
+  font-weight: 600;
+  margin-right: 12px;
+}
+
+.yrHi { color: var(--pine); }
+
+/* ── 외솔의 말 ─────────────────────────────────────────── */
+.quotes {
+  text-align: center;
+  padding: 12px 0 0;
+}
+
+.qcal {
+  font-size: 64px;
+  line-height: 1.25;
+  min-height: 1.3em;
+  margin: 0;
+}
+
+.quotes blockquote { margin: 0; }
+
+.qsrc {
+  display: block;
+  font-style: normal;
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+.qnav {
+  margin-top: 26px;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
+.qnav button {
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.qnav button:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+/* ── 장소 ──────────────────────────────────────────────── */
+.places {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 44px;
+}
+
+.mapBox {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+
+.mapBox iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  filter: grayscale(0.6);
+}
+
+.placeList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.placeList li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.placeList li:first-child { border-top: 1px solid var(--rule); }
+
+.placeList b {
+  font-weight: 600;
+  display: block;
+}
+
+.placeList span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ── 수업 자료 ─────────────────────────────────────────── */
+.kits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.kit {
+  padding: 26px 26px 26px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.kit + .kit {
+  border-left: 1px solid var(--rule);
+  padding-left: 26px;
+}
+
+.kit h3 {
+  font-size: 19px;
+  margin-bottom: 4px;
+}
+
+.kitGrade {
+  color: var(--pine);
+  font-size: 14px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.kit p {
+  margin: 0 0 14px;
+  color: #3a3732;
+  font-size: 15px;
+}
+
+.kitFiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+.kitFiles li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px dotted var(--rule);
+}
+
+.kitGames {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+/* ── 학생 마당 ─────────────────────────────────────────── */
+.games {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.game {
+  background: var(--paper2);
+  padding: 22px 22px 18px;
+  border: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  min-height: 230px;
+}
+
+.gameHome { background: #fff; }
+
+.game h3 {
+  font-size: 19px;
+  margin-bottom: 2px;
+}
+
+.gameKind {
+  font-size: 13px;
+  color: var(--pine);
+  margin-bottom: 10px;
+}
+
+.game p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  color: #3a3732;
+  flex: 1;
+}
+
+.gameFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.reward {
+  margin-top: 26px;
+  padding: 18px 22px;
+  border: 1px solid var(--rule);
+  font-size: 15px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.reward b { font-weight: 600; }
+
+/* ── 매일 한편 ─────────────────────────────────────────── */
+.daily {
+  background: #fff;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.daily .wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 30px 24px;
+  flex-wrap: wrap;
+}
+
+.daily p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ── 바닥 안내 ─────────────────────────────────────────── */
+.pageFoot .wrap {
+  display: flex;
+  justify-content: space-between;
+  padding: 34px 24px 40px;
+  font-size: 13px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .hero .wrap,
+  .person,
+  .places {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 { font-size: 40px; }
+
+  .kits,
+  .games {
+    grid-template-columns: 1fr;
+  }
+
+  .kit + .kit {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .qcal { font-size: 44px; }
+}

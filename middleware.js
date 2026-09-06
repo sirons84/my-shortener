@@ -15,6 +15,7 @@ const APP_ROUTES = [
   '/admin',
   '/privacy',
   '/terms',
+  '/baeumteo',
   '/auth/callback',
 ];
 
@@ -33,8 +34,23 @@ export function middleware(req) {
   }
 
   // 2. 앱 내부 페이지 경로는 통과
-  if (APP_ROUTES.includes(pathname)) {
+  //    (한글 경로는 퍼센트 인코딩돼 들어오므로 디코딩한 형태도 함께 본다)
+  let decodedPath = pathname;
+  try {
+    decodedPath = decodeURIComponent(pathname);
+  } catch {
+    /* 잘못된 인코딩이면 원본 그대로 둔다 */
+  }
+
+  if (APP_ROUTES.includes(pathname) || APP_ROUTES.includes(decodedPath)) {
     return NextResponse.next();
+  }
+
+  // 3. 외솔 배움터: 주소는 /배움터 로 보여주고 내부 경로로 넘긴다
+  //    (Next 는 한글 라우트를 원문으로 등록해 인코딩된 요청과 매칭되지 않는다)
+  if (decodedPath === '/배움터' || decodedPath.startsWith('/배움터/')) {
+    const rest = decodedPath.slice('/배움터'.length);
+    return NextResponse.rewrite(new URL(`/baeumteo${rest}`, req.url));
   }
 
   // 3. (중요) 그 외 모든 경로는 /r/[code] 핸들러로 리라이트

@@ -16,8 +16,8 @@ export default function InfoSidebar() {
         <div className={styles.content}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>외솔이란?</span>
-            <Link href="https://www.junggu.ulsan.kr/oesol/" className={styles.cardMoreLink}>
-              더 알아보기 ↗
+            <Link href="/배움터" className={styles.cardMoreLink}>
+              더 알아보기 →
             </Link>
           </div>
           
