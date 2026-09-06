@@ -22,6 +22,8 @@ export default function HomeStats() {
     { label: '사용 중인 단축 주소', value: fmt(stats?.activeUrls), suffix: '개', color: '#0984e3' },
     { label: '총 리디렉션 수', value: fmt(stats?.totalRedirects), suffix: '회', color: '#f6a609' },
     { label: '오늘 방문', value: fmt(stats?.todayVisits), suffix: '회', color: '#00b894' },
+    { label: '배포된 드롭 페이지', value: fmt(stats?.activeDrops), suffix: '개', color: '#e17055' },
+    { label: '드롭 페이지 조회', value: fmt(stats?.dropViews), suffix: '회', color: '#00cec9' },
   ];
 
   return (

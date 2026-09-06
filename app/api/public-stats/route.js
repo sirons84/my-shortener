@@ -29,6 +29,23 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .gte('clicked_at', todayStart.toISOString());
 
+    // 외솔 드롭 지표 — drops 테이블이 아직 없어도 나머지 통계는 살아남도록 분리
+    let activeDrops = 0;
+    let dropViews = 0;
+    try {
+      const { count } = await supabaseAdmin
+        .from('drops')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_blocked', false)
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+      activeDrops = count || 0;
+
+      const { data: viewRows } = await supabaseAdmin.from('drops').select('view_count');
+      dropViews = (viewRows || []).reduce((sum, row) => sum + (row.view_count || 0), 0);
+    } catch {
+      /* 드롭 통계는 없으면 0으로 둔다 */
+    }
+
     // 총 회원 수 — 목록은 1명만 받고 페이지네이션의 total만 사용
     const { data: usersPage } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 });
     const totalUsers = usersPage?.total ?? usersPage?.users?.length ?? 0;
@@ -38,8 +55,13 @@ export async function GET() {
       totalRedirects: totalRedirects || 0,
       todayVisits: todayVisits || 0,
       totalUsers,
+      activeDrops,
+      dropViews,
     });
   } catch (e) {
-    return NextResponse.json({ activeUrls: 0, totalRedirects: 0, todayVisits: 0, totalUsers: 0 });
+    return NextResponse.json({
+      activeUrls: 0, totalRedirects: 0, todayVisits: 0, totalUsers: 0,
+      activeDrops: 0, dropViews: 0,
+    });
   }
 }

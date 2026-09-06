@@ -3,7 +3,7 @@ import Image from 'next/image';
 import styles from './SubmitButton.module.css';
 
 // (!! 수정 !!) disabled prop을 받도록 수정
-export default function SubmitButton({ disabled }) {
+export default function SubmitButton({ disabled, label = 'URL 줄이기', loadingLabel = '생성 중...' }) {
   return (
     <button 
       type="submit" 
@@ -15,7 +15,7 @@ export default function SubmitButton({ disabled }) {
     >
       {/* (!! 수정 !!) 로딩 상태에 따라 텍스트 변경 */}
       <span className={styles.text}>
-        {disabled ? '생성 중...' : 'URL 줄이기'}
+        {disabled ? loadingLabel : label}
       </span>
       
       <Image

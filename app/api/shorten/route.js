@@ -99,14 +99,14 @@ export async function POST(request) {
 
   if (validatedCustomCode) {
     // 사용자 지정 코드 중복 확인
-    const { data: existing } = await supabaseAdmin
-      .from('urls')
-      .select('code')
-      .eq('code', validatedCustomCode)
-      .single();
+    // (단축 주소와 외솔 드롭 주소는 같은 이름 공간을 쓰므로 양쪽을 모두 확인한다)
+    const [{ data: existing }, { data: existingDrop }] = await Promise.all([
+      supabaseAdmin.from('urls').select('code').eq('code', validatedCustomCode).maybeSingle(),
+      supabaseAdmin.from('drops').select('code').eq('code', validatedCustomCode).maybeSingle(),
+    ]);
 
-    if (existing) {
-      return NextResponse.json({ error: '이미 사용 중인 단축 주소입니다.' }, { status: 409 });
+    if (existing || existingDrop) {
+      return NextResponse.json({ error: '이미 사용 중인 주소입니다.' }, { status: 409 });
     }
     code = validatedCustomCode;
 
@@ -121,13 +121,12 @@ export async function POST(request) {
       }
       code = generateRandomString(6);
 
-      const { data: existing } = await supabaseAdmin
-        .from('urls')
-        .select('code')
-        .eq('code', code)
-        .single();
-        
-      if (!existing) isUnique = true;
+      const [{ data: existing }, { data: existingDrop }] = await Promise.all([
+        supabaseAdmin.from('urls').select('code').eq('code', code).maybeSingle(),
+        supabaseAdmin.from('drops').select('code').eq('code', code).maybeSingle(),
+      ]);
+
+      if (!existing && !existingDrop) isUnique = true;
       retryCount++;
     }
   }

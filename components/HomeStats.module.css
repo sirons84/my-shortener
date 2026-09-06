@@ -20,7 +20,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -59,7 +59,7 @@
     padding: 0 16px;
     margin-top: 20px;
   }
-  /* 타일이 4개가 되어 세로로 다 쌓지 않고 2×2로 배치 */
+  /* 타일이 6개가 되어 세로로 다 쌓지 않고 2열로 배치 */
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
