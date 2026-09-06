@@ -26,9 +26,11 @@ export default function DropMain() {
   const supabase = createClientComponentClient();
 
   const [user, setUser] = useState(null);
-  const [myDrop, setMyDrop] = useState(null);
+  const [drops, setDrops] = useState([]);
+  const [limit, setLimit] = useState(1);
 
   const [code, setCode] = useState("");
+  const [replaceCode, setReplaceCode] = useState(""); // 교체할 기존 페이지 주소
   const [expiry, setExpiry] = useState("365d");
   const [html, setHtml] = useState("");
   const [fileName, setFileName] = useState("");
@@ -46,6 +48,18 @@ export default function DropMain() {
     return session?.access_token;
   }, [supabase]);
 
+  const loadDrops = useCallback(async () => {
+    try {
+      const token = await getToken();
+      const res = await fetch("/api/drop", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setDrops(data.drops || []);
+      if (data.limit !== undefined) setLimit(data.limit);
+    } catch {
+      /* 조회 실패는 무시하고 새로 배포할 수 있게 둔다 */
+    }
+  }, [getToken]);
+
   // 로그인 상태 + 내가 배포 중인 페이지 확인
   useEffect(() => {
     let alive = true;
@@ -54,23 +68,11 @@ export default function DropMain() {
       const { data: { user: found } } = await supabase.auth.getUser();
       if (!alive) return;
       setUser(found ?? null);
-      if (!found) return;
-
-      try {
-        const token = await getToken();
-        const res = await fetch("/api/drop", { headers: { Authorization: `Bearer ${token}` } });
-        const data = await res.json();
-        if (alive && data.drop) {
-          setMyDrop(data.drop);
-          setCode(data.drop.code);
-        }
-      } catch {
-        /* 조회 실패는 무시하고 새로 배포할 수 있게 둔다 */
-      }
+      if (found) await loadDrops();
     })();
 
     return () => { alive = false; };
-  }, [supabase, getToken]);
+  }, [supabase, loadDrops]);
 
   // ── 주소 표기 ───────────────────────────────────────────
   const hostName = () => {
@@ -86,6 +88,8 @@ export default function DropMain() {
   const displayUrl = (targetCode) => `${hostName()}/${targetCode}`;
   const openUrl = (targetCode) =>
     typeof window === "undefined" ? "" : `${window.location.origin}/${encodeURIComponent(targetCode)}`;
+
+  const atLimit = limit !== null && drops.length >= limit;
 
   // ── 파일 읽기 ───────────────────────────────────────────
   const readFile = async (file) => {
@@ -117,6 +121,19 @@ export default function DropMain() {
     readFile(e.dataTransfer.files?.[0]);
   };
 
+  // ── 교체 대상 선택 ──────────────────────────────────────
+  const startReplace = (targetCode) => {
+    setReplaceCode(targetCode);
+    setCode(targetCode);
+    setError("");
+    setPublished("");
+  };
+
+  const cancelReplace = () => {
+    setReplaceCode("");
+    setCode("");
+  };
+
   // ── 배포 ────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -142,7 +159,7 @@ export default function DropMain() {
       const res = await fetch("/api/drop", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ code: code.trim(), html, expiry }),
+        body: JSON.stringify({ code: code.trim(), html, expiry, replaceCode: replaceCode || undefined }),
       });
       const data = await res.json();
 
@@ -152,9 +169,10 @@ export default function DropMain() {
       }
 
       setPublished(data.code);
-      setMyDrop({ code: data.code, view_count: myDrop?.view_count || 0 });
       setHtml("");
       setFileName("");
+      setReplaceCode("");
+      await loadDrops();
     } catch {
       setError("네트워크 오류가 발생했습니다.");
     } finally {
@@ -164,7 +182,7 @@ export default function DropMain() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(displayUrl(published || myDrop?.code));
+      await navigator.clipboard.writeText(displayUrl(published));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -187,13 +205,29 @@ export default function DropMain() {
           학급 안내장·학습 자료·설문 페이지를 주소 하나로 나눠 보세요.
         </p>
 
-        {myDrop && !published && (
-          <div className={styles.dropCurrent}>
-            <span className={styles.dropCurrentLabel}>지금 배포 중</span>
-            <a href={openUrl(myDrop.code)} target="_blank" rel="noreferrer" className={styles.dropCurrentUrl}>
-              {displayUrl(myDrop.code)}
-            </a>
-            <span className={styles.dropCurrentHint}>새로 배포하면 이 페이지가 교체됩니다.</span>
+        {/* 지금 배포 중인 페이지들 */}
+        {drops.length > 0 && (
+          <div className={styles.dropCurrentList}>
+            {drops.map((d) => (
+              <div key={d.code} className={styles.dropCurrent}>
+                <span className={styles.dropCurrentLabel}>배포 중</span>
+                <a href={openUrl(d.code)} target="_blank" rel="noreferrer" className={styles.dropCurrentUrl}>
+                  {displayUrl(d.code)}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => (replaceCode === d.code ? cancelReplace() : startReplace(d.code))}
+                  className={`${styles.dropReplaceBtn} ${replaceCode === d.code ? styles.dropReplaceBtnActive : ""}`}
+                >
+                  {replaceCode === d.code ? "교체 대상 (누르면 해제)" : "이 페이지 교체"}
+                </button>
+              </div>
+            ))}
+
+            <p className={styles.dropCurrentHint}>
+              {limit === null ? "개수 제한 없이 배포할 수 있습니다." : `${drops.length} / ${limit}개 사용 중`}
+              {atLimit && !replaceCode && " · 새로 배포하려면 기존 페이지를 교체하거나 대시보드에서 내려주세요."}
+            </p>
           </div>
         )}
 
@@ -245,7 +279,7 @@ export default function DropMain() {
           <div className={`${styles.selectWrapper} ${styles.selectWrapperTight}`}>
             <div className={styles.customCodeInput}>
               <PrefixedInput
-                label="배포 주소"
+                label={replaceCode ? `배포 주소 (${replaceCode} 교체 중)` : "배포 주소"}
                 placeholder="우리반"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -270,7 +304,7 @@ export default function DropMain() {
 
           <SubmitButton
             disabled={loading}
-            label="배포하기"
+            label={replaceCode ? "교체하기" : "배포하기"}
             loadingLabel="배포 중..."
             showCharacter={false}
           />
@@ -306,7 +340,7 @@ export default function DropMain() {
         )}
 
         <p className={styles.dropFootnote}>
-          선생님 한 분당 한 페이지까지 배포할 수 있는 베타 기능입니다. 올린 페이지는{" "}
+          베타 기능입니다. 올린 페이지는{" "}
           <Link href="/dashboard" className={styles.dropFootnoteLink}>대시보드</Link>에서 바꾸거나 내릴 수 있습니다.
         </p>
       </section>

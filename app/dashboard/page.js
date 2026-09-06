@@ -54,7 +54,8 @@ export default function Dashboard() {
 
   // 외솔 드롭(베타) — 탭 전환과 내가 배포 중인 페이지
   const [tab, setTab] = useState('urls');
-  const [myDrop, setMyDrop] = useState(null);
+  const [myDrops, setMyDrops] = useState([]);
+  const [dropLimit, setDropLimit] = useState(1);
   const [editModal, setEditModal] = useState({ show: false, id: null, url: '', code: '', originalCode: '' });
   const [editMsg, setEditMsg] = useState({ type: '', text: '' });
 
@@ -312,7 +313,10 @@ export default function Dashboard() {
         const token = await getToken();
         const res = await fetch('/api/drop', { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
-        if (alive) setMyDrop(data.drop || null);
+        if (alive) {
+          setMyDrops(data.drops || []);
+          if (data.limit !== undefined) setDropLimit(data.limit);
+        }
       } catch {
         /* 조회 실패는 조용히 무시 */
       }
@@ -323,17 +327,17 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const handleDropDelete = async () => {
-    if (!confirm('배포한 페이지를 내릴까요? 주소도 함께 사라집니다.')) return;
+  const handleDropDelete = async (code) => {
+    if (!confirm(`'${code}' 페이지를 내릴까요? 주소도 함께 사라집니다.`)) return;
 
     const token = await getToken();
-    const res = await fetch('/api/drop', {
+    const res = await fetch(`/api/drop?code=${encodeURIComponent(code)}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
 
     if (res.ok) {
-      setMyDrop(null);
+      setMyDrops((prev) => prev.filter((d) => d.code !== code));
       showToast('success', '페이지를 내렸습니다.');
     } else {
       showToast('error', '삭제에 실패했습니다.');
@@ -402,7 +406,7 @@ export default function Dashboard() {
 
       {/* 탭 */}
       <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid #e5e7eb', marginBottom: '20px' }}>
-        {[['urls', `단축 주소 (${urls.length})`], ['drop', '외솔 드롭']].map(([val, label]) => (
+        {[['urls', `단축 주소 (${urls.length})`], ['drop', `외솔 드롭 (${myDrops.length})`]].map(([val, label]) => (
           <button
             key={val}
             onClick={() => setTab(val)}
@@ -540,71 +544,78 @@ export default function Dashboard() {
 
       {/* ── 외솔 드롭 탭 ── */}
       {tab === 'drop' && (
-        myDrop ? (
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', backgroundColor: '#fff' }}>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb', marginBottom: '12px' }}>
-              지금 배포 중
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {myDrops.map((drop) => {
+            const origin = punycodeOrigin || (typeof window !== 'undefined' ? window.location.origin : '');
+            const fullUrl = `${origin}/${drop.code}`;
 
-            <a
-              href={`${punycodeOrigin || (typeof window !== 'undefined' ? window.location.origin : '')}/${myDrop.code}`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ fontSize: '20px', fontWeight: 'bold', color: '#111827', textDecoration: 'none', wordBreak: 'break-all' }}
-            >
-              {(punycodeOrigin || '').replace(/^https?:\/\//, '')}/{myDrop.code}
-            </a>
+            return (
+              <div key={drop.code} style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', backgroundColor: '#fff' }}>
+                <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb', marginBottom: '12px' }}>
+                  지금 배포 중
+                </div>
 
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', color: '#6b7280', fontSize: '13px', margin: '12px 0 18px' }}>
-              <span>조회 {myDrop.view_count ?? 0}회</span>
-              <span>{Math.max(1, Math.round((myDrop.size_bytes || 0) / 1024))}KB</span>
-              <span>
-                {myDrop.expires_at
-                  ? `${new Date(myDrop.expires_at).toLocaleDateString('ko-KR')}까지`
-                  : '기간 제한 없음'}
-              </span>
-              {myDrop.updated_at && <span>{new Date(myDrop.updated_at).toLocaleDateString('ko-KR')} 갱신</span>}
-            </div>
+                <a
+                  href={fullUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: '20px', fontWeight: 'bold', color: '#111827', textDecoration: 'none', wordBreak: 'break-all' }}
+                >
+                  {origin.replace(/^https?:\/\//, '')}/{drop.code}
+                </a>
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <a
-                href={`${punycodeOrigin || (typeof window !== 'undefined' ? window.location.origin : '')}/${myDrop.code}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{ ...btnStyle, backgroundColor: '#2563eb', textDecoration: 'none' }}
-              >
-                <FiExternalLink style={{ marginRight: '5px' }} /> 열어보기
-              </a>
-              <button onClick={() => handleCopy(myDrop.code)} style={{ ...btnStyle, backgroundColor: '#6b7280' }}>
-                {copiedCode === myDrop.code ? <FiCheck style={{ marginRight: '5px' }} /> : <FiCopy style={{ marginRight: '5px' }} />}
-                {copiedCode === myDrop.code ? '복사됨!' : '주소 복사'}
-              </button>
-              <Link href="/" style={{ ...btnStyle, backgroundColor: '#059669', textDecoration: 'none' }}>
-                <FiEdit style={{ marginRight: '5px' }} /> 다른 파일로 교체
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', color: '#6b7280', fontSize: '13px', margin: '12px 0 18px' }}>
+                  <span>조회 {drop.view_count ?? 0}회</span>
+                  <span>{Math.max(1, Math.round((drop.size_bytes || 0) / 1024))}KB</span>
+                  <span>
+                    {drop.expires_at
+                      ? `${new Date(drop.expires_at).toLocaleDateString('ko-KR')}까지`
+                      : '기간 제한 없음'}
+                  </span>
+                  {drop.updated_at && <span>{new Date(drop.updated_at).toLocaleDateString('ko-KR')} 갱신</span>}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <a href={fullUrl} target="_blank" rel="noreferrer" style={{ ...btnStyle, backgroundColor: '#2563eb', textDecoration: 'none' }}>
+                    <FiExternalLink style={{ marginRight: '5px' }} /> 열어보기
+                  </a>
+                  <button onClick={() => handleCopy(drop.code)} style={{ ...btnStyle, backgroundColor: '#6b7280' }}>
+                    {copiedCode === drop.code ? <FiCheck style={{ marginRight: '5px' }} /> : <FiCopy style={{ marginRight: '5px' }} />}
+                    {copiedCode === drop.code ? '복사됨!' : '주소 복사'}
+                  </button>
+                  <Link href="/" style={{ ...btnStyle, backgroundColor: '#059669', textDecoration: 'none' }}>
+                    <FiEdit style={{ marginRight: '5px' }} /> 다른 파일로 교체
+                  </Link>
+                  <button onClick={() => handleDropDelete(drop.code)} style={{ ...btnStyle, backgroundColor: '#ef4444' }}>
+                    <FiTrash2 style={{ marginRight: '5px' }} /> 내리기
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {(dropLimit === null || myDrops.length < dropLimit) && (
+            <div style={{ border: '1px dashed #d1d5db', borderRadius: '12px', padding: '34px 20px', textAlign: 'center', backgroundColor: '#fff' }}>
+              <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                {myDrops.length === 0 ? '아직 배포한 페이지가 없습니다.' : '한 개 더 배포할 수 있습니다.'}
+              </p>
+              <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px', lineHeight: 1.7 }}>
+                AI로 만든 HTML 파일 한 장을 외솔.한국 주소로 배포해 보세요.
+              </p>
+              <Link href="/" style={{ ...btnStyle, backgroundColor: '#2563eb', textDecoration: 'none' }}>
+                메인에서 배포하기
               </Link>
-              <button onClick={handleDropDelete} style={{ ...btnStyle, backgroundColor: '#ef4444' }}>
-                <FiTrash2 style={{ marginRight: '5px' }} /> 내리기
-              </button>
             </div>
+          )}
 
-            <p style={{ marginTop: '18px', fontSize: '13px', color: '#9ca3af', lineHeight: 1.7 }}>
-              올린 페이지는 검색에 나오지 않고, 주소를 아는 사람만 볼 수 있습니다.<br />
-              베타 기간에는 선생님 한 분당 한 페이지까지 배포할 수 있습니다.
-            </p>
-          </div>
-        ) : (
-          <div style={{ border: '1px dashed #d1d5db', borderRadius: '12px', padding: '40px 20px', textAlign: 'center', backgroundColor: '#fff' }}>
-            <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-              아직 배포한 페이지가 없습니다.
-            </p>
-            <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px', lineHeight: 1.7 }}>
-              AI로 만든 HTML 파일 한 장을 외솔.한국 주소로 배포해 보세요.
-            </p>
-            <Link href="/" style={{ ...btnStyle, backgroundColor: '#2563eb', textDecoration: 'none' }}>
-              메인에서 배포하기
-            </Link>
-          </div>
-        )
+          <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: 1.7, textAlign: 'center' }}>
+            {dropLimit === null
+              ? '개수 제한 없이 배포할 수 있습니다.'
+              : `베타 기간에는 계정당 ${dropLimit}개까지 배포할 수 있습니다. (${myDrops.length} / ${dropLimit} 사용 중)`}
+            <br />
+            올린 페이지는 검색에 나오지 않고, 주소를 아는 사람만 볼 수 있습니다.
+          </p>
+        </div>
       )}
 
       {/* 토스트 */}

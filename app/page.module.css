@@ -461,3 +461,47 @@
     margin-bottom: 20px;
   }
 }
+
+/* 배포 중인 드롭 목록 (계정당 여러 개일 수 있음) */
+.dropCurrentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dropCurrentList .dropCurrent {
+  margin-bottom: 0;
+}
+
+.dropReplaceBtn {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid #b8d8f8;
+  border-radius: 999px;
+  background: #fff;
+  color: #0984e3;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.dropReplaceBtn:hover {
+  background: #e8f3ff;
+}
+
+.dropReplaceBtnActive {
+  background: #0984e3;
+  border-color: #0984e3;
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .dropReplaceBtn {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+}
