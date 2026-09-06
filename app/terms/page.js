@@ -3,6 +3,12 @@
 
 import Link from "next/link";
 
+export const metadata = {
+  title: "이용약관",
+  description: "외솔.한국 URL 단축 서비스의 이용약관입니다.",
+  alternates: { canonical: "/terms" },
+};
+
 export default function TermsPage() {
   const styles = {
     container: {
