@@ -18,8 +18,8 @@ export const dynamic = 'force-dynamic';
 const GAMES = {
   defense: { max: maxScore(defenseConfig) },
   // 사전 편찬소는 실은 낱말 수가 점수다. 사전에 있는 낱말보다 많이 실을 수는 없다.
-  // 같은 개수면 빨리 채운 쪽이 앞이므로 걸린 시간(ms)도 함께 받는다.
-  dictionary: { max: words.length, maxMs: dictionaryConfig.round_ms, timed: true },
+  // 같은 개수면 다음 낱말에 더 가까웠던 쪽(남은 낱말 카드가 많은 쪽)이 앞이다.
+  dictionary: { max: words.length, maxMs: dictionaryConfig.round_ms, timed: true, spared: true },
 };
 
 const TOP = 100;
@@ -27,7 +27,7 @@ const TOP = 100;
 const POOL = 1000;
 const GROUP_TAKE = 10;
 
-const COLUMNS = 'id, score, ms, nick, school, grade, class, class_code, at';
+const COLUMNS = 'id, score, spare, ms, nick, school, grade, class, class_code, at';
 
 function fail(message, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -71,7 +71,7 @@ export async function GET(request) {
     .select(COLUMNS)
     .eq('game', game)
     .order('score', { ascending: false })
-    .order('ms', { ascending: true, nullsFirst: false })
+    .order('spare', { ascending: false, nullsFirst: false })
     .order('at', { ascending: true });
 
   // 한 반만 볼 때는 그 반의 기록만 읽는다
@@ -116,6 +116,15 @@ export async function POST(request) {
   const score = Number(body?.score);
   if (!Number.isInteger(score) || score < 0) return fail('점수가 이상합니다.');
   if (score > rules.max) return fail('점수가 이 게임에서 나올 수 있는 값을 넘었습니다.');
+
+  // 남은 낱말 카드. 같은 개수일 때 이걸로 가른다
+  let spare = 0;
+  if (rules.spared) {
+    spare = Number(body?.spare);
+    if (!Number.isInteger(spare) || spare < 0 || spare > 1e12) {
+      return fail('남은 낱말 카드 수가 이상합니다.');
+    }
+  }
 
   // 걸린 시간. 시간을 재지 않는 게임은 0 으로 둔다
   let ms = 0;
@@ -162,6 +171,7 @@ export async function POST(request) {
     .insert({
       game,
       score,
+      spare,
       ms,
       nick: nick.nick,
       school: school.school,
@@ -175,27 +185,26 @@ export async function POST(request) {
 
   if (error) return fail(error.message, 500);
 
-  // 몇 등인지. 나보다 점수가 높은 기록 + 같은 점수인데 더 빨리 채운 기록
+  // 몇 등인지. 나보다 개수가 많은 기록 + 같은 개수인데 카드가 더 남은 기록
   const { count } = await supabaseAdmin
     .from('baeumteo_scores')
     .select('id', { count: 'exact', head: true })
     .eq('game', game)
     .gt('score', score);
 
-  let faster = 0;
-  if (rules.timed) {
+  let ahead = 0;
+  if (rules.spared) {
     const { count: tied } = await supabaseAdmin
       .from('baeumteo_scores')
       .select('id', { count: 'exact', head: true })
       .eq('game', game)
       .eq('score', score)
-      .gt('ms', 0)
-      .lt('ms', ms);
-    faster = tied || 0;
+      .gt('spare', spare);
+    ahead = tied || 0;
   }
 
   // erase_key 는 여기서 한 번만 준다. 서버에는 해시만 남는다
-  return NextResponse.json({ row: data, rank: (count || 0) + faster + 1, erase_key: eraseKey });
+  return NextResponse.json({ row: data, rank: (count || 0) + ahead + 1, erase_key: eraseKey });
 }
 
 // ── 기록 지우기 (기획서 §9: 이유 없이 즉시) ─────────────────────

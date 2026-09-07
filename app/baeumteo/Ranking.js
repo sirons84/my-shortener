@@ -25,15 +25,7 @@ function num(n) {
   return Math.floor(n).toLocaleString('ko-KR');
 }
 
-/** 62000 → '1분 2초' */
-function clock(ms) {
-  if (!ms) return '';
-  const total = Math.round(ms / 1000);
-  const min = Math.floor(total / 60);
-  return min > 0 ? `${min}분 ${total % 60}초` : `${total}초`;
-}
-
-export default function Ranking({ game, score, ms = 0, ticket, save, onSave, unit = '점' }) {
+export default function Ranking({ game, score, spare = 0, ms = 0, ticket, save, onSave, unit = '점' }) {
   const [tab, setTab] = useState('solo');
   const [board, setBoard] = useState(null);
   const [keys, setKeys] = useState({ scores: {}, classes: {} });
@@ -95,6 +87,7 @@ export default function Ranking({ game, score, ms = 0, ticket, save, onSave, uni
         body: JSON.stringify({
           game,
           score,
+          spare,
           ms,
           ticket,
           nick: checked.nick,
@@ -157,7 +150,8 @@ export default function Ranking({ game, score, ms = 0, ticket, save, onSave, uni
       {qualifies && (
         <form className={styles.form} onSubmit={submit}>
           <p className={styles.formLead}>
-            {num(score)}{unit}입니다. 순위판에 남기려면 별명을 지어 주세요. 이름은 적지 않습니다.
+            {num(score)}{unit}입니다.{spare > 0 && ` 낱말 카드가 ${num(spare)}장 남았습니다.`} 순위판에
+            남기려면 별명을 지어 주세요. 이름은 적지 않습니다.
           </p>
           <div className={styles.fields}>
             <label>
@@ -219,8 +213,8 @@ export default function Ranking({ game, score, ms = 0, ticket, save, onSave, uni
                 {row.grade ? ` ${row.grade}-${row.class}` : ''}
               </span>
               <span className={styles.spacer} />
-              {row.ms > 0 && <span className={styles.time}>{clock(row.ms)}</span>}
-              <span className={styles.point}>{num(row.score)}</span>
+              {row.spare > 0 && <span className={styles.time}>남은 카드 {num(row.spare)}</span>}
+              <span className={styles.point}>{num(row.score)}{unit}</span>
               {keys.scores[row.id] && (
                 <button type="button" className={styles.erase} onClick={() => erase(row.id)}>지우기</button>
               )}
@@ -242,6 +236,9 @@ export default function Ranking({ game, score, ms = 0, ticket, save, onSave, uni
       )}
 
       <p className={styles.small}>
+        {spare > 0 || game === 'dictionary'
+          ? '개수가 같으면 낱말 카드가 더 많이 남은 쪽, 곧 다음 낱말에 더 가까웠던 쪽이 앞입니다. '
+          : ''}
         반·학교 점수는 상위 {GROUP_TAKE}명의 합입니다. 기록은 별명·학교·학년·반만 담고, 이름은 담지 않습니다.
         지우고 싶은 기록은 이유 없이 바로 지울 수 있습니다.
         {solo?.full ? ` 지금 100등 점수는 ${num(solo.cutoff)}${unit}입니다.` : ''}

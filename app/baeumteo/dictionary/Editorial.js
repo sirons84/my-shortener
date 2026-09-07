@@ -275,7 +275,7 @@ export default function Editorial() {
           {entries.length === 0 ? (
             <p className={styles.empty}>
               아직 실린 낱말이 없습니다. 카드가 {config.entry_cost}장 모이면 첫 낱말을 실을 수 있습니다.
-              한 낱말을 실을 때마다 다음 낱말의 값이 조금씩 오릅니다.
+              한 낱말을 실을 때마다 다음 낱말의 값이 가파르게 오릅니다.
             </p>
           ) : (
             <>
@@ -362,14 +362,14 @@ export default function Editorial() {
             <h3 className={styles.sheetTitle}>사전 편찬소</h3>
             <ol className={styles.rules}>
               <li>
-                낱말 카드가 초마다 쌓입니다. {config.entry_cost}장이면 첫 낱말을 사전에 싣고, 하나 실을 때마다
-                다음 낱말의 값이 조금씩 오릅니다.
+                낱말 카드가 초마다 쌓입니다. {config.entry_cost}장이면 첫 낱말을 사전에 싣지만, 하나 실을 때마다
+                다음 낱말의 값이 가파르게 오릅니다. 사람을 뽑아 카드 속도를 올리지 않으면 곧 멈춥니다.
               </li>
               <li>실을 때 그 낱말의 뜻을 한 번 고릅니다. 틀려도 실리되 값의 4분의 1을 더 냅니다.</li>
               <li>사람을 뽑으면 카드가 빨리 쌓입니다. 뽑을수록 값이 오릅니다.</li>
               <li>
-                한 판은 {Math.round(config.round_ms / 60000)}분입니다. 그 안에 실은 낱말 수가 점수이고,{' '}
-                {num(GOAL)}개를 다 실으면 그 자리에서 끝납니다.
+                한 판은 {Math.round(config.round_ms / 60000)}분입니다. 그 안에 실은 낱말 수가 점수입니다.
+                사전 {num(GOAL)}개를 다 채우는 것은 목표가 아닙니다. 한 개라도 더 싣는 것이 목표입니다.
               </li>
               <li>판은 늘 카드 0에서 시작합니다. 자리를 비우면 시계도 함께 멈춥니다.</li>
             </ol>
@@ -434,14 +434,15 @@ export default function Editorial() {
               {round.entries.length >= GOAL ? '사전을 다 채웠습니다' : '판이 끝났습니다'}
             </h3>
             <p className={styles.sheetAsk}>
-              {num(round.entries.length)}개를 실었습니다. 걸린 시간 {clock(spent.current)}.
-              지갑에 낱말 카드 {num(round.entries.length * config.reward.per_entry)}장이 들어왔습니다.
+              {num(round.entries.length)}개를 실었습니다. 다음 낱말은 {num(cost)}장인데 {num(round.cards)}장이
+              남았습니다. 지갑에 낱말 카드 {num(round.entries.length * config.reward.per_entry)}장이 들어왔습니다.
               {best > round.entries.length && ` 가장 좋았던 판은 ${num(best)}개입니다.`}
             </p>
 
             <Ranking
               game="dictionary"
               score={round.entries.length}
+              spare={round.cards}
               ms={spent.current}
               ticket={ticket.current}
               save={save}

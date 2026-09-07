@@ -377,6 +377,9 @@ export default function Room() {
                       <span className={styles.place}>{i + 1}</span>
                       <b>{row.nick}</b>
                       <span className={styles.spacer} />
+                      {board === 'dictionary' && row.spare > 0 && (
+                        <span className={styles.spare}>남은 카드 {num(row.spare)}</span>
+                      )}
                       <span className={styles.point}>
                         {num(row.score)}
                         {board === 'dictionary' ? '개' : '점'}

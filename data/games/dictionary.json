@@ -10,7 +10,7 @@
     { "id": "wk_press", "name": "인쇄기", "desc": "고른 낱말을 원고로 찍어 냅니다.", "cost": 500, "rate": 30, "growth": 1.15 }
   ],
   "entry_cost": 20,
-  "entry_growth": 1.05,
+  "entry_growth": 1.15,
   "entry_check": "meaning_pick",
   "check_choices": 4,
   "wrong_penalty": 5,

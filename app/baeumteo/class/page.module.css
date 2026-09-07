@@ -188,3 +188,5 @@
 }
 
 .body .tabOn { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.spare { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
