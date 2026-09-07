@@ -19,6 +19,11 @@ const APP_ROUTES = [
   '/auth/callback',
 ];
 
+// 배움터 안의 한글 주소 → 실제 라우트 폴더
+const BAEUMTEO_ROUTES = {
+  '/사전편찬소': 'dictionary',
+};
+
 export function middleware(req) {
   const { pathname } = req.nextUrl;
 
@@ -46,11 +51,24 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
+  // 배움터 하위 라우트(/baeumteo/dictionary 등)로 바로 들어온 요청도 통과시킨다.
+  // 여기서 막으면 리라이트한 요청이 다시 단축 주소 핸들러로 떨어진다.
+  if (pathname.startsWith('/baeumteo/')) {
+    return NextResponse.next();
+  }
+
   // 3. 외솔 배움터: 주소는 /배움터 로 보여주고 내부 경로로 넘긴다
-  //    (Next 는 한글 라우트를 원문으로 등록해 인코딩된 요청과 매칭되지 않는다)
+  //    (Next 는 한글 라우트를 원문으로 등록해 인코딩된 요청과 매칭되지 않는다.
+  //     하위 경로도 마찬가지라 한글 이름을 영문 폴더에 하나씩 맞춰 둔다.)
   if (decodedPath === '/배움터' || decodedPath.startsWith('/배움터/')) {
-    const rest = decodedPath.slice('/배움터'.length);
-    return NextResponse.rewrite(new URL(`/baeumteo${rest}`, req.url));
+    const rest = decodedPath.slice('/배움터'.length).replace(/\/$/, '');
+    if (rest === '') return NextResponse.rewrite(new URL('/baeumteo', req.url));
+
+    const inner = BAEUMTEO_ROUTES[rest];
+    if (inner) return NextResponse.rewrite(new URL(`/baeumteo/${inner}`, req.url));
+
+    // 없는 배움터 하위 주소는 단축 주소로 넘기지 않고 배움터에서 끝낸다
+    return NextResponse.rewrite(new URL('/baeumteo/none', req.url));
   }
 
   // 3. (중요) 그 외 모든 경로는 /r/[code] 핸들러로 리라이트

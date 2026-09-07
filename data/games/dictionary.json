@@ -1,0 +1,22 @@
+{
+  "id": "dictionary",
+  "name": "사전 편찬소",
+  "tick_ms": 1000,
+  "base_rate": 1,
+  "workers": [
+    { "id": "wk_collector", "name": "낱말 수집원", "desc": "거리에서 쓰는 말을 받아 적어 옵니다.", "cost": 10, "rate": 1, "growth": 1.15 },
+    { "id": "wk_editor", "name": "교정원", "desc": "적어 온 낱말의 뜻과 표기를 바로잡습니다.", "cost": 80, "rate": 5, "growth": 1.15 },
+    { "id": "wk_press", "name": "인쇄기", "desc": "고른 낱말을 원고로 찍어 냅니다.", "cost": 500, "rate": 30, "growth": 1.15 }
+  ],
+  "entry_cost": 20,
+  "entry_check": "meaning_pick",
+  "check_choices": 4,
+  "wrong_penalty": 5,
+  "entry_pool": { "ref": "words", "level": [1, 2, 3] },
+  "offline_cap_h": 8,
+  "milestones": [
+    { "entries": 10, "unlock": "defense", "label": "우리말 지키기" },
+    { "entries": 30, "unlock": "manuscript", "label": "잃어버린 원고" },
+    { "entries": 60, "unlock": "study", "label": "외솔의 서재" }
+  ]
+}

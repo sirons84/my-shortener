@@ -272,17 +272,27 @@ export default function BaeumteoPage() {
           </p>
 
           <div className={styles.games}>
-            {games.map((game) => (
-              <div key={game.id} className={`${styles.game} ${game.home ? styles.gameHome : ""}`}>
-                <h3>{game.name}</h3>
-                <div className={styles.gameKind}>{game.kind}</div>
-                <p>{game.desc}</p>
-                <div className={styles.gameFoot}>
-                  <span>{game.tag}</span>
-                  <span className={styles.soon}>{game.status}</span>
-                </div>
-              </div>
-            ))}
+            {games.map((game) => {
+              // 열린 게임만 링크가 된다. 준비 중인 카드는 눌러도 아무 데도 가지 않는다.
+              const Card = game.href ? Link : "div";
+              return (
+                <Card
+                  key={game.id}
+                  {...(game.href ? { href: game.href } : {})}
+                  className={`${styles.game} ${game.home ? styles.gameHome : ""} ${
+                    game.href ? styles.gameOpen : ""
+                  }`}
+                >
+                  <h3>{game.name}</h3>
+                  <div className={styles.gameKind}>{game.kind}</div>
+                  <p>{game.desc}</p>
+                  <div className={styles.gameFoot}>
+                    <span>{game.tag}</span>
+                    <span className={game.href ? styles.open : styles.soon}>{game.status}</span>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
 
           <div className={styles.reward}>
