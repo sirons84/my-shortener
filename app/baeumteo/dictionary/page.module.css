@@ -494,3 +494,6 @@
 
 /* 순위판이 이 색들을 이름으로 쓴다 */
 .page { --alarm: #8a3b2e; }
+
+/* 결과지 아래 버튼 둘 */
+.footBtns { display: flex; gap: 8px; flex-shrink: 0; }

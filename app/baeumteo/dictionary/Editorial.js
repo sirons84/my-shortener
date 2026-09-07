@@ -21,6 +21,7 @@ import {
   cardRate,
   clearSave,
   emptyRound,
+  entryCost,
   emptySave,
   earn,
   hire,
@@ -29,6 +30,7 @@ import {
   loadSave,
   nextMilestone,
   recordProgress,
+  wrongPenalty,
   writeSave,
 } from '../../../lib/baeumteo/save';
 import { decodeSave, encodeSave } from '../../../lib/baeumteo/saveCode';
@@ -55,6 +57,8 @@ export default function Editorial() {
   const [phase, setPhase] = useState('ready'); // ready | play | over
   const [round, setRound] = useState(emptyRound);
   const [left, setLeft] = useState(config.round_ms);
+  // 판이 끝난 뒤 결과지를 덮어 두었는지. 닫으면 이번 판에 실은 사전을 볼 수 있다
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [notice, setNotice] = useState('');
 
   const [check, setCheck] = useState(null); // 뜻 고르기. null 이면 닫힌 상태
@@ -85,6 +89,7 @@ export default function Editorial() {
     setPage(0);
     setPanel('');
     setNotice('');
+    setSheetOpen(false);
     spent.current = 0;
     setPhase('play');
 
@@ -123,6 +128,7 @@ export default function Editorial() {
 
     setCheck(null);
     setPhase('over');
+    setSheetOpen(true);
     commit((prev) =>
       recordProgress(learn(earn(prev, round.entries.length * config.reward.per_entry), round.entries), 'dictionary', {
         best_entries: round.entries.length,
@@ -146,7 +152,7 @@ export default function Editorial() {
   // ── 낱말 싣기 ──────────────────────────────────────────────────
 
   const openCheck = () => {
-    if (phase !== 'play' || round.cards < config.entry_cost) return;
+    if (phase !== 'play' || round.cards < entryCost(config, round.entries.length)) return;
     const word = pickNextWord(round.entries, config.entry_pool);
     if (!word) return;
     setCheck({ word, choices: meaningChoices(word, config.check_choices), picked: null });
@@ -154,12 +160,13 @@ export default function Editorial() {
 
   const answer = (choice) => {
     if (!check || check.picked) return;
-    setCheck({ ...check, picked: choice });
+    setCheck({ ...check, picked: choice, penalty: wrongPenalty(config, round.entries.length) });
 
     setRound((prev) => {
+      const cost = entryCost(config, prev.entries.length);
       // 틀려도 싣는다. 대신 카드를 조금 더 낸다 (기획서 §8-1)
-      const extra = choice.correct ? 0 : Math.min(config.wrong_penalty, prev.cards - config.entry_cost);
-      const spend = config.entry_cost + Math.max(0, extra);
+      const extra = choice.correct ? 0 : Math.min(wrongPenalty(config, prev.entries.length), prev.cards - cost);
+      const spend = cost + Math.max(0, extra);
       return addEntry({ ...prev, cards: Math.max(0, prev.cards - spend) }, check.word.id);
     });
   };
@@ -211,6 +218,7 @@ export default function Editorial() {
   const pages = Math.max(1, Math.ceil(entries.length / PER_PAGE));
   const shown = entries.slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE);
   const rate = cardRate(round, config);
+  const cost = entryCost(config, round.entries.length);
   const milestone = nextMilestone(save, config);
   const known = save.dict.known.length;
   const best = save.progress.dictionary?.best_entries || 0;
@@ -230,14 +238,21 @@ export default function Editorial() {
         <div className={`${styles.timer} ${phase === 'play' && left <= 30000 ? styles.hurry : ''}`}>
           <span className={styles.muted}>남은 시간</span> <b>{clock(left)}</b>
         </div>
-        <button
-          type="button"
-          className={styles.publish}
-          onClick={openCheck}
-          disabled={phase !== 'play' || round.cards < config.entry_cost}
-        >
-          낱말 싣기 <span>{config.entry_cost}장</span>
-        </button>
+        {phase === 'over' ? (
+          <>
+            <button type="button" onClick={() => setSheetOpen(true)}>판 결과·순위판</button>
+            <button type="button" className={styles.publish} onClick={start}>다시 하기</button>
+          </>
+        ) : (
+          <button
+            type="button"
+            className={styles.publish}
+            onClick={openCheck}
+            disabled={phase !== 'play' || round.cards < cost}
+          >
+            낱말 싣기 <span>{num(cost)}장</span>
+          </button>
+        )}
       </div>
 
       {notice && (
@@ -260,6 +275,7 @@ export default function Editorial() {
           {entries.length === 0 ? (
             <p className={styles.empty}>
               아직 실린 낱말이 없습니다. 카드가 {config.entry_cost}장 모이면 첫 낱말을 실을 수 있습니다.
+              한 낱말을 실을 때마다 다음 낱말의 값이 조금씩 오릅니다.
             </p>
           ) : (
             <>
@@ -345,8 +361,11 @@ export default function Editorial() {
           <div className={styles.sheet}>
             <h3 className={styles.sheetTitle}>사전 편찬소</h3>
             <ol className={styles.rules}>
-              <li>낱말 카드가 초마다 쌓입니다. {config.entry_cost}장이면 낱말 하나를 사전에 싣습니다.</li>
-              <li>실을 때 그 낱말의 뜻을 한 번 고릅니다. 틀려도 실리되 카드 {config.wrong_penalty}장을 더 냅니다.</li>
+              <li>
+                낱말 카드가 초마다 쌓입니다. {config.entry_cost}장이면 첫 낱말을 사전에 싣고, 하나 실을 때마다
+                다음 낱말의 값이 조금씩 오릅니다.
+              </li>
+              <li>실을 때 그 낱말의 뜻을 한 번 고릅니다. 틀려도 실리되 값의 4분의 1을 더 냅니다.</li>
               <li>사람을 뽑으면 카드가 빨리 쌓입니다. 뽑을수록 값이 오릅니다.</li>
               <li>
                 한 판은 {Math.round(config.round_ms / 60000)}분입니다. 그 안에 실은 낱말 수가 점수이고,{' '}
@@ -397,7 +416,7 @@ export default function Editorial() {
                 <p>
                   {check.picked.correct
                     ? '맞았습니다. 사전에 실었습니다.'
-                    : `사전에는 실었습니다. 대신 카드 ${config.wrong_penalty}장을 더 냈습니다.`}
+                    : `사전에는 실었습니다. 대신 카드 ${num(check.penalty)}장을 더 냈습니다.`}
                   <span className={styles.muted}> 출처: {check.word.source}</span>
                 </p>
                 <button type="button" onClick={closeCheck}>이어 하기</button>
@@ -408,7 +427,7 @@ export default function Editorial() {
       )}
 
       {/* 판이 끝난 화면 */}
-      {phase === 'over' && (
+      {phase === 'over' && sheetOpen && (
         <div className={styles.veil} role="dialog" aria-modal="true" aria-label="판이 끝났습니다">
           <div className={styles.sheetWide}>
             <h3 className={styles.sheetTitle}>
@@ -432,7 +451,10 @@ export default function Editorial() {
 
             <div className={styles.sheetFoot}>
               <p className={styles.muted}>실어 본 낱말은 그대로 남아 다른 게임을 엽니다.</p>
-              <button type="button" onClick={start}>다시 하기</button>
+              <div className={styles.footBtns}>
+                <button type="button" onClick={() => setSheetOpen(false)}>닫고 사전 보기</button>
+                <button type="button" onClick={start}>다시 하기</button>
+              </div>
             </div>
           </div>
         </div>
