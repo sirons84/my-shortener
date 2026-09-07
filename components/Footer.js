@@ -29,6 +29,11 @@ export default function Footer() {
           <a href="mailto:sirons1124@gmail.com" className={styles.contactLink}>
             sirons1124@gmail.com
           </a>
+          <span className={styles.separator}> | </span>
+          교사 최혜원 ·{' '}
+          <a href="mailto:like0617@naver.com" className={styles.contactLink}>
+            like0617@naver.com
+          </a>
         </p>
 
         {/* 3. 하단 저작권 텍스트 */}
