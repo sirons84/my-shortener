@@ -551,3 +551,49 @@
 
   .cards { font-size: 34px; }
 }
+
+/* ── 한 판 (5분) ─────────────────────────────────────────── */
+.timer {
+  font-size: 15px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-right: 20px;
+}
+
+.timer b {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* 마지막 30초 */
+.hurry b { color: #8a3b2e; }
+
+.rules { margin: 0 0 18px; padding-left: 20px; font-size: 15px; }
+.rules li { margin-bottom: 5px; }
+
+.sheetWide {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 28px 30px;
+  width: 100%;
+  max-width: 760px;
+  max-height: 100%;
+  overflow: auto;
+  font-size: 15px;
+}
+
+.game .big {
+  border-color: var(--pine);
+  background: var(--pine);
+  color: #fff;
+  padding: 11px 30px;
+  font-size: 17px;
+}
+
+.game .big:hover { background: #243a31; color: #fff; }
+
+/* 순위판이 이 색들을 이름으로 쓴다 */
+.page { --alarm: #8a3b2e; }

@@ -22,6 +22,8 @@ const APP_ROUTES = [
 // 배움터 안의 한글 주소 → 실제 라우트 폴더
 const BAEUMTEO_ROUTES = {
   '/사전편찬소': 'dictionary',
+  '/우리말지키기': 'defense',
+  '/반': 'class',
 };
 
 export function middleware(req) {

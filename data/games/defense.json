@@ -1,0 +1,21 @@
+{
+  "id": "defense",
+  "name": "우리말 지키기",
+  "lanes": 3,
+  "slots_per_lane": 2,
+  "tower_slots": 5,
+  "hand_size": 4,
+  "lives": 5,
+  "remove_cost": 3,
+  "unlock_entries": 10,
+  "board_ms": 60000,
+  "waves": [
+    { "era": 1, "count": 8, "distinct": 3, "speed": 1.0, "gap_ms": 3400, "multiplier": 1, "label": "일제강점기에 들어온 일본어" },
+    { "era": 2, "count": 10, "distinct": 5, "speed": 1.2, "gap_ms": 3000, "multiplier": 2, "label": "광복 뒤에도 남은 말" },
+    { "era": 3, "count": 12, "distinct": 6, "speed": 1.4, "gap_ms": 2600, "multiplier": 3, "label": "요즘 들어온 외래어" }
+  ],
+  "boss": { "hits": 1, "speed_scale": 0.6, "score_scale": 3 },
+  "fall_ms": 11000,
+  "reward": { "per_wave": 3, "clear": 10, "unit": "word_card" },
+  "leaderboard": { "top": 100, "nick_max": 4 }
+}

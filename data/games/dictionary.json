@@ -1,6 +1,7 @@
 {
   "id": "dictionary",
   "name": "사전 편찬소",
+  "round_ms": 300000,
   "tick_ms": 1000,
   "base_rate": 1,
   "workers": [
@@ -13,10 +14,11 @@
   "check_choices": 4,
   "wrong_penalty": 5,
   "entry_pool": { "ref": "words", "level": [1, 2, 3] },
-  "offline_cap_h": 8,
   "milestones": [
     { "entries": 10, "unlock": "defense", "label": "우리말 지키기" },
     { "entries": 30, "unlock": "manuscript", "label": "잃어버린 원고" },
     { "entries": 60, "unlock": "study", "label": "외솔의 서재" }
-  ]
+  ],
+  "reward": { "per_entry": 1, "unit": "word_card" },
+  "leaderboard": { "top": 100, "nick_max": 4 }
 }

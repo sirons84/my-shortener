@@ -1,0 +1,121 @@
+/* 파일 경로: app/baeumteo/ranking.module.css
+   순위판은 사전 편찬소와 우리말 지키기가 함께 쓴다. 그래서 게임별 CSS 가 아니라
+   여기에 둔다. 토큰은 게임 페이지가 감싸 주므로 여기서는 이름만 쓴다. */
+
+.rank {
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+  margin-top: 6px;
+}
+
+.rank button {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 7px 16px;
+  cursor: pointer;
+}
+
+.rank button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+.rank button:disabled { border-color: var(--rule); color: var(--soft); cursor: default; }
+
+.rank h3 { margin: 0; font-size: 18px; font-weight: 600; }
+
+.muted { color: var(--muted); }
+.small { font-size: 14px; color: var(--muted); }
+.spacer { flex: 1; }
+
+.rankHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tabs { display: flex; gap: 0; }
+
+.tabs button {
+  border-color: var(--rule);
+  padding: 5px 16px;
+  font-size: 14px;
+  margin-left: -1px;
+}
+
+.rank .tabOn { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.form {
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  padding: 16px 18px;
+  margin: 14px 0;
+}
+
+.formLead { margin: 0 0 12px; font-size: 15px; }
+.formMsg { margin: 10px 0 0; font-size: 14px; color: var(--alarm); }
+
+.fields { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+
+.fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.fields input,
+.fields select {
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 7px 10px;
+}
+
+.fields input { width: 120px; }
+
+.rankList {
+  list-style: none;
+  margin: 14px 0;
+  padding: 0;
+  font-size: 15px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.rankList li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rankList b { font-weight: 600; }
+
+.place {
+  width: 2.4em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+
+.point { font-weight: 700; font-variant-numeric: tabular-nums; }
+.time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.rank .erase {
+  border-color: var(--rule);
+  color: var(--muted);
+  font-size: 13px;
+  padding: 2px 10px;
+}
+
+.rank .erase:hover { background: var(--alarm); border-color: var(--alarm); color: #fff; }
+
+@media (max-width: 720px) {
+  .fields input { width: 100%; }
+  .fields label { flex: 1 1 100%; }
+}

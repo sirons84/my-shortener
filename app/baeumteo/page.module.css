@@ -580,3 +580,25 @@
 
   .qcal { font-size: 44px; }
 }
+
+/* 반 코드 안내 (수업 자료 아래) */
+.kitRoom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  padding: 20px 24px;
+  margin-top: 26px;
+}
+
+.kitRoom b { font-weight: 600; }
+
+.kitRoom p {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 68ch;
+}

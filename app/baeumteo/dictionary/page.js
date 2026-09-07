@@ -19,7 +19,7 @@ const serif = Noto_Serif_KR({
 export const metadata = {
   title: '사전 편찬소 · 외솔 배움터',
   description:
-    '낱말 카드를 모아 우리말 사전을 채웁니다. 낱말을 실을 때마다 뜻을 한 번 고릅니다. 로그인 없이 이 기기에 저장됩니다.',
+    '5분 안에 우리말 사전을 몇 개나 채울 수 있는지 겨룹니다. 낱말을 실을 때마다 뜻을 한 번 고릅니다. 로그인 없이 이 기기에 저장됩니다.',
   alternates: { canonical: '/배움터/사전편찬소' },
 };
 
@@ -44,11 +44,13 @@ export default function DictionaryPage() {
         <div className={styles.wrap}>
           <h1>사전 편찬소</h1>
           <p>
-            낱말 카드가 시간이 갈수록 쌓입니다. 카드 {config.entry_cost}장이면 낱말 하나를 사전에 실을 수 있고, 실을 때
-            그 낱말의 뜻을 한 번 고릅니다. 사전이 자라면 다른 게임이 하나씩 열립니다.
+            한 판은 {Math.round(config.round_ms / 60000)}분입니다. 낱말 카드가 초마다 쌓이고, 카드{' '}
+            {config.entry_cost}장이면 낱말 하나를 사전에 싣습니다. 실을 때 그 낱말의 뜻을 한 번 고릅니다.
+            {config.round_ms / 60000}분 안에 실은 낱말 수가 점수입니다.
           </p>
           <p className={styles.small}>
-            진행은 이 기기에만 저장됩니다. 로그인은 없습니다. 다른 기기에서 이어 하려면 저장 코드를 옮기세요.
+            판은 늘 카드 0에서 시작하고, 자리를 비우면 시계도 멈춥니다. 실어 본 낱말은 그대로 남아 다른 게임을
+            엽니다. 진행은 이 기기에만 저장되고, 다른 기기에서 이어 하려면 저장 코드를 옮기세요.
           </p>
         </div>
       </header>

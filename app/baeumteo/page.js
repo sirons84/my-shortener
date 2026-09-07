@@ -255,6 +255,17 @@ export default function BaeumteoPage() {
             ))}
           </div>
 
+          <div className={styles.kitRoom}>
+            <div>
+              <b>반 코드</b>
+              <p>
+                반 코드를 만들어 학급에 적어 주면 학생들의 기록이 우리 반으로 묶이고, 반이 실은 낱말이 한 사전으로
+                모입니다. 로그인은 없고, 반에 담기는 것은 별명과 학년·반뿐입니다.
+              </p>
+            </div>
+            <Link href="/배움터/반" className={styles.btn}>반 코드 만들기</Link>
+          </div>
+
           <p className={`${styles.small} ${styles.muted}`} style={{ marginTop: "18px" }}>
             모든 자료는 교사가 학급에 맞게 고쳐 쓸 수 있습니다. 성취기준은 자료 안에 표기합니다.
           </p>
