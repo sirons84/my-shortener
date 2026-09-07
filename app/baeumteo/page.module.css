@@ -1,44 +1,7 @@
-/* 파일 경로: app/배움터/page.module.css
-   시안 외솔배움터_v0.2.html 의 디자인 토큰과 조판을 그대로 옮긴 것.
-   기념관 도록의 미감: 라운드·그림자·아이콘 없이 1px 괘선으로만 구획한다. */
 
-.page {
-  --ink: #1f1d1a;
-  --paper: #faf8f2;
-  --paper2: #f3efe5;
-  --rule: #d8d2c4;
-  --pine: #2f4a3e;
-  --muted: #6f6a60;
-  --soft: #a89f8c;
-
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 17px;
-  line-height: 1.85;
-
-  /* 한국어는 기본값이 글자 단위로 꺾여서 어절 중간에서 줄이 바뀐다.
-     어절 단위로 줄바꿈하고, 긴 영문·주소만 잘라 넘긴다. */
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-.page a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.page a:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.22em;
-}
-
-.page h1,
-.page h2,
-.page h3 {
-  margin: 0;
-  font-weight: 600;
-  line-height: 1.35;
-}
+/* 토큰과 공통 요소 규칙(색·서체·버튼·머리·바닥)은 layout.module.css 로 옮겼다.
+   여기 남은 .page 는 이 화면 안에서만 통하는 규칙의 뿌리다. */
+.page { display: block; }
 
 .wrap {
   /* 홈(사이드바 288 + 간격 27 + 본문 981)과 같은 폭 */
@@ -98,46 +61,6 @@
   border-radius: 2px;
   margin-left: 8px;
   white-space: nowrap;
-}
-
-/* ── 섹션 내비 ─────────────────────────────────────────── */
-.subnav {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: rgba(250, 248, 242, 0.94);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid var(--rule);
-}
-
-.subnav .wrap {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 16px 24px;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.brand {
-  font-size: 21px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-
-.brand span {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 400;
-  margin-left: 10px;
-  letter-spacing: 0;
-}
-
-.navLinks {
-  display: flex;
-  gap: 20px;
-  font-size: 14px;
-  flex-wrap: wrap;
 }
 
 /* ── 첫 화면 ───────────────────────────────────────────── */
@@ -546,17 +469,6 @@
 .daily p {
   margin: 0;
   color: var(--muted);
-}
-
-/* ── 바닥 안내 ─────────────────────────────────────────── */
-.pageFoot .wrap {
-  display: flex;
-  justify-content: space-between;
-  padding: 34px 24px 40px;
-  font-size: 13px;
-  color: var(--muted);
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 @media (max-width: 760px) {

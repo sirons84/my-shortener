@@ -1,0 +1,161 @@
+/* 파일 경로: app/baeumteo/layout.module.css
+   배움터 네 화면이 함께 쓰는 껍데기. 색·서체·머리·바닥이 여기 한 벌만 있다.
+
+   각 화면의 page.module.css 는 이 토큰을 이름으로만 쓴다. 값을 다시 적으면
+   한 곳을 고쳤을 때 다른 화면이 따라오지 않는다. */
+
+.shell {
+  --ink: #1f1d1a;
+  --paper: #faf8f2;
+  --paper2: #f3efe5;
+  --rule: #d8d2c4;
+  --pine: #2f4a3e;
+  --muted: #6f6a60;
+  --soft: #a89f8c;
+  --alarm: #8a3b2e;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.85;
+
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.shell a { color: inherit; text-decoration: none; }
+.shell a:hover { text-decoration: underline; text-underline-offset: 0.22em; }
+
+.shell h1,
+.shell h2,
+.shell h3 { margin: 0; font-weight: 600; line-height: 1.35; }
+
+.shell button {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  padding: 7px 16px;
+  cursor: pointer;
+}
+
+.shell button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+.shell button:disabled { border-color: var(--rule); color: var(--soft); cursor: default; }
+
+.shell input,
+.shell select,
+.shell textarea {
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 7px 10px;
+}
+
+/* 본문은 남은 높이를 다 쓴다. 짧은 화면에서도 바닥이 아래에 붙는다 */
+.body { flex: 1; }
+
+.wrap { max-width: 1296px; margin: 0 auto; padding: 0 24px; }
+
+/* ── 머리 ────────────────────────────────────────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(250, 248, 242, 0.94);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.nav .wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 16px 24px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.brand { font-size: 21px; font-weight: 700; letter-spacing: 0.06em; }
+
+.brand span {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 10px;
+  letter-spacing: 0;
+}
+
+.navLinks { display: flex; gap: 20px; font-size: 14px; flex-wrap: wrap; }
+
+/* 지금 보고 있는 화면 */
+.navLinks .here { color: var(--pine); font-weight: 600; }
+
+/* ── 바닥 (기획서 §5-10) ─────────────────────────────────── */
+.foot {
+  border-top: 1px solid var(--rule);
+  background: var(--paper2);
+  padding: 36px 0 48px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.footTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.footName {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+.footName span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 10px;
+  letter-spacing: 0;
+}
+
+.footLinks { display: flex; gap: 18px; flex-wrap: wrap; }
+
+.footCols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  padding-top: 20px;
+}
+
+.footCols h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.footCols p { margin: 0; }
+.footCols a { text-decoration: underline; text-underline-offset: 0.2em; }
+
+.footEnd {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--soft);
+}
+
+@media (max-width: 860px) {
+  .footCols { grid-template-columns: 1fr; gap: 20px; }
+}

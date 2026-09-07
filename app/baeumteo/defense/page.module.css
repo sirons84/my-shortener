@@ -1,45 +1,7 @@
-/* 파일 경로: app/baeumteo/defense/page.module.css
-   사전 편찬소와 같은 토큰·같은 미감. 게임 안 글씨만 필요한 만큼 굵게 한다.
-   라운드·그림자·아이콘 없이 1px 괘선으로만 구획한다 (기획서 §5, §11). */
 
-.page {
-  --ink: #1f1d1a;
-  --paper: #faf8f2;
-  --paper2: #f3efe5;
-  --rule: #d8d2c4;
-  --pine: #2f4a3e;
-  --muted: #6f6a60;
-  --soft: #a89f8c;
-  --alarm: #8a3b2e;
-
-  min-height: 100vh;
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 17px;
-  line-height: 1.85;
-
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-.page a { color: inherit; text-decoration: none; }
-.page a:hover { text-decoration: underline; text-underline-offset: 0.22em; }
-
-.page h1,
-.page h2,
-.page h3 { margin: 0; font-weight: 600; line-height: 1.35; }
-
-.page button {
-  font: inherit;
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--ink);
-  padding: 7px 16px;
-  cursor: pointer;
-}
-
-.page button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
-.page button:disabled { border-color: var(--rule); color: var(--soft); cursor: default; }
+/* 토큰과 공통 요소 규칙(색·서체·버튼·머리·바닥)은 layout.module.css 로 옮겼다.
+   여기 남은 .page 는 이 화면 안에서만 통하는 규칙의 뿌리다. */
+.page { display: block; }
 
 .wrap { max-width: 1296px; margin: 0 auto; padding: 0 24px; }
 .rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
@@ -48,37 +10,6 @@
 .small { font-size: 14px; color: var(--muted); }
 .pine { color: var(--pine); }
 .spacer { flex: 1; }
-
-/* ── 머리 ────────────────────────────────────────────────── */
-.subnav {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: rgba(250, 248, 242, 0.94);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid var(--rule);
-}
-
-.subnav .wrap {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 16px 24px;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.brand { font-size: 21px; font-weight: 700; letter-spacing: 0.06em; }
-
-.brand span {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 400;
-  margin-left: 10px;
-  letter-spacing: 0;
-}
-
-.navLinks { display: flex; gap: 20px; font-size: 14px; flex-wrap: wrap; }
 
 .head { padding: 44px 0 34px; }
 .head h1 { font-size: 34px; letter-spacing: -0.01em; }
@@ -407,14 +338,6 @@
 }
 
 .rank .erase:hover { background: var(--alarm); border-color: var(--alarm); color: #fff; }
-
-/* ── 바닥 ────────────────────────────────────────────────── */
-.pageFoot {
-  border-top: 1px solid var(--rule);
-  padding: 26px 0 60px;
-  font-size: 14px;
-  color: var(--muted);
-}
 
 /* ── 좁은 화면 ───────────────────────────────────────────── */
 @media (max-width: 720px) {

@@ -2,18 +2,8 @@
    보이는 주소는 /배움터/반. 교사가 반을 만들고, 학생이 코드를 받아 적는다.
    반에 담기는 것은 낱말 id 집합과 순위판 기록뿐이다 (기획서 §7, §9). */
 
-import Link from 'next/link';
-import { Noto_Serif_KR } from 'next/font/google';
-
 import styles from './page.module.css';
 import Room from './Room';
-import { oesol } from '../../../lib/oesol';
-
-const serif = Noto_Serif_KR({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-  display: 'swap',
-});
 
 export const metadata = {
   title: '반 코드 · 외솔 배움터',
@@ -23,22 +13,8 @@ export const metadata = {
 };
 
 export default function ClassPage() {
-  const { site } = oesol;
-
   return (
-    <div className={`${styles.page} ${serif.className}`}>
-      <div className={styles.subnav}>
-        <div className={styles.wrap}>
-          <Link href="/배움터" className={styles.brand}>
-            {site.title} <span>{site.host}</span>
-          </Link>
-          <nav className={styles.navLinks}>
-            <Link href="/배움터/사전편찬소">사전 편찬소</Link>
-            <Link href="/배움터#kits">수업 자료</Link>
-          </nav>
-        </div>
-      </div>
-
+    <div className={styles.page}>
       <header className={styles.head}>
         <div className={styles.wrap}>
           <h1>반 코드</h1>
@@ -55,15 +31,6 @@ export default function ClassPage() {
 
       <div className={styles.wrap}>
         <Room />
-      </div>
-
-      <div className={styles.pageFoot}>
-        <div className={styles.wrap}>
-          <div>{site.host} · 미래교육창작소</div>
-          <div className={styles.small}>
-            반을 지우면 그 반으로 남은 기록도 함께 지워집니다.
-          </div>
-        </div>
       </div>
     </div>
   );

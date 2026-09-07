@@ -1,7 +1,6 @@
 // 파일 경로: app/layout.js
 import "./globals.css";
-import Header from "../components/Header";
-import Footer from "../components/Footer"; // 1. Footer 임포트
+import SiteChrome from "../components/SiteChrome"; // 머리·바닥을 두를지 정한다
 import AnalyticsTracker from "../components/AnalyticsTracker"; // 자체 방문 통계 수집
 
 const SITE_DESCRIPTION =
@@ -75,14 +74,10 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AnalyticsTracker />
-        <Header />
-        
-        {/* 2. <main> 태그로 감싸기 (시맨틱 HTML) */}
-        <main>
-          {children}
-        </main> 
-        
-        <Footer /> {/* 3. Footer 배치 */}
+
+        {/* 머리·바닥·<main> 을 SiteChrome 이 두른다.
+            배움터는 자기 머리와 바닥이 있어 사이트 껍데기를 벗는다 */}
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );

@@ -48,8 +48,11 @@ export default function Header() {
           />
         </Link>
         
-        {/* 우측 로그인/로그아웃 버튼 영역 */}
+        {/* 우측: 배움터로 가는 길 + 로그인/로그아웃 */}
         <div className={styles.authContainer}>
+          {/* 배움터는 자기 껍데기를 쓰므로, 들어가는 길은 여기 하나뿐이다 */}
+          <Link href="/배움터" className={styles.navLink}>외솔 배움터</Link>
+
           {user ? (
             <>
               {/* 로그인 상태: 대시보드 이동 및 로그아웃 버튼 */}

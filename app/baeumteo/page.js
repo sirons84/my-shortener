@@ -4,17 +4,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Noto_Serif_KR, Nanum_Brush_Script } from "next/font/google";
+import { Nanum_Brush_Script } from "next/font/google";
 
 import styles from "./page.module.css";
 import Quotes from "./Quotes";
 import { oesol, getAsset } from "../../lib/oesol";
-
-const serif = Noto_Serif_KR({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
 
 const brush = Nanum_Brush_Script({
   subsets: ["latin"],
@@ -29,16 +23,6 @@ export const metadata = {
   alternates: { canonical: "/배움터" },
 };
 
-const NAV = [
-  ["person", "외솔 최현배"],
-  ["why", "우리가 몰랐던 외솔"],
-  ["life", "한 사람의 시간"],
-  ["words", "외솔의 말"],
-  ["places", "울산과 외솔"],
-  ["kits", "수업 자료"],
-  ["games", "학생 마당"],
-];
-
 const MAP_SRC =
   "https://maps.google.com/maps?q=%EC%9A%B8%EC%82%B0%20%EC%99%B8%EC%86%94%EA%B8%B0%EB%85%90%EA%B4%80&z=15&output=embed";
 
@@ -50,21 +34,7 @@ export default function BaeumteoPage() {
   const portrait = getAsset("img_portrait");
 
   return (
-    <div className={`${styles.page} ${serif.className}`}>
-      {/* 섹션 내비 */}
-      <div className={styles.subnav}>
-        <div className={styles.wrap}>
-          <Link href="/배움터" className={styles.brand}>
-            {site.title} <span>{site.host}</span>
-          </Link>
-          <nav className={styles.navLinks}>
-            {NAV.map(([id, label]) => (
-              <a key={id} href={`#${id}`}>{label}</a>
-            ))}
-          </nav>
-        </div>
-      </div>
-
+    <div className={styles.page}>
       {/* 첫 화면 */}
       <div className={styles.hero}>
         <div className={styles.wrap}>
@@ -326,12 +296,6 @@ export default function BaeumteoPage() {
         </div>
       </div>
 
-      {/* 바닥 안내 */}
-      <div className={styles.pageFoot}>
-        <div className={styles.wrap}>
-          <div>{site.host} · 미래교육창작소</div>
-        </div>
-      </div>
     </div>
   );
 }

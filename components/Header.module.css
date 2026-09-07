@@ -28,6 +28,21 @@
   gap: 12px; /* 버튼 사이 간격 */
 }
 
+/* 외솔 배움터로 가는 길. 로그인 버튼과 다투지 않게 알약이 아닌 글자 링크로 둔다 */
+.navLink {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  padding: 10px 8px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.navLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 /* "나의 URL" / "우리아이 로그인" 버튼 */
 .myUrlButton {
   background-color: #FFFFFF;
@@ -80,6 +95,11 @@
     gap: 8px;
   }
   
+  .navLink {
+    padding: 8px 4px;
+    font-size: 14px;
+  }
+
   .myUrlButton {
     padding: 8px 16px;
     font-size: 14px;
