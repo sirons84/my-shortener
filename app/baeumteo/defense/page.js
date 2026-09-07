@@ -4,6 +4,8 @@
 
 import styles from './page.module.css';
 import Board from './Board';
+import TopRecord from '../TopRecord';
+import { topScore } from '../../../lib/baeumteo/leaderboard';
 import config from '../../../data/games/defense.json';
 
 export const metadata = {
@@ -13,7 +15,10 @@ export const metadata = {
   alternates: { canonical: '/배움터/우리말지키기' },
 };
 
-export default function DefensePage() {
+export const revalidate = 60;
+
+export default async function DefensePage() {
+  const top = await topScore('defense');
   return (
     <div className={styles.page}>
       <header className={styles.head}>
@@ -26,6 +31,8 @@ export default function DefensePage() {
           <p className={styles.small}>
             진행은 이 기기에만 저장됩니다. 순위판에 남길 때만 별명과 학교를 보냅니다. 이름은 받지 않습니다.
           </p>
+
+          <TopRecord record={top} unit="점" />
         </div>
       </header>
       <hr className={styles.rule} />

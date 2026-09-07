@@ -4,6 +4,8 @@
 
 import styles from './page.module.css';
 import Editorial from './Editorial';
+import TopRecord from '../TopRecord';
+import { topScore } from '../../../lib/baeumteo/leaderboard';
 import config from '../../../data/games/dictionary.json';
 
 export const metadata = {
@@ -13,7 +15,11 @@ export const metadata = {
   alternates: { canonical: '/배움터/사전편찬소' },
 };
 
-export default function DictionaryPage() {
+// 1등은 판이 끝날 때마다 바뀔 수 있다. 1분마다 다시 읽는다
+export const revalidate = 60;
+
+export default async function DictionaryPage() {
+  const top = await topScore('dictionary');
   return (
     <div className={styles.page}>
       <header className={styles.head}>
@@ -28,6 +34,8 @@ export default function DictionaryPage() {
             판은 늘 카드 0에서 시작하고, 자리를 비우면 시계도 멈춥니다. 실어 본 낱말은 그대로 남아 다른 게임을
             엽니다. 진행은 이 기기에만 저장되고, 다른 기기에서 이어 하려면 저장 코드를 옮기세요.
           </p>
+
+          <TopRecord record={top} unit="개" spareLabel="남은 카드" />
         </div>
       </header>
       <hr className={styles.rule} />
