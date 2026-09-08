@@ -29,6 +29,7 @@ const ROOMS = [
   ['/배움터/우리말지키기', '우리말 지키기', 'defense'],
   ['/배움터/잃어버린원고', '잃어버린 원고', 'manuscript'],
   ['/배움터/외솔의서재', '외솔의 서재', 'study'],
+  ['/배움터/한글리듬', '한글 리듬', 'rhythm'],
   ['/배움터/반', '반 코드', 'class'],
 ];
 
@@ -46,6 +47,7 @@ function roomOf(pathname) {
   if (tail.includes('우리말지키기') || tail.includes('defense')) return 'defense';
   if (tail.includes('잃어버린원고') || tail.includes('manuscript')) return 'manuscript';
   if (tail.includes('외솔의서재') || tail.includes('study')) return 'study';
+  if (tail.includes('한글리듬') || tail.includes('rhythm')) return 'rhythm';
   if (tail.includes('반') || tail.includes('class')) return 'class';
   return '';
 }

@@ -1,0 +1,31 @@
+{
+  "id": "rhythm",
+  "name": "한글 리듬",
+  "lanes": 4,
+  "keys": ["KeyD", "KeyF", "KeyJ", "KeyK"],
+  "key_labels": ["D", "F", "J", "K"],
+  "fall_ms": 1500,
+  "judge": { "good_ms": 90, "ok_ms": 170 },
+  "score": { "good": 100, "ok": 50 },
+  "combo_reward": { "every": 50, "cards": 3 },
+  "note_pool": { "ref": "words", "level": [1], "max_syllables": 4 },
+  "pattern": [2, 2, 1, 1, 2, 1, 1, 1],
+  "pattern_bars": 4,
+  "tracks": [
+    {
+      "id": "tr_hangul_life",
+      "title": "한글이 목숨이다",
+      "file": "/audio/hangul-life.mp3",
+      "bpm": 130,
+      "offset_ms": 440,
+      "skip_beats": 8,
+      "duration_ms": 176919,
+      "end_ms": 174000,
+      "seed": 1894,
+      "license": "자체 제작 (미래교육창작소, 2026)",
+      "credit": "mirae02"
+    }
+  ],
+  "reward": { "unit": "word_card" },
+  "leaderboard": { "top": 100, "nick_max": 4 }
+}

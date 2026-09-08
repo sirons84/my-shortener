@@ -7,10 +7,12 @@ import { checkNick, checkNumber, checkSchool } from '../../../../lib/baeumteo/ni
 import { normalizeClassCode, parseClassCode } from '../../../../lib/baeumteo/classCode';
 import { maxScore } from '../../../../lib/baeumteo/defense';
 import { maxScore as manuscriptMax } from '../../../../lib/baeumteo/manuscript';
+import { maxScore as rhythmMax, minRunMs } from '../../../../lib/baeumteo/rhythm';
 import { words } from '../../../../lib/baeumteo/words';
 import defenseConfig from '../../../../data/games/defense.json';
 import dictionaryConfig from '../../../../data/games/dictionary.json';
 import manuscriptConfig from '../../../../data/games/manuscript.json';
+import rhythmConfig from '../../../../data/games/rhythm.json';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +32,8 @@ const GAMES = {
     timed: true,
     faster: true,
   },
+  // 한글 리듬은 곡이 끝나야 기록이 난다. 표를 끊고 곡 길이만큼은 지나야 한다
+  rhythm: { max: rhythmMax(rhythmConfig), minAge: minRunMs(rhythmConfig) },
 };
 
 const TOP = 100;
@@ -154,7 +158,7 @@ export async function POST(request) {
 
   // 한 점을 얻으려면 적어도 이만큼은 판이 돌아가야 한다.
   // 조작을 다 막지는 못하고, 표를 끊자마자 큰 점수를 내는 것만 막는다.
-  if (ticket.ageMs < 10_000 || (!rules.timed && ticket.ageMs < score * 900)) {
+  if (ticket.ageMs < 10_000 || (rules.minAge ? ticket.ageMs < rules.minAge : !rules.timed && ticket.ageMs < score * 900)) {
     return fail('판이 끝나기 전에 온 기록입니다.');
   }
 
