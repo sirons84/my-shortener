@@ -17,7 +17,7 @@ import { fmtTime } from '../../../lib/baeumteo/time';
 import { earn, emptySave, loadSave, recordProgress, writeSave } from '../../../lib/baeumteo/save';
 import Ranking from '../Ranking';
 import StoryCard from './StoryCard';
-import { drawWorld, readPalette } from './draw';
+import { TILE, drawWorld } from './draw';
 
 // 키는 code 로 본다. 한글 자판 상태에서도 KeyW 는 KeyW 다
 const KEYS = {
@@ -47,13 +47,13 @@ export default function Stage() {
   // ready | intro | brief | play | caught | exitAsk | stageClear | ending | over
   const [phase, setPhase] = useState('ready');
   const [, setFrame] = useState(0);
+  const [shake, setShake] = useState(false); // 잡힌 순간 판이 한 번 흔들린다
 
   const g = useRef(null); // 판. 시간마다 바뀌므로 화면 상태로 두지 않는다
   const raf = useRef(0);
   const ticket = useRef('');
   const phaseRef = useRef(phase);
   const canvasRef = useRef(null);
-  const palette = useRef(null);
 
   // 손
   const keys = useRef(new Set());
@@ -196,21 +196,17 @@ export default function Stage() {
     const canvas = canvasRef.current;
     const s = g.current;
     if (!canvas || !s?.world) return;
-    if (!palette.current) palette.current = readPalette(canvas);
 
+    // 한 칸 16픽셀로 작게 그리고 CSS 가 image-rendering: pixelated 로 키운다
     const { w, h } = s.world.stage;
-    const t = config.tile;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (canvas.width !== w * t * dpr || canvas.height !== h * t * dpr) {
-      canvas.width = w * t * dpr;
-      canvas.height = h * t * dpr;
+    if (canvas.width !== w * TILE || canvas.height !== h * TILE) {
+      canvas.width = w * TILE;
+      canvas.height = h * TILE;
       canvas.style.aspectRatio = `${w} / ${h}`;
-      canvas.style.maxWidth = `${w * t}px`;
+      canvas.style.maxWidth = `${w * TILE * config.scale}px`;
     }
 
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawWorld(ctx, s.world, config, t, palette.current);
+    drawWorld(canvas.getContext('2d'), s.world, config, s.world.elapsed);
   }, []);
 
   // 판이 서 있는 국면에서도 지도는 보여야 한다
@@ -242,6 +238,7 @@ export default function Stage() {
       if (event === 'caught') {
         cur.caughtKind = onCaught(cur.world);
         paint();
+        setShake(true);
         setPhase('caught');
         return;
       }
@@ -290,6 +287,12 @@ export default function Stage() {
   useEffect(() => {
     if (phase === 'ready' || phase === 'intro') finished.current = false;
   }, [phase]);
+
+  useEffect(() => {
+    if (!shake) return undefined;
+    const id = setTimeout(() => setShake(false), 450);
+    return () => clearTimeout(id);
+  }, [shake]);
 
   // ── 화면 ───────────────────────────────────────────────────────
 
@@ -361,7 +364,7 @@ export default function Stage() {
       </div>
 
       {/* 판 */}
-      <div className={styles.field}>
+      <div className={`${styles.field} ${shake ? styles.shake : ''}`}>
         <canvas
           ref={canvasRef}
           className={styles.canvas}

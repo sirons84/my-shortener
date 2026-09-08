@@ -2,7 +2,7 @@
   "id": "manuscript",
   "name": "잃어버린 원고",
   "unlock_entries": 30,
-  "tile": 36,
+  "scale": 3,
   "player_speed": 4.2,
   "guard_speed": 2,
   "guard_turn_deg": 240,
