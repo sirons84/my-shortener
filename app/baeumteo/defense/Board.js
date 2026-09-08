@@ -14,12 +14,15 @@ import config from '../../../data/games/defense.json';
 import { buildRun, fallenRatio, hits as pairHits, killScore, reward, word } from '../../../lib/baeumteo/defense';
 import { earn, emptySave, loadSave, recordProgress, spend, writeSave } from '../../../lib/baeumteo/save';
 import Ranking from '../Ranking';
+import { JANGSEUNG, STONE, drawScene, spriteUrl } from './pixels';
 
 // 줄 안에서 탑이 선 자리. 0 이 꼭대기, 1 이 바닥이다.
 // 한 줄에 둘씩 두는 것은 같은 줄에 서로 다른 말이 올 때를 위해서다.
 const SLOT_Y = [0.56, 0.78];
 
 const FLASH_MS = 1100;
+// 맞힌 자리에 떠오르는 짝 글씨가 머무는 시간
+const POP_MS = 900;
 
 function num(n) {
   return Math.floor(n).toLocaleString('ko-KR');
@@ -32,7 +35,10 @@ export default function Board() {
   const [, setFrame] = useState(0);
   const [picked, setPicked] = useState(null); // 손에 든 탑 후보 자리
   const [notice, setNotice] = useState('');
+  const [sprites, setSprites] = useState(null); // 장승·돌탑 그림 (브라우저에서 한 번 그린다)
 
+  const scene = useRef(null); // 배경 캔버스
+  const fieldRef = useRef(null);
   const g = useRef(null); // 판. 시간마다 바뀌므로 화면 상태로 두지 않는다
   const raf = useRef(0);
   const ticket = useRef('');
@@ -40,7 +46,21 @@ export default function Board() {
   useEffect(() => {
     setSave(loadSave());
     setReady(true);
+    setSprites({ jangseung: spriteUrl(JANGSEUNG), stone: spriteUrl(STONE) });
   }, []);
+
+  // 배경은 판 크기가 바뀔 때만 다시 그린다
+  useEffect(() => {
+    const field = fieldRef.current;
+    if (!field || !scene.current) return undefined;
+    const paintScene = () => {
+      drawScene(scene.current, { lanes: config.lanes, width: field.clientWidth, height: field.clientHeight });
+    };
+    paintScene();
+    const ro = new ResizeObserver(paintScene);
+    ro.observe(field);
+    return () => ro.disconnect();
+  }, [ready]);
 
   const draw = () => setFrame((n) => n + 1);
 
@@ -67,6 +87,7 @@ export default function Board() {
       kills: 0,
       clearedWaves: 0,
       flash: null,
+      pops: [], // 맞힌 자리에 잠깐 뜨는 짝
     };
     setPicked(null);
     setNotice('');
@@ -161,6 +182,8 @@ export default function Board() {
         s.done.add(enemy.key);
         s.kills += 1;
         s.score += killScore(enemy, wave, config);
+        const w = word(enemy.wordId);
+        s.pops = [...s.pops.filter((p) => s.elapsed - p.at < POP_MS), { key: enemy.key, lane: enemy.lane, y: now, from: w.from, ko: w.ko, at: s.elapsed }];
         continue;
       }
 
@@ -287,7 +310,8 @@ export default function Board() {
       )}
 
       {/* 판 */}
-      <div className={styles.field}>
+      <div className={styles.field} ref={fieldRef}>
+        <canvas ref={scene} className={styles.scene} aria-hidden="true" />
         {Array.from({ length: config.lanes }, (_, lane) => (
           <div key={lane} className={styles.lane}>
             {phase === 'play' &&
@@ -301,12 +325,22 @@ export default function Board() {
                     <span
                       key={enemy.key}
                       className={`${styles.enemy} ${enemy.boss ? styles.boss : ''} ${hurt ? styles.hurt : ''}`}
-                      style={{ top: `${Math.min(100, ratio * 100)}%` }}
+                      style={{ top: `${Math.min(100, ratio * 100)}%`, animationDelay: `${(enemy.lane * 7 + enemy.key.length) % 5 * -0.3}s` }}
                     >
                       {word(enemy.wordId).from}
                     </span>
                   );
                 })}
+
+            {/* 맞힌 자리에 짝이 잠깐 떠오른다. 학습 접점은 이 순간이다 */}
+            {phase === 'play' &&
+              s.pops
+                .filter((p) => p.lane === lane && s.elapsed - p.at < POP_MS)
+                .map((p) => (
+                  <span key={p.key} className={styles.pop} style={{ top: `${Math.min(100, p.y * 100)}%` }}>
+                    {p.from} → {p.ko}
+                  </span>
+                ))}
 
             {SLOT_Y.map((y, slot) => {
               const tower = s?.towers.find((t) => t.lane === lane && t.slot === slot);
@@ -319,7 +353,11 @@ export default function Board() {
                       onClick={() => remove(tower)}
                       title={`헐기 (낱말 카드 ${config.remove_cost}장)`}
                     >
-                      {word(tower.wordId).ko}
+                      {sprites && (
+                        /* eslint-disable-next-line @next/next/no-img-element -- 코드로 그린 data URL 이라 next/image 가 할 일이 없다 */
+                        <img src={slot === 0 ? sprites.jangseung : sprites.stone} alt="" className={styles.totem} />
+                      )}
+                      <span className={styles.plaque}>{word(tower.wordId).ko}</span>
                     </button>
                   ) : (
                     <button
@@ -335,7 +373,6 @@ export default function Board() {
               );
             })}
 
-            <div className={styles.floor} />
           </div>
         ))}
 

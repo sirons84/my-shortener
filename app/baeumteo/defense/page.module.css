@@ -54,20 +54,32 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--rule);
+  gap: 0;
+  background: #dfd2ae;
   border: 1px solid var(--rule);
   border-top: 0;
   margin-top: 20px;
   height: 460px;
 }
 
-.lane {
-  position: relative;
-  background: var(--paper2);
-  overflow: hidden;
+/* 도트 배경. 흙길과 담장 (pixels.js 가 그린다) */
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: 0;
 }
 
+.lane {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* 압정으로 꽂은 종이쪽지. 내려오며 살랑거린다 */
 .enemy {
   position: absolute;
   left: 50%;
@@ -75,22 +87,72 @@
   white-space: nowrap;
   background: var(--paper);
   border: 1px solid var(--ink);
-  padding: 5px 14px;
+  border-bottom: 0;
+  padding: 8px 16px 10px;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.01em;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), 90% 100%, 80% calc(100% - 5px), 70% 100%, 60% calc(100% - 5px), 50% 100%, 40% calc(100% - 5px), 30% 100%, 20% calc(100% - 5px), 10% 100%, 0 calc(100% - 5px));
+  animation: sway 1.4s ease-in-out infinite alternate;
+  transform-origin: 50% 0;
 }
 
+.enemy::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  background: var(--alarm);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+@keyframes sway {
+  from { transform: translate(-50%, -50%) rotate(-3deg); }
+  to { transform: translate(-50%, -50%) rotate(3deg); }
+}
+
+/* 장대 둘에 걸린 현수막 */
 .boss {
-  border-width: 2px;
-  padding: 9px 20px;
+  border: 2px solid var(--ink);
+  border-left: 7px solid #5a3d24;
+  border-right: 7px solid #5a3d24;
+  padding: 9px 18px;
   font-size: 23px;
   background: var(--ink);
   color: var(--paper);
+  clip-path: none;
+  animation: none;
 }
 
-/* 한 번 맞았지만 아직 안 잡힌 적 */
-.hurt { border-style: dashed; opacity: 0.75; }
+.boss::before { display: none; }
+
+/* 한 번 맞았지만 아직 안 잡힌 적. 찢겨 기운다 */
+.hurt { opacity: 0.8; animation: none; transform: translate(-50%, -50%) rotate(9deg); }
+
+/* 맞힌 자리에 떠오르는 짝. 붉은 도장처럼 */
+.pop {
+  position: absolute;
+  left: 50%;
+  z-index: 3;
+  white-space: nowrap;
+  background: var(--paper);
+  border: 2px solid var(--alarm);
+  color: var(--alarm);
+  font-weight: 700;
+  font-size: 17px;
+  padding: 3px 10px;
+  pointer-events: none;
+  animation: rise 0.9s ease-out forwards;
+}
+
+@keyframes rise {
+  0% { transform: translate(-50%, -50%) rotate(-6deg) scale(1.15); opacity: 1; }
+  30% { transform: translate(-50%, -60%) rotate(-6deg) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -130%) rotate(-6deg); opacity: 0; }
+}
 
 .slot {
   position: absolute;
@@ -101,40 +163,55 @@
   justify-content: center;
 }
 
+/* 탑: 장승·돌탑 그림 아래에 우리말 현판 */
 .field .tower {
-  width: 100%;
-  border-color: var(--pine);
-  background: var(--pine);
-  color: #fff;
-  font-weight: 600;
-  padding: 8px 10px;
-  font-size: 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  z-index: 2;
+}
+
+.totem {
+  display: block;
+  width: 48px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  margin-bottom: -4px;
+}
+
+.plaque {
+  display: block;
+  background: #c9a878;
+  border: 2px solid #5a3d24;
+  box-shadow: inset 0 0 0 1px #e6cf9e;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 3px 12px;
+  white-space: nowrap;
 }
 
 /* 공통 button:hover 보다 셈이 세야 헐기 빛깔이 나온다 */
-.field .tower:hover:not(:disabled) { background: var(--alarm); border-color: var(--alarm); color: #fff; }
+.field .tower:hover:not(:disabled) { background: transparent; }
+.field .tower:hover:not(:disabled) .plaque { background: var(--alarm); border-color: var(--alarm); color: #fff; }
 
+/* 빈 자리: 탑을 세울 주춧돌 */
 .field .empty2 {
-  width: 100%;
-  border-style: dashed;
-  border-color: var(--soft);
-  color: var(--soft);
-  background: transparent;
+  width: 60%;
+  border: 2px dashed #5a3d24;
+  color: #5a3d24;
+  background: rgba(250, 248, 242, 0.55);
   font-size: 13px;
   padding: 8px 10px;
 }
 
 .field .empty2:hover:not(:disabled) { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.field .empty2:disabled { border-color: var(--rule); color: var(--rule); }
-
-.floor {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: var(--alarm);
-}
+.field .empty2:disabled { border-color: rgba(90, 61, 36, 0.35); color: rgba(90, 61, 36, 0.5); background: transparent; }
 
 /* ── 맞힌 짝 한 줄 ───────────────────────────────────────── */
 .strip {
@@ -159,14 +236,22 @@
   margin-top: 18px;
 }
 
+/* 손패도 현판이다 */
 .hand .card {
   min-width: 116px;
   padding: 12px 16px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  background: #c9a878;
+  border: 2px solid #5a3d24;
+  box-shadow: inset 0 0 0 1px #e6cf9e;
+  color: var(--ink);
 }
 
-.hand .cardOn { background: var(--ink); color: var(--paper); }
+.hand .card:hover:not(:disabled) { background: #e6cf9e; color: var(--ink); }
+.hand .cardOn,
+.hand .cardOn:hover:not(:disabled) { background: var(--pine); border-color: var(--pine); color: #fff; box-shadow: none; transform: translateY(-4px); }
+.hand .card:disabled { opacity: 0.45; }
 
 .handHint { font-size: 14px; color: var(--muted); margin-left: 6px; }
 
@@ -346,7 +431,9 @@
   .field { height: 380px; }
   .enemy { font-size: 16px; padding: 4px 9px; }
   .boss { font-size: 18px; padding: 7px 12px; }
-  .field .tower { font-size: 14px; padding: 6px 4px; }
+  .totem { width: 36px; }
+  .plaque { font-size: 14px; padding: 2px 8px; }
+  .pop { font-size: 14px; }
   .hand .card { min-width: 0; flex: 1 1 30%; font-size: 16px; padding: 10px 8px; }
   .handHint { flex: 1 1 100%; margin-left: 0; }
   .fields input { width: 100%; }
