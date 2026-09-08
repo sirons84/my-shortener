@@ -4,12 +4,13 @@
    서버에서 그린다. 순위판이 비어 있거나 못 읽어도 게임은 그대로 돈다. */
 
 import styles from './layout.module.css';
+import { fmtTime } from '../../lib/baeumteo/time';
 
 function num(n) {
   return Math.floor(n || 0).toLocaleString('ko-KR');
 }
 
-export default function TopRecord({ record, unit = '점', spareLabel }) {
+export default function TopRecord({ record, unit = '점', spareLabel, timed = false }) {
   if (!record) {
     return (
       <p className={styles.record}>
@@ -32,6 +33,7 @@ export default function TopRecord({ record, unit = '점', spareLabel }) {
         {num(record.score)}
         {unit}
       </b>
+      {timed && record.ms > 0 && <span className={styles.recordWhere}>{fmtTime(record.ms)}</span>}
       {spareLabel && record.spare > 0 && (
         <span className={styles.recordWhere}>
           {spareLabel} {num(record.spare)}장

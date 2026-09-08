@@ -1,0 +1,252 @@
+/* 파일 경로: app/baeumteo/manuscript/page.module.css
+   토큰과 공통 요소 규칙(색·서체·버튼·머리·바닥)은 layout.module.css 에 있다.
+   여기 남은 .page 는 이 화면 안에서만 통하는 규칙의 뿌리다. */
+.page { display: block; }
+
+.wrap { max-width: 1296px; margin: 0 auto; padding: 0 24px; }
+.rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 14px; color: var(--muted); }
+.pine { color: var(--pine); }
+.spacer { flex: 1; }
+
+.head { padding: 44px 0 34px; }
+.head h1 { font-size: 34px; letter-spacing: -0.01em; }
+.head p { margin: 14px 0 0; max-width: 62ch; }
+
+/* ── 셈판 ────────────────────────────────────────────────── */
+.game { padding: 30px 0 60px; }
+
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: 26px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 16px;
+  font-size: 15px;
+}
+
+.counter b { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.score { font-size: 30px !important; letter-spacing: -0.02em; }
+.of { font-size: 16px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+
+.seen { display: flex; align-items: center; gap: 10px; }
+
+.seenBar {
+  display: inline-block;
+  width: 96px;
+  height: 8px;
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  vertical-align: middle;
+}
+
+.seenBar span { display: block; height: 100%; background: var(--alarm); transition: width 120ms linear; }
+
+.stageTag { font-size: 14px; color: var(--muted); }
+
+/* ── 판 ──────────────────────────────────────────────────── */
+.field {
+  position: relative;
+  border: 1px solid var(--rule);
+  border-top: 0;
+  background: var(--paper2);
+  display: flex;
+  justify-content: center;
+  min-height: 420px;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── 한 줄 ───────────────────────────────────────────────── */
+.strip {
+  border: 1px solid var(--rule);
+  border-top: 0;
+  padding: 12px 16px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+
+/* ── 손가락 단추 ─────────────────────────────────────────── */
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 56px);
+  gap: 6px;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.game .pad {
+  font-size: 18px;
+  padding: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pad_up { grid-column: 2; grid-row: 1; }
+.pad_left { grid-column: 1; grid-row: 2; }
+.pad_right { grid-column: 3; grid-row: 2; }
+.pad_down { grid-column: 2; grid-row: 3; }
+
+/* ── 덮개 ────────────────────────────────────────────────── */
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(31, 29, 26, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+}
+
+.sheet,
+.sheetWide {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 26px 30px;
+  width: 100%;
+  font-size: 15px;
+}
+
+.veilFull { position: fixed; padding: 24px; }
+
+.sheet { max-width: 520px; }
+.sheetWide { max-width: 760px; max-height: 100%; overflow: auto; }
+
+.sheet h2,
+.sheetWide h2 { font-size: 24px; margin-bottom: 10px; }
+
+.sheet p,
+.sheetWide p { margin: 0 0 12px; }
+
+.rules { margin: 0 0 14px; padding-left: 20px; }
+.rules li { margin-bottom: 4px; }
+
+.game .big {
+  border-color: var(--pine);
+  background: var(--pine);
+  color: #fff;
+  padding: 11px 30px;
+  font-size: 17px;
+}
+
+.game .big:hover { background: #243a31; color: #fff; }
+
+.choices { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+.overFoot {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+  margin-top: 18px;
+  font-size: 15px;
+}
+
+.stageList {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.stageList li {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ── 사건 카드 ───────────────────────────────────────────── */
+.story {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 30px;
+  align-items: start;
+}
+
+.storyBody h2 { font-size: 26px; margin-bottom: 14px; }
+
+.storyYear {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin: 0 0 4px !important;
+}
+
+.storyLines {
+  margin: 0 0 14px;
+  padding-left: 22px;
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+.storyLines li { margin-bottom: 6px; }
+
+.pending {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  padding: 0 6px;
+  vertical-align: middle;
+}
+
+.storySource { font-size: 13px; color: var(--muted); margin-bottom: 18px !important; }
+
+.storyFigure { margin: 0; }
+.storyFigure img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); mix-blend-mode: multiply; }
+.storyFigure figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+/* ── 잠긴 화면 ───────────────────────────────────────────── */
+.gate {
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.gate h2 { font-size: 22px; margin-bottom: 10px; }
+.gate p { margin: 0 0 8px; }
+
+.gateLink {
+  display: inline-block;
+  margin-top: 14px;
+  border: 1px solid var(--pine);
+  background: var(--pine);
+  color: #fff;
+  padding: 9px 24px;
+}
+
+.gateLink:hover { background: #243a31; text-decoration: none; }
+
+.empty { color: var(--muted); padding: 40px 0; }
+
+/* ── 좁은 화면 ───────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .head { padding: 30px 0 24px; }
+  .head h1 { font-size: 27px; }
+  .field { min-height: 0; }
+  .story { grid-template-columns: 1fr; }
+  .storyFigure { max-width: 160px; }
+  .sheet, .sheetWide { padding: 20px 18px; }
+}

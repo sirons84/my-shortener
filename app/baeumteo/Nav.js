@@ -27,6 +27,7 @@ const SECTIONS = [
 const ROOMS = [
   ['/배움터/사전편찬소', '사전 편찬소', 'dictionary'],
   ['/배움터/우리말지키기', '우리말 지키기', 'defense'],
+  ['/배움터/잃어버린원고', '잃어버린 원고', 'manuscript'],
   ['/배움터/반', '반 코드', 'class'],
 ];
 
@@ -42,6 +43,7 @@ function roomOf(pathname) {
   if (tail === '' ) return 'home';
   if (tail.includes('사전편찬소') || tail.includes('dictionary')) return 'dictionary';
   if (tail.includes('우리말지키기') || tail.includes('defense')) return 'defense';
+  if (tail.includes('잃어버린원고') || tail.includes('manuscript')) return 'manuscript';
   if (tail.includes('반') || tail.includes('class')) return 'class';
   return '';
 }

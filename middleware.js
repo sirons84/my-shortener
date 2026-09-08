@@ -23,6 +23,7 @@ const APP_ROUTES = [
 const BAEUMTEO_ROUTES = {
   '/사전편찬소': 'dictionary',
   '/우리말지키기': 'defense',
+  '/잃어버린원고': 'manuscript',
   '/반': 'class',
 };
 

@@ -6,9 +6,11 @@ import { hashKey, keyMatches, makeKey, readTicket } from '../../../../lib/baeumt
 import { checkNick, checkNumber, checkSchool } from '../../../../lib/baeumteo/nick';
 import { normalizeClassCode, parseClassCode } from '../../../../lib/baeumteo/classCode';
 import { maxScore } from '../../../../lib/baeumteo/defense';
+import { maxScore as manuscriptMax } from '../../../../lib/baeumteo/manuscript';
 import { words } from '../../../../lib/baeumteo/words';
 import defenseConfig from '../../../../data/games/defense.json';
 import dictionaryConfig from '../../../../data/games/dictionary.json';
+import manuscriptConfig from '../../../../data/games/manuscript.json';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +22,14 @@ const GAMES = {
   // 사전 편찬소는 실은 낱말 수가 점수다. 사전에 있는 낱말보다 많이 실을 수는 없다.
   // 같은 개수면 다음 낱말에 더 가까웠던 쪽(남은 낱말 카드가 많은 쪽)이 앞이다.
   dictionary: { max: words.length, maxMs: dictionaryConfig.round_ms, timed: true, spared: true },
+  // 잃어버린 원고는 모은 상자 수가 점수다. 같은 수면 빨리 나온 쪽이 앞이다.
+  manuscript: {
+    max: manuscriptMax(manuscriptConfig),
+    maxMs: manuscriptConfig.max_ms,
+    minMs: manuscriptConfig.min_ms,
+    timed: true,
+    faster: true,
+  },
 };
 
 const TOP = 100;
@@ -70,9 +80,12 @@ export async function GET(request) {
     .from('baeumteo_scores')
     .select(COLUMNS)
     .eq('game', game)
-    .order('score', { ascending: false })
-    .order('spare', { ascending: false, nullsFirst: false })
-    .order('at', { ascending: true });
+    .order('score', { ascending: false });
+  // 시간을 겨루는 게임은 빠른 쪽이, 나머지는 남은 카드가 많은 쪽이 앞이다
+  query = GAMES[game].faster
+    ? query.order('ms', { ascending: true })
+    : query.order('spare', { ascending: false, nullsFirst: false });
+  query = query.order('at', { ascending: true });
 
   // 한 반만 볼 때는 그 반의 기록만 읽는다
   if (tab === 'solo' && code) query = query.eq('class_code', code);
@@ -135,6 +148,8 @@ export async function POST(request) {
     }
     // 판에서 잰 시간보다 빨리 돌아왔다면 그 판을 실제로 돈 것이 아니다
     if (ticket.ageMs < ms) return fail('판이 끝나기 전에 온 기록입니다.');
+    // 길이 있는 판은 아무리 빨라도 이보다 빨리 끝날 수 없다
+    if (rules.minMs && ms < rules.minMs) return fail('걸린 시간이 이상합니다.');
   }
 
   // 한 점을 얻으려면 적어도 이만큼은 판이 돌아가야 한다.
@@ -201,6 +216,15 @@ export async function POST(request) {
       .eq('score', score)
       .gt('spare', spare);
     ahead = tied || 0;
+  }
+  if (rules.faster) {
+    const { count: quicker } = await supabaseAdmin
+      .from('baeumteo_scores')
+      .select('id', { count: 'exact', head: true })
+      .eq('game', game)
+      .eq('score', score)
+      .lt('ms', ms);
+    ahead = quicker || 0;
   }
 
   // erase_key 는 여기서 한 번만 준다. 서버에는 해시만 남는다

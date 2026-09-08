@@ -14,6 +14,14 @@ import { parseClassCode } from '../../../lib/baeumteo/classCode';
 import { forgetClass, loadKeys, rememberClass } from '../../../lib/baeumteo/keys';
 import { emptySave, loadSave, writeSave } from '../../../lib/baeumteo/save';
 import { getWord, words } from '../../../lib/baeumteo/words';
+import { fmtTime } from '../../../lib/baeumteo/time';
+
+// 반 순위판에 보이는 게임과 점수의 단위
+const BOARDS = [
+  ['dictionary', '사전 편찬소', '개', '/배움터/사전편찬소'],
+  ['defense', '우리말 지키기', '점', '/배움터/우리말지키기'],
+  ['manuscript', '잃어버린 원고', '개', '/배움터/잃어버린원고'],
+];
 
 function num(n) {
   return Math.floor(n).toLocaleString('ko-KR');
@@ -346,7 +354,7 @@ export default function Room() {
               <div className={styles.boardHead}>
                 <h3>우리 반 순위판</h3>
                 <div className={styles.tabs}>
-                  {[['dictionary', '사전 편찬소'], ['defense', '우리말 지키기']].map(([id, label]) => (
+                  {BOARDS.map(([id, label]) => (
                     <button
                       key={id}
                       type="button"
@@ -363,11 +371,9 @@ export default function Room() {
               ) : scores.length === 0 ? (
                 <p className={styles.small}>
                   아직 기록이 없습니다.{' '}
-                  {board === 'dictionary' ? (
-                    <Link href="/배움터/사전편찬소">사전 편찬소</Link>
-                  ) : (
-                    <Link href="/배움터/우리말지키기">우리말 지키기</Link>
-                  )}
+                  <Link href={BOARDS.find(([id]) => id === board)[3]}>
+                    {BOARDS.find(([id]) => id === board)[1]}
+                  </Link>
                   를 한 판 해 보세요.
                 </p>
               ) : (
@@ -380,9 +386,12 @@ export default function Room() {
                       {board === 'dictionary' && row.spare > 0 && (
                         <span className={styles.spare}>남은 카드 {num(row.spare)}</span>
                       )}
+                      {board === 'manuscript' && row.ms > 0 && (
+                        <span className={styles.spare}>{fmtTime(row.ms)}</span>
+                      )}
                       <span className={styles.point}>
                         {num(row.score)}
-                        {board === 'dictionary' ? '개' : '점'}
+                        {BOARDS.find(([id]) => id === board)[2]}
                       </span>
                       {(isOwner || keys.scores[row.id]) && (
                         <button

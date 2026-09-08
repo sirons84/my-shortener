@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 // 판을 시작할 때 표를 하나 끊어 준다. 기록을 낼 때 이 표를 함께 낸다.
 // 표가 없어도 게임은 돌아간다. 순위판에만 못 오른다 (기획서 §3-4).
-const GAMES = new Set(['defense', 'dictionary']);
+const GAMES = new Set(['defense', 'dictionary', 'manuscript']);
 
 export async function POST(request) {
   const limit = rateLimit(`baeumteo-round:${getClientIp(request)}`, { max: 60, windowMs: 60 * 1000 });
