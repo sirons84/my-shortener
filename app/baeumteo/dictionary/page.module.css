@@ -290,7 +290,7 @@
 .veil {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 4; /* 머리(내비)보다 아래. 덮개가 떠 있어도 다른 방으로 갈 수 있다 */
   background: rgba(31, 29, 26, 0.45);
   display: flex;
   align-items: center;

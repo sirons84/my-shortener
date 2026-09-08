@@ -55,6 +55,8 @@ export default function Editorial() {
   const [save, setSave] = useState(emptySave);
   const [ready, setReady] = useState(false);
   const [phase, setPhase] = useState('ready'); // ready | play | over
+  // 시작 판. 닫으면 판을 시작하지 않고도 사전과 머리 링크를 볼 수 있다
+  const [introOpen, setIntroOpen] = useState(true);
   const [round, setRound] = useState(emptyRound);
   const [left, setLeft] = useState(config.round_ms);
   // 판이 끝난 뒤 결과지를 덮어 두었는지. 닫으면 이번 판에 실은 사전을 볼 수 있다
@@ -243,6 +245,10 @@ export default function Editorial() {
             <button type="button" onClick={() => setSheetOpen(true)}>판 결과·순위판</button>
             <button type="button" className={styles.publish} onClick={start}>다시 하기</button>
           </>
+        ) : phase === 'ready' && !introOpen ? (
+          <button type="button" className={styles.publish} onClick={() => setIntroOpen(true)}>
+            시작
+          </button>
         ) : (
           <button
             type="button"
@@ -356,7 +362,7 @@ export default function Editorial() {
       </div>
 
       {/* 시작 화면 */}
-      {phase === 'ready' && (
+      {phase === 'ready' && introOpen && (
         <div className={styles.veil} role="dialog" aria-modal="true" aria-label="사전 편찬소 시작">
           <div className={styles.sheet}>
             <h3 className={styles.sheetTitle}>사전 편찬소</h3>
@@ -377,6 +383,8 @@ export default function Editorial() {
             <div className={styles.codeRow}>
               <button type="button" className={styles.big} onClick={start}>시작</button>
               <button type="button" onClick={openCode}>저장 코드</button>
+              <span className={styles.spacer} />
+              <button type="button" onClick={() => setIntroOpen(false)}>닫기</button>
             </div>
           </div>
         </div>
