@@ -156,6 +156,8 @@
   color: var(--soft);
 }
 
+.footEnd p { margin: 0 0 4px; }
+
 @media (max-width: 860px) {
   .footCols { grid-template-columns: 1fr; gap: 20px; }
 }

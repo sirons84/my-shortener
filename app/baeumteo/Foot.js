@@ -55,7 +55,11 @@ export default function Foot() {
         </div>
 
         <div className={styles.footEnd}>
-          로그인 없이 씁니다. 이름을 받지 않고, 순위판에 남길 때만 별명과 학교·학년·반을 받습니다.
+          <p>로그인 없이 씁니다. 이름을 받지 않고, 순위판에 남길 때만 별명과 학교·학년·반을 받습니다.</p>
+          <p>
+            © 2026 울산교육청 (개발자: 정윤호, 석희철, 오재경, 이강현, 김지현, 이충민, 박창현, 황정훈, 최혜원)
+            관리자(최태진, 차선화). All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
