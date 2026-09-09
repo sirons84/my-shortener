@@ -1,0 +1,135 @@
+/* 파일 경로: app/baeumteo/trail/page.module.css
+   토큰과 공통 요소 규칙(색·서체·버튼·머리·바닥)은 layout.module.css 에 있다.
+   여기 남은 .page 는 이 화면 안에서만 통하는 규칙의 뿌리다. */
+.page { display: block; }
+
+.wrap { max-width: 1296px; margin: 0 auto; padding: 0 24px; }
+.rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 14px; color: var(--muted); }
+.spacer { flex: 1; }
+
+.head { padding: 44px 0 34px; }
+.head h1 { font-size: 34px; letter-spacing: -0.01em; }
+.head p { margin: 14px 0 0; max-width: 62ch; }
+
+.game { padding: 30px 0 60px; }
+
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: 26px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 16px;
+  font-size: 15px;
+}
+
+.counter b { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.of { font-size: 16px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+.stageTag { font-size: 14px; color: var(--muted); }
+
+/* ── 지도와 곁 판 ────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  border: 1px solid var(--rule);
+  border-top: 0;
+}
+
+.mapWrap { position: relative; min-height: 520px; }
+.map { width: 100%; height: 520px; }
+
+/* 찾은 자리 이름표 (카카오 CustomOverlay 안) */
+.label {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 3px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.panel {
+  border-left: 1px solid var(--rule);
+  padding: 22px 24px;
+  font-size: 15px;
+  background: var(--paper2);
+}
+
+.panel h2 { font-size: 21px; margin-bottom: 10px; }
+.panel p { margin: 0 0 12px; }
+
+.panelTag { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 4px !important; }
+
+.q { font-size: 17px; font-weight: 600; }
+
+.choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.choices button { text-align: left; padding: 10px 14px; }
+.panel .choiceOff { border-color: var(--rule); color: var(--soft); text-decoration: line-through; }
+
+.hints {
+  margin: 0 0 12px;
+  padding: 10px 12px 10px 30px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+.hints li { margin-bottom: 4px; }
+
+.msg { color: var(--alarm); }
+
+.route { margin: 0 0 12px; padding-left: 22px; }
+.route li { margin-bottom: 4px; }
+
+.row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+.game .big {
+  border-color: var(--pine);
+  background: var(--pine);
+  color: #fff;
+  padding: 11px 26px;
+  font-size: 16px;
+}
+
+.game .big:hover:not(:disabled) { background: #243a31; color: #fff; }
+
+/* ── 덮개 ────────────────────────────────────────────────── */
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: rgba(31, 29, 26, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sheet {
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 26px 30px;
+  width: 100%;
+  max-width: 520px;
+  font-size: 15px;
+}
+
+.sheet h2 { font-size: 24px; margin-bottom: 10px; }
+.sheet p { margin: 0 0 12px; }
+
+.rules { margin: 0 0 16px; padding-left: 20px; }
+.rules li { margin-bottom: 4px; }
+
+/* ── 좁은 화면 ───────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .head { padding: 30px 0 24px; }
+  .head h1 { font-size: 27px; }
+  .layout { grid-template-columns: 1fr; }
+  .mapWrap { min-height: 380px; }
+  .map { height: 380px; }
+  .panel { border-left: 0; border-top: 1px solid var(--rule); }
+}

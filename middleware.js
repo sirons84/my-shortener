@@ -27,6 +27,7 @@ const BAEUMTEO_ROUTES = {
   '/외솔의서재': 'study',
   '/한글리듬': 'rhythm',
   '/말모이': 'malmoi',
+  '/외솔길': 'trail',
   '/반': 'class',
 };
 
