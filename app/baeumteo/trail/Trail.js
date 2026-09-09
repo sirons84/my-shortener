@@ -145,7 +145,7 @@ export default function Trail() {
     // 바로 위에 두면 찾을 것이 없다. 앞 장소와의 가운데쯤에서 넓게 시작한다
     const center = prev
       ? { lat: (prev.lat + target.lat) / 2, lng: (prev.lng + target.lng) / 2 }
-      : { lat: target.lat + 0.004, lng: target.lng - 0.004 };
+      : { lat: target.lat + 0.0025, lng: target.lng - 0.0025 };
     map.current.setLevel(config.stops[i].level);
     map.current.setCenter(new kakao.maps.LatLng(center.lat, center.lng));
   }, []);
