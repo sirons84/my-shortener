@@ -316,6 +316,11 @@ export default function Room() {
             </h2>
             <span className={styles.muted}>{room.code}</span>
             {isOwner && <span className={styles.owner}>이 기기가 만든 반</span>}
+            {isOwner && (
+              <Link href="/배움터/말모이" className={styles.small}>
+                말모이 확인하기
+              </Link>
+            )}
           </header>
 
           <div className={styles.cols}>

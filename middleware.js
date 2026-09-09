@@ -26,6 +26,7 @@ const BAEUMTEO_ROUTES = {
   '/잃어버린원고': 'manuscript',
   '/외솔의서재': 'study',
   '/한글리듬': 'rhythm',
+  '/말모이': 'malmoi',
   '/반': 'class',
 };
 

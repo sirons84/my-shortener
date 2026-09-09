@@ -1,0 +1,44 @@
+{
+  "id": "malmoi",
+  "name": "울산 말모이 원정대",
+  "story": {
+    "event": "ev_1929_dictionary",
+    "lines": [
+      "1929년, 조선어사전편찬회가 만들어져 전국에서 우리말을 모았다.",
+      "외솔 최현배 선생도 그 일에 함께했다.",
+      "우리도 우리 동네에서 쓰는 말을 모아 우리 반 사전에 싣는다."
+    ],
+    "source": "한글학회 기록"
+  },
+  "word_max": 10,
+  "meaning_min": 2,
+  "meaning_max": 60,
+  "districts": [
+    { "id": "jung", "name": "중구" },
+    { "id": "nam", "name": "남구" },
+    { "id": "dong", "name": "동구" },
+    { "id": "buk", "name": "북구" },
+    { "id": "ulju", "name": "울주군" }
+  ],
+  "places": [
+    { "id": "home", "name": "집" },
+    { "id": "grand", "name": "할머니·할아버지 댁" },
+    { "id": "market", "name": "시장" },
+    { "id": "school", "name": "학교" },
+    { "id": "street", "name": "동네 길" },
+    { "id": "etc", "name": "그 밖" }
+  ],
+  "relations": [
+    { "id": "grandma", "name": "할머니" },
+    { "id": "grandpa", "name": "할아버지" },
+    { "id": "mother", "name": "어머니" },
+    { "id": "father", "name": "아버지" },
+    { "id": "neighbor", "name": "이웃 어른" },
+    { "id": "friend", "name": "친구" },
+    { "id": "teacher", "name": "선생님" },
+    { "id": "etc", "name": "그 밖" }
+  ],
+  "review": "teacher",
+  "map_pin_after": "approved",
+  "reward": { "approved": 5, "unit": "word_card" }
+}

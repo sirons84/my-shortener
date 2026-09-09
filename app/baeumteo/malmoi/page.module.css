@@ -1,0 +1,169 @@
+/* 파일 경로: app/baeumteo/malmoi/page.module.css
+   토큰과 공통 요소 규칙(색·서체·버튼·머리·바닥)은 layout.module.css 에 있다.
+   여기 남은 .page 는 이 화면 안에서만 통하는 규칙의 뿌리다. */
+.page { display: block; }
+
+.wrap { max-width: 1296px; margin: 0 auto; padding: 0 24px; }
+.rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 14px; color: var(--muted); }
+.spacer { flex: 1; }
+
+.head { padding: 44px 0 34px; }
+.head h1 { font-size: 34px; letter-spacing: -0.01em; }
+.head p { margin: 14px 0 0; max-width: 62ch; }
+
+.game { padding: 30px 0 60px; display: flex; flex-direction: column; gap: 20px; }
+
+.game .big {
+  border-color: var(--pine);
+  background: var(--pine);
+  color: #fff;
+  padding: 10px 26px;
+  font-size: 16px;
+}
+
+.game .big:hover:not(:disabled) { background: #243a31; color: #fff; }
+
+.game .quiet { border-color: var(--rule); color: var(--muted); font-size: 14px; padding: 4px 12px; }
+
+/* ── 이야기 ──────────────────────────────────────────────── */
+.story {
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  padding: 20px 24px;
+  max-width: 62ch;
+}
+
+.storyYear { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.1em; color: var(--muted); }
+.storyLines { margin: 0 0 8px; padding-left: 20px; }
+.storyLines li { margin-bottom: 2px; }
+
+.notice {
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--paper2);
+  border: 1px solid var(--rule);
+  font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+
+/* ── 반 줄 ───────────────────────────────────────────────── */
+.roomLine {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 12px;
+  font-size: 15px;
+}
+
+.roomLine b { font-size: 18px; font-weight: 600; }
+
+.owner {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--paper);
+  background: var(--pine);
+  padding: 1px 8px;
+}
+
+/* ── 상자 ────────────────────────────────────────────────── */
+.box {
+  border: 1px solid var(--rule);
+  padding: 22px 24px 24px;
+}
+
+.box h2 { font-size: 20px; margin-bottom: 8px; }
+.box p { margin: 0 0 10px; }
+
+.teacher { border-color: var(--pine); }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
+.row input { width: 220px; max-width: 100%; }
+
+.form { display: flex; flex-direction: column; gap: 12px; }
+
+.form label,
+.picks label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.form input,
+.form select { width: 100%; box-sizing: border-box; }
+
+.picks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ── 목록 ────────────────────────────────────────────────── */
+.list { list-style: none; margin: 0 0 10px; padding: 0; font-size: 15px; }
+
+.list li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.list b { font-weight: 700; font-size: 17px; }
+
+.tag {
+  font-size: 12px;
+  border: 1px solid var(--rule);
+  padding: 0 7px;
+  color: var(--muted);
+}
+
+.st_approved .tag { border-color: var(--pine); color: var(--pine); }
+.st_returned .tag { border-color: var(--alarm); color: var(--alarm); }
+.st_returned b { color: var(--muted); }
+
+.note { font-size: 13px; color: var(--alarm); flex-basis: 100%; }
+
+.actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex-basis: 100%; margin-top: 4px; }
+.actions input { font-size: 14px; padding: 4px 8px; width: 240px; max-width: 100%; }
+.actions button { font-size: 14px; padding: 4px 12px; }
+
+.game .erase { border-color: var(--rule); color: var(--muted); font-size: 13px; padding: 2px 10px; }
+.game .erase:hover:not(:disabled) { background: var(--alarm); border-color: var(--alarm); color: #fff; }
+
+/* ── 얼개 지도 ───────────────────────────────────────────── */
+.map {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  margin: 8px 0 16px;
+  background: var(--paper2);
+  border: 1px solid var(--rule);
+}
+
+.area { fill: var(--paper2); stroke: var(--ink); stroke-width: 1.5; }
+.areaName { font-size: 16px; font-weight: 600; fill: var(--ink); }
+.areaCount { font-size: 13px; fill: var(--muted); }
+
+.pin circle { fill: var(--pine); stroke: var(--paper); stroke-width: 1.5; }
+.pin text { font-size: 12px; fill: var(--ink); }
+
+.empty { color: var(--muted); padding: 40px 0; }
+
+/* ── 좁은 화면 ───────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .head { padding: 30px 0 24px; }
+  .head h1 { font-size: 27px; }
+  .cols { grid-template-columns: 1fr; }
+  .picks { grid-template-columns: 1fr; }
+  .row input { width: 100%; }
+}
