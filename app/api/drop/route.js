@@ -1,6 +1,6 @@
 // 외솔 드롭(베타) API — 내 드롭 목록 / 배포(교체) / 내리기
 //
-// 계정당 배포 가능 개수는 getDropLimit 로 정한다(@usedu.ai.kr 2개, 그 외 1개, 관리자 무제한).
+// 계정당 배포 가능 개수는 getDropLimit 로 정한다(@usedu.ai.kr 2개, 그 외 1개, 관리자 무제한, 예외 계정은 DROP_LIMIT_OVERRIDES).
 // 주소는 단축 주소와 같은 이름 공간을 쓰므로 urls 쪽도 함께 확인한다.
 
 import { NextResponse } from 'next/server';
