@@ -196,6 +196,15 @@ export default function DropMain() {
       <section className={`${styles.mainContent} ${styles.mainContentWide}`}>
         <h2 className={styles.title}>
           외솔 드롭 <span className={styles.betaBadge}>베타</span>
+          <Link
+            href="/drop/guide"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.guideBtn}
+            aria-label="외솔 드롭 사용 안내 (새 창)"
+          >
+            📖 사용안내
+          </Link>
         </h2>
 
         <p className={styles.dropIntro}>

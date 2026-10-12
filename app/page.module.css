@@ -278,6 +278,27 @@
   letter-spacing: 0.3px;
 }
 
+/* 제목 옆 '사용안내' 버튼 — 베타 배지와 같은 높이의 알약 모양 링크 */
+.guideBtn {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  padding: 4px 12px;
+  border: 1px solid #b8d8f8;
+  border-radius: 999px;
+  background: #fff;
+  color: #0984e3;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.guideBtn:hover {
+  background: #e8f3ff;
+}
+
 .dropIntro {
   margin: -12px 0 24px;
   font-size: 15px;

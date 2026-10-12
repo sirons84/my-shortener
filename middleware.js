@@ -15,6 +15,7 @@ const APP_ROUTES = [
   '/admin',
   '/privacy',
   '/terms',
+  '/drop/guide',
   '/baeumteo',
   '/auth/callback',
 ];
