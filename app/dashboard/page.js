@@ -24,6 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
 import { isAdmin, getCreationLimit } from '../../lib/constants';
+import DbMain from '../DbMain'; // 외솔 DB 탭 — 첫 화면 카드와 같은 화면을 그대로 쓴다
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
@@ -54,6 +55,12 @@ export default function Dashboard() {
 
   // 외솔 드롭(베타) — 탭 전환과 내가 배포 중인 페이지
   const [tab, setTab] = useState('urls');
+
+  // /dashboard#db, #drop 으로 들어오면 그 탭을 바로 연다
+  useEffect(() => {
+    const h = typeof window !== 'undefined' ? window.location.hash : '';
+    if (h === '#db' || h === '#drop') setTab(h.slice(1));
+  }, []);
   const [myDrops, setMyDrops] = useState([]);
   const [dropLimit, setDropLimit] = useState(1);
   const [editModal, setEditModal] = useState({ show: false, id: null, url: '', code: '', originalCode: '' });
@@ -406,7 +413,7 @@ export default function Dashboard() {
 
       {/* 탭 */}
       <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid #e5e7eb', marginBottom: '20px' }}>
-        {[['urls', `단축 주소 (${urls.length})`], ['drop', `외솔 드롭 (${myDrops.length})`]].map(([val, label]) => (
+        {[['urls', `단축 주소 (${urls.length})`], ['drop', `외솔 드롭 (${myDrops.length})`], ['db', '외솔 DB']].map(([val, label]) => (
           <button
             key={val}
             onClick={() => setTab(val)}
@@ -419,7 +426,7 @@ export default function Dashboard() {
             }}
           >
             {label}
-            {val === 'drop' && (
+            {(val === 'drop' || val === 'db') && (
               <span style={{
                 marginLeft: '6px', padding: '2px 7px', borderRadius: '999px',
                 background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700,
@@ -615,6 +622,17 @@ export default function Dashboard() {
             <br />
             올린 페이지는 검색에 나오지 않고, 주소를 아는 사람만 볼 수 있습니다.
           </p>
+        </div>
+      )}
+
+      {/* ── 외솔 DB 탭 ── 첫 화면 카드의 외솔 DB 탭과 같은 화면 */}
+      {tab === 'db' && (
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', backgroundColor: '#fff' }}>
+          <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#6b7280', lineHeight: 1.7 }}>
+            챗GPT로 만든 HTML 앱이 기록을 저장하는 표입니다. 표를 만들고 「챗GPT용 복사」를 눌러 챗GPT에 붙이면 끝입니다.{' '}
+            <Link href="/db/guide" target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontWeight: 600 }}>사용안내 ↗</Link>
+          </p>
+          <DbMain />
         </div>
       )}
 
