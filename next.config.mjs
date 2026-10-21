@@ -2,7 +2,11 @@
 const nextConfig = {
   // 외솔 드롭 사용 안내 — public/drop-guide.html 을 /drop/guide 주소로 보여준다
   async rewrites() {
-    return [{ source: '/drop/guide', destination: '/drop-guide.html' }];
+    return [
+      { source: '/drop/guide', destination: '/drop-guide.html' },
+      // 외솔 DB 사용 안내 — public/db-guide.html 을 /db/guide 주소로
+      { source: '/db/guide', destination: '/db-guide.html' },
+    ];
   },
   async headers() {
     return [

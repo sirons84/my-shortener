@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>외솔 DB 사용 안내</title>
+<meta name="description" content="챗GPT로 만든 HTML 앱에 기록을 저장하는 외솔 DB. 표 만들기, 챗GPT에 붙이기, 외솔 드롭에 올리기까지 단계별 안내와 바이브 코딩 첫걸음">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --bg:#f6fbff; --card:#ffffff; --ink:#1f2328; --muted:#636e72; --line:#dbe7f3;
+    --accent:#0984e3; --accent2:#74b9ff; --blue:#0984e3; --soft:#eaf4ff; --green:#1b9c6b; --warn:#b45309;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    font-size:17px;line-height:1.75;word-break:keep-all}
+  a{color:var(--blue)}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+
+  header{background:linear-gradient(135deg,#dbeeff,#b7dcff);padding:56px 0 44px;border-bottom:1px solid #b3d4f5}
+  header .wrap{display:flex;flex-direction:column;gap:14px}
+  .eyebrow{font-size:14px;font-weight:700;color:#1d4e89;letter-spacing:.02em}
+  h1{margin:0;font-size:38px;line-height:1.25;font-weight:800}
+  h1 small{display:inline-block;margin-left:10px;font-size:13px;font-weight:700;color:#fff;background:var(--blue);padding:2px 10px;border-radius:999px;vertical-align:middle}
+  .lead{margin:0;font-size:18px;color:#1e3a5f;max-width:680px}
+  .lead b{color:#1f2328}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .toc a{font-size:14px;font-weight:600;color:#1d4e89;background:rgba(255,255,255,.7);border:1px solid #b3d4f5;border-radius:999px;padding:5px 12px;text-decoration:none}
+  .toc a:hover{background:#fff}
+
+  main{padding:40px 0 60px}
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px;margin-bottom:36px}
+  .intro h2{margin:0 0 8px;font-size:20px}
+  .intro ul{margin:0;padding-left:20px}
+
+  .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0 0}
+  .flow div{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;text-align:center}
+  .flow b{display:block;font-size:13px;color:var(--blue);margin-bottom:2px}
+
+  .step{display:grid;grid-template-columns:64px 1fr;gap:18px;margin-bottom:44px}
+  .num{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(9,132,227,.25)}
+  .step h2{margin:6px 0 8px;font-size:24px;line-height:1.3}
+  .step p{margin:0 0 12px}
+  .tip{background:var(--soft);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;font-size:15.5px;margin:12px 0 0}
+  .tip b{color:#1d4e89}
+  .ok{background:#e9f8f1;border-left-color:var(--green)}
+  .ok b{color:#0f6b48}
+  .warn{background:#fff7ed;border-left-color:#f59e0b}
+  .warn b{color:var(--warn)}
+  ul.plain{margin:6px 0 10px;padding-left:20px}
+  ul.plain li{margin:3px 0}
+  code{font-family:ui-monospace,Consolas,"D2Coding",monospace;font-size:.92em;background:#e9f1fa;padding:1px 6px;border-radius:5px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:16px 18px;font-size:14px;line-height:1.6;overflow:auto;margin:12px 0}
+  pre code{background:transparent;color:inherit;padding:0;font-size:inherit}
+
+  .mock{border:1px solid var(--line);background:#fff;border-radius:14px;padding:16px 18px;margin:14px 0 10px;box-shadow:0 8px 24px rgba(0,0,0,.05)}
+  .mock .tabs{display:inline-flex;gap:6px;background:#f1f5f9;border-radius:999px;padding:5px;margin-bottom:12px}
+  .mock .tabs span{padding:7px 16px;border-radius:999px;font-size:14px;font-weight:700;color:#64748b}
+  .mock .tabs span.on{background:#fff;color:var(--blue);box-shadow:0 2px 8px rgba(15,23,42,.08)}
+  .mock .field{display:grid;grid-template-columns:70px 1fr auto;gap:10px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;margin:6px 0;font-size:14px}
+  .mock .field b{color:#64748b;font-size:13px}
+  .mock .field code{background:transparent;padding:0}
+  .mock .btn{display:inline-block;border:1px solid #cbd5e1;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;background:#fff}
+  .mock .big{display:inline-block;background:linear-gradient(135deg,#0984e3,#74b9ff);color:#fff;border-radius:12px;padding:12px 20px;font-weight:800;font-size:16px;margin-top:8px}
+  .cap{font-size:14px;color:var(--muted);margin:0 0 6px}
+
+  table.api{width:100%;border-collapse:collapse;font-size:15px;margin:10px 0 14px;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table.api th,table.api td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  table.api th{background:#f1f7fd;font-size:14px;color:#334155}
+  table.api tr:last-child td{border-bottom:0}
+
+  .prompts{display:grid;gap:10px;margin:12px 0 0}
+  .prompts div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+  .prompts b{display:block;color:#1d4e89;font-size:14px;margin-bottom:4px}
+  .prompts p{margin:0;font-size:15.5px;color:#1f2328}
+
+  .faq{margin-top:56px;border-top:1px solid var(--line);padding-top:36px}
+  .faq h2{font-size:24px;margin:0 0 16px}
+  details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 18px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:700;padding:14px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";font-size:20px;color:var(--muted);flex-shrink:0}
+  details[open] summary::after{content:"−"}
+  details p{margin:0 0 14px;color:#333}
+
+  .ideas{margin-top:48px;background:linear-gradient(135deg,#eaf4ff,#f6fbff);border:1px solid #b3d4f5;border-radius:16px;padding:24px 26px}
+  .ideas h2{margin:0 0 10px;font-size:22px}
+  .ideas .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+  .ideas .grid div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px}
+  .ideas .grid b{display:block;margin-bottom:2px}
+
+  footer{border-top:1px solid var(--line);padding:26px 0 40px;font-size:14px;color:var(--muted)}
+
+  @media (max-width:640px){
+    body{font-size:16px}
+    h1{font-size:30px}
+    .step{grid-template-columns:44px 1fr;gap:12px}
+    .num{width:40px;height:40px;font-size:18px;border-radius:11px}
+    .step h2{font-size:21px}
+    header{padding:40px 0 32px}
+    .mock .field{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">외솔.한국 사용 안내 · 바이브 코딩 w 외솔</div>
+    <h1>외솔 DB <small>베타</small></h1>
+    <p class="lead">챗GPT로 만든 <b>HTML 앱이 기록을 저장하고 읽어 오는 곳</b>입니다. 버튼 하나로 표를 만들고, 「챗GPT용 복사」를 눌러 붙여 넣으면 끝입니다. 가입도, API 키 발급도, 코드 복사도 없습니다. 5분이면 됩니다.</p>
+    <nav class="toc">
+      <a href="#what">무엇인가</a>
+      <a href="#s1">1. 로그인</a>
+      <a href="#s2">2. 표 만들기</a>
+      <a href="#s3">3. 챗GPT용 복사</a>
+      <a href="#s4">4. 챗GPT에 붙이기</a>
+      <a href="#s5">5. 외솔 드롭에 올리기</a>
+      <a href="#s6">6. 기록 보기·관리</a>
+      <a href="#key">교사 키</a>
+      <a href="#first">바이브 코딩 첫걸음</a>
+      <a href="#api">개발자용 요약</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="intro" id="what">
+    <h2>외솔 DB가 하는 일</h2>
+    <p style="margin:0 0 8px">챗GPT에게 "칭찬 포인트 앱 만들어 줘"라고 하면 예쁜 HTML 한 장은 금방 나옵니다. 그런데 <b>기록이 저장되지 않습니다.</b> 새로고침하면 사라지고, 다른 컴퓨터에서는 보이지 않습니다. 저장하려면 구글 시트에 앱스 스크립트를 붙이거나 Firebase 콘솔을 거쳐야 했고, 그 단계에서 많은 선생님이 멈췄습니다.</p>
+    <p style="margin:0">외솔 DB는 그 과정을 <b>버튼 하나 → 복사 → 붙여 넣기</b>로 줄입니다. 선생님은 코드를 보지 않고, 챗GPT가 안내문을 읽고 연동 코드를 알아서 씁니다.</p>
+    <div class="flow">
+      <div><b>외솔.한국</b>표 만들기</div>
+      <div><b>복사</b>챗GPT용 복사</div>
+      <div><b>챗GPT</b>붙이고 한 줄 요청</div>
+      <div><b>외솔 드롭</b>HTML 올리기</div>
+      <div><b>외솔 DB</b>기록이 쌓임</div>
+    </div>
+    <ul style="margin-top:14px">
+      <li><b>준비물</b>: 외솔.한국 계정(선생님 로그인), 챗GPT·클로드·제미나이 중 하나, 컴퓨터.</li>
+      <li><b>넣을 수 있는 것</b>: 번호·별명·선택값·점수 같은 학급 활동 기록. <b>연락처·생년월일·건강·가정 정보는 넣지 않습니다.</b> 표를 처음 만들 때 한 번 동의합니다.</li>
+    </ul>
+  </section>
+
+  <!-- 1 -->
+  <section class="step" id="s1">
+    <div class="num">1</div>
+    <div>
+      <h2>외솔.한국에 로그인하고 「외솔 DB」 탭을 엽니다</h2>
+      <p>주소창에 <code>외솔.한국</code>을 입력하고 오른쪽 위 <b>선생님 로그인</b>을 누릅니다. 첫 화면을 아래로 내리면 <b>바이브 코딩 w 외솔</b> 카드가 있고, 그 안에 <b>외솔 드롭 | 외솔 DB</b> 탭이 있습니다. <b>외솔 DB</b>를 누릅니다.</p>
+      <div class="mock">
+        <div class="tabs"><span>외솔 드롭</span><span class="on">외솔 DB</span></div>
+        <div style="font-size:14px;color:#64748b">아직 만든 표가 없습니다. 표 이름만 적고 만들면 됩니다.</div>
+      </div>
+      <p class="cap">바이브 코딩 w 외솔 카드의 탭. 외솔.한국/#db 로 들어오면 바로 이 탭이 열립니다</p>
+      <div class="tip"><b>로그인하지 않으면</b> 표를 만들 수 없습니다. 학생은 로그인할 필요가 없습니다. 학생은 선생님이 올린 앱 주소만 열면 됩니다.</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step" id="s2">
+    <div class="num">2</div>
+    <div>
+      <h2>표 이름을 적고 「표 만들기」를 누릅니다</h2>
+      <p>예: <code>5학년 1반 칭찬 포인트</code>. <b>컬럼(열)은 정하지 않습니다.</b> 챗GPT가 만드는 앱마다 기록 모양이 다르고, 선생님이 미리 설계할 수 없기 때문입니다. 첫 기록이 들어오면 그 모양대로 열이 자동으로 생깁니다.</p>
+      <p>처음 한 번은 "연락처·생년월일·건강·가정 정보는 넣지 않습니다"에 동의하는 확인란이 나옵니다. 계정당 한 번만 체크하면 됩니다.</p>
+      <div class="tip warn"><b>왜 개인정보를 막나요?</b> 표 주소를 아는 사람은 누구나 읽고 추가할 수 있습니다. 학생 앱이 로그인 없이 돌아가려면 이게 필요하고, 그래서 표에 넣을 수 있는 정보를 미리 제한합니다. 이름을 넣을지는 선생님 판단에 맡기지만, 번호나 별명을 권합니다.</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="step" id="s3">
+    <div class="num">3</div>
+    <div>
+      <h2>「챗GPT용 복사」를 누릅니다</h2>
+      <p>표가 만들어지면 세 가지가 보입니다. <b>표 주소</b>, <b>교사 키</b>, 그리고 파란 <b>「챗GPT용 복사」</b> 버튼. 이 버튼 하나로 주소·키·연동 안내문이 한꺼번에 복사됩니다.</p>
+      <div class="mock">
+        <div class="field"><b>표 주소</b><code>https://oesol.dev/v1/t/k7m2p9x4q1wz</code><span class="btn">복사</span></div>
+        <div class="field"><b>교사 키</b><code>••••••••••••••••••••</code><span><span class="btn">보기</span> <span class="btn">복사</span></span></div>
+        <span class="big">📋 챗GPT용 복사</span>
+      </div>
+      <p class="cap">표 세부 화면. 큰 파란 버튼 하나면 됩니다</p>
+      <p>복사되는 안내문은 15줄짜리 문단입니다. 선생님이 읽을 필요는 없지만, 궁금하면 <a href="#api">개발자용 요약</a>에 내용이 있습니다. 안내문에는 버전(v1)이 붙어 있어 서비스가 바뀌어도 책과 연수 자료가 낡지 않습니다.</p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="step" id="s4">
+    <div class="num">4</div>
+    <div>
+      <h2>챗GPT 대화창에 붙여 넣고 한 줄을 덧붙입니다</h2>
+      <p>이미 만들어 둔 HTML 앱이 있다면 그 대화에 이어서 붙여 넣고 이렇게 씁니다.</p>
+      <pre><code>(붙여 넣은 안내문)
+
+위 안내대로 기록이 외솔 DB 표에 저장되게 바꿔 줘. 저장되면 "저장됨"이라고 표시해 줘.</code></pre>
+      <p>처음부터 만든다면 안내문 뒤에 원하는 앱을 설명합니다.</p>
+      <pre><code>(붙여 넣은 안내문)
+
+우리 반 칭찬 포인트 앱을 HTML 한 장으로 만들어 줘.
+번호(1~30)와 이유(배려·노력·발표·정리)를 고르고 「주기」를 누르면 위 표에 저장되고,
+아래에 번호별 합계가 보이게 해 줘.</code></pre>
+      <p>챗GPT가 HTML 파일을 줍니다. 파일로 내려받거나, 코드 전체를 복사해 둡니다.</p>
+      <div class="tip ok"><b>잘 안 되면</b> 오류 문구를 그대로 복사해 챗GPT에 붙이고 "이 오류가 나. 고쳐 줘"라고 하면 대부분 해결됩니다. 안내문을 다시 붙여 주는 것도 도움이 됩니다.</div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step" id="s5">
+    <div class="num">5</div>
+    <div>
+      <h2>받은 HTML을 「외솔 드롭」 탭에 올립니다</h2>
+      <p>같은 카드의 <b>외솔 드롭</b> 탭으로 가서 HTML 파일을 끌어다 놓고(또는 코드 붙여 넣기), 배포 주소를 정하고 <b>배포하기</b>를 누릅니다. <code>외솔.한국/우리반칭찬</code> 같은 주소가 나옵니다. 자세한 방법은 <a href="/drop/guide" target="_blank" rel="noreferrer">외솔 드롭 사용 안내</a>에 있습니다.</p>
+      <p>이 주소를 학생에게 알려 주면(QR, 칠판, 클래스룸) 학생이 누르는 기록이 표에 쌓입니다. 꼭 외솔 드롭이 아니어도 됩니다. 파일로 연 HTML(<code>file://</code>)이나 다른 곳에 올린 HTML에서도 그대로 동작합니다.</p>
+      <div class="tip"><b>컴퓨터에서 먼저 열어 보세요.</b> 내려받은 HTML을 더블클릭해 열고 기록을 하나 넣어 본 뒤, 외솔.한국 외솔 DB 탭에서 표를 열어 그 기록이 들어왔는지 확인하면 됩니다.</div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="step" id="s6">
+    <div class="num">6</div>
+    <div>
+      <h2>기록을 보고, 내려받고, 관리합니다</h2>
+      <p>외솔 DB 탭에서 표를 누르면 기록이 표로 보입니다. 열은 기록의 키를 모아 자동으로 만들어집니다. 최신 기록이 위에 옵니다.</p>
+      <ul class="plain">
+        <li><b>CSV 내려받기</b>: 엑셀에서 바로 열립니다(한글 깨지지 않음).</li>
+        <li><b>행 삭제</b>: 각 행 오른쪽 「삭제」. 장난 기록 하나를 지울 때.</li>
+        <li><b>쓰기 잠금</b>: 투표 마감, 장난 입력 차단. 읽기는 되고 추가·수정만 막힙니다. 언제든 풉니다.</li>
+        <li><b>표 비우기</b>: 기록만 모두 지우고 주소·키는 그대로. 새 학기 시작할 때.</li>
+        <li><b>표 삭제</b>: 주소·키·기록이 모두 사라집니다.</li>
+        <li><b>키 다시 발급</b>: 교사 키가 샌 것 같을 때. 이전 키는 즉시 무효가 됩니다.</li>
+        <li><b>새 주소로 바꾸기</b>: 표 주소가 샌 것 같을 때. 기록은 그대로 두고 주소만 바뀝니다(키도 함께 바뀜).</li>
+      </ul>
+      <div class="tip warn"><b>비우기·삭제는 되돌릴 수 없습니다.</b> 필요하면 먼저 CSV로 내려받으세요.</div>
+    </div>
+  </section>
+
+  <!-- 교사 키 -->
+  <section class="step" id="key">
+    <div class="num">🔑</div>
+    <div>
+      <h2>교사 키는 언제 필요한가요?</h2>
+      <p>표 주소만 알면 누구나 <b>읽고 추가</b>할 수 있습니다. <b>고치고 지우는</b> 것만 교사 키가 필요합니다. 학생 투표 앱은 키 없이 모든 기기에서 돌아가고, 선생님이 지우는 일은 외솔.한국 화면에서 로그인한 채로 하면 되니 대부분은 키를 신경 쓸 일이 없습니다.</p>
+      <table class="api">
+        <tr><th style="width:42%">상황</th><th>방법</th><th style="width:16%">키</th></tr>
+        <tr><td>잘못 들어간 기록 하나 지우기</td><td>외솔.한국 외솔 DB 탭에서 행 삭제</td><td>불필요</td></tr>
+        <tr><td>선생님만 여는 앱(점수 관리, 출결 체크)</td><td>챗GPT가 키를 HTML 안에 넣어 줍니다. 선생님의 어느 기기에서든 수정·삭제</td><td>HTML 안에</td></tr>
+        <tr><td>학생과 선생님이 같은 앱을 쓰는데 선생님만 지워야 할 때</td><td>챗GPT에 "교사용 화면은 따로 한 장 만들어 줘". 학생용(추가만)과 교사용(키 포함) 두 장을 외솔 드롭에 올립니다</td><td>교사용에만</td></tr>
+      </table>
+      <div class="tip"><b>키가 HTML 안에 있으면</b> 그 HTML을 여는 사람은 소스 보기로 키를 볼 수 있습니다. 그래서 안내문은 "학생이 여는 앱에는 키를 넣지 마라"고 챗GPT에 말해 둡니다. 혹시 샜더라도 피해는 그 표 하나에 그치고, 「키 다시 발급」으로 끝납니다. 표에 개인정보를 못 넣게 해 둔 이유가 여기 있습니다.</div>
+      <div class="tip warn"><b>교실 공용 컴퓨터</b>에서 교사용 앱을 열었다면, 끝나고 브라우저 기록을 지우거나 그냥 「키 다시 발급」을 누르세요.</div>
+    </div>
+  </section>
+
+  <!-- 바이브 코딩 첫걸음 -->
+  <section class="ideas" id="first">
+    <h2>바이브 코딩 첫걸음: 이렇게 말해 보세요</h2>
+    <p style="margin:0">바이브 코딩은 "코드를 짜는 것"이 아니라 "원하는 것을 정확히 말하는 것"입니다. 아래 프롬프트는 모두 안내문을 먼저 붙여 넣은 뒤에 이어서 씁니다. 화면 모양, 색, 글자 크기 같은 것은 나중에 "더 크게", "파란색으로" 식으로 고쳐 가면 됩니다.</p>
+    <div class="prompts">
+      <div><b>칭찬 포인트</b><p>우리 반 칭찬 포인트 앱을 HTML 한 장으로 만들어 줘. 번호(1~30)와 이유(배려·노력·발표·정리)를 고르고 「주기」를 누르면 위 표에 저장돼. 아래에 번호별 합계를 큰 숫자로 보여 주고, 10초마다 새로 읽어서 갱신해 줘.</p></div>
+      <div><b>학급 투표</b><p>학급 투표 앱을 만들어 줘. 위에 투표 제목과 선택지 4개를 선생님이 적을 수 있고, 학생은 번호와 선택지를 고르고 제출하면 표에 저장돼. 결과 화면은 막대그래프로, 10초마다 새로 읽어 줘. 한 번호는 한 번만 투표되게 해 줘.</p></div>
+      <div><b>희망 조사</b><p>현장체험학습 희망 조사 페이지를 만들어 줘. 번호, 희망 장소(3개 중 선택), 한 줄 이유를 적어 제출하면 표에 저장돼. 제출하면 "제출됐습니다"만 보이고 다른 학생 답은 보이지 않게 해 줘.</p></div>
+      <div><b>독서 기록</b><p>독서 기록장을 만들어 줘. 번호, 책 제목, 별점(1~5), 한 줄 느낌을 적어 저장해. 아래에 최근 기록 20개를 카드로 보여 주고, 번호를 누르면 그 학생 기록만 모아 보이게 해 줘.</p></div>
+      <div><b>모둠 점수판</b><p>모둠 점수판을 만들어 줘. 모둠 6개, 각 모둠에 +1 −1 버튼. 누를 때마다 표에 (모둠, 점수변화)가 저장되고, 화면은 표를 읽어 모둠별 합계를 크게 보여 줘. 이건 선생님만 쓰는 앱이야.</p></div>
+      <div><b>이미 만든 앱에 저장 붙이기</b><p>위 안내대로 이 앱의 기록이 외솔 DB 표에 저장되게 바꿔 줘. 저장되면 "저장됨"이라고 표시하고, 실패하면 "저장 실패, 다시 시도"를 보여 주되 입력은 지우지 마. 페이지를 열 때 표를 읽어 기존 기록도 보여 줘.</p></div>
+    </div>
+    <div class="tip ok" style="margin-top:14px"><b>고치는 법도 말로.</b> "제출 버튼을 더 크게", "합계가 높은 순서로 정렬", "번호 대신 별명을 입력받게" 처럼 한 번에 하나씩 요청하면 결과가 안정적입니다. 고친 HTML은 외솔 드롭에서 「이 페이지 교체」로 같은 주소에 다시 올립니다.</div>
+  </section>
+
+  <!-- 개발자용 -->
+  <section class="step" id="api" style="margin-top:48px">
+    <div class="num">⚙️</div>
+    <div>
+      <h2>개발자용 요약 (안내문에 들어 있는 내용)</h2>
+      <p>표 하나가 주소 하나입니다. 엔드포인트는 네 개뿐입니다. 모든 응답에 CORS가 열려 있어 <code>file://</code>로 연 HTML과 어느 배포 주소에서도 호출됩니다.</p>
+      <table class="api">
+        <tr><th>동작</th><th>요청</th><th>키</th><th>설명</th></tr>
+        <tr><td>읽기</td><td><code>GET 표주소</code></td><td>없음</td><td>모든 행을 JSON 배열로. <code>?since={row}</code> 그 뒤 행만. <code>?format=csv</code>. ETag/304 지원</td></tr>
+        <tr><td>추가</td><td><code>POST 표주소</code></td><td>없음</td><td>본문 JSON 객체 하나 → <code>{"ok":true,"row":23,"at":"2026-10-21T09:30:12+09:00"}</code></td></tr>
+        <tr><td>고치기</td><td><code>PUT 표주소/{row}</code></td><td><code>X-Oesol-Key</code></td><td>본문으로 행 전체를 교체</td></tr>
+        <tr><td>지우기</td><td><code>DELETE 표주소/{row}</code></td><td><code>X-Oesol-Key</code></td><td>행 하나 삭제. 표 전체 비우기는 화면에서만</td></tr>
+      </table>
+      <pre><code>// 추가
+await fetch(표주소, { method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ 번호: 7, 이유: "배려", 점수: 1 }) });
+
+// 읽기 (23번 이후만)
+const rows = await (await fetch(표주소 + "?since=23")).json();
+// [{ row: 24, at: "2026-10-21T09:31:00+09:00", 번호: 7, 이유: "배려", 점수: 1 }, ...]</code></pre>
+      <ul class="plain">
+        <li>실패 응답은 항상 <code>{"ok":false,"error":"이유"}</code>. 400 형식 오류, 401 키 없음, 403 키 불일치, 404 없는 표·행, 409 표 가득 참, 423 잠김, 429 속도 제한.</li>
+        <li>컬럼은 없습니다. 객체의 키가 열 이름입니다. <code>row</code>, <code>at</code>은 서버가 붙이는 예약어입니다.</li>
+        <li>한도: 표당 20,000행, 행당 2KB, 교사당 50표, 표당 분당 120회 추가. 전화번호·주민번호 형식 값은 서버가 거부합니다.</li>
+        <li>마지막으로 쓰거나 읽은 뒤 400일이 지나면 자동 삭제됩니다. 30일 전에 메일을 보냅니다.</li>
+        <li>교사 키는 서버에 저장하지 않고 계산합니다. 「키 다시 발급」은 이전 키를 즉시 무효로 만듭니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="faq" id="faq">
+    <h2>자주 묻는 질문</h2>
+
+    <details>
+      <summary>구글 시트나 Firebase 대신 이걸 써야 하는 이유가 있나요?</summary>
+      <p>설정 단계가 없다는 것 하나입니다. 구글 시트는 앱스 스크립트 배포 5단계를, Firebase는 콘솔과 보안 규칙을 거쳐야 합니다. 외솔 DB는 버튼 하나로 끝나고, 교육청 서비스라 책에 실어도 오래 유지됩니다. 대신 학급 규모 기록을 위한 것이라 한도가 있습니다. 한도를 넘는 일(학교 전체 설문, 수천 명 데이터)은 구글 시트나 다른 DB 서비스를 쓰세요.</p>
+    </details>
+
+    <details>
+      <summary>학생 이름을 넣어도 되나요?</summary>
+      <p>선생님 판단에 맡깁니다. 표 주소를 아는 사람은 누구나 읽을 수 있으니 번호나 별명을 권합니다. 연락처·생년월일·건강·가정 정보는 어떤 경우에도 넣지 않습니다. 전화번호·주민번호 모양의 값은 서버가 거부하지만, 이건 보조 장치일 뿐 선생님의 동의가 1차 안전장치입니다.</p>
+    </details>
+
+    <details>
+      <summary>학생이 장난으로 아무 값이나 넣으면요?</summary>
+      <p>행 삭제로 지우거나, 「쓰기 잠금」으로 잠시 막으세요. 챗GPT에게 "번호는 1~30만 받게 해 줘", "한 번호는 하루 한 번만" 처럼 앱 쪽에서 막아 달라고 할 수도 있습니다. 주소가 널리 샌 것 같으면 「새 주소로 바꾸기」를 누르면 됩니다.</p>
+    </details>
+
+    <details>
+      <summary>교실 30명이 동시에 눌러도 괜찮나요?</summary>
+      <p>괜찮습니다. 표당 분당 120회까지 추가할 수 있고, 학교 공용 IP 하나에서 많은 요청이 와도 막지 않습니다. 10초마다 결과를 새로 읽는 화면은 <code>?since</code>를 쓰도록 안내문에 적혀 있어 가볍게 돌아갑니다.</p>
+    </details>
+
+    <details>
+      <summary>휴대폰에서도 되나요?</summary>
+      <p>학생이 앱을 쓰는 것은 휴대폰에서도 됩니다. 표를 만들고 관리하는 것도 휴대폰 브라우저에서 됩니다. 다만 챗GPT가 준 HTML을 외솔 드롭에 올리는 일은 컴퓨터에서 하는 것이 편합니다.</p>
+    </details>
+
+    <details>
+      <summary>표 주소가 한글이 아니네요?</summary>
+      <p>일부러 영문 주소(oesol.dev)를 씁니다. 챗GPT가 한글 도메인을 코드에 쓸 때 퓨니코드로 어긋나는 일을 피하기 위해서입니다. 이 주소는 사람이 아니라 코드가 부르는 쪽이고, 선생님이 보는 화면은 외솔.한국에 있습니다.</p>
+    </details>
+
+    <details>
+      <summary>교사 키를 잃어버렸어요.</summary>
+      <p>잃어버릴 수 없습니다. 외솔.한국 외솔 DB 탭에서 표를 열면 언제든 「보기」「복사」로 다시 볼 수 있습니다. 샌 것 같을 때만 「키 다시 발급」을 누르세요. 재발급하면 키를 넣어 둔 교사용 HTML은 새 키로 고쳐 다시 올려야 합니다.</p>
+    </details>
+
+    <details>
+      <summary>1년 뒤에도 남아 있나요?</summary>
+      <p>마지막으로 쓰거나 읽은 뒤 400일까지 남습니다. 학기 중에 쓰는 표는 계속 연장되는 셈입니다. 삭제 30일 전에 가입 메일로 안내가 가고, 그 전에 표를 한 번 열기만 해도 연장됩니다. 학년이 끝나면 CSV로 내려받아 두는 것을 권합니다.</p>
+    </details>
+
+    <details>
+      <summary>외솔.한국 계정이 뚫리면 표도 위험한가요? 반대는요?</summary>
+      <p>둘은 완전히 분리된 서버와 저장소입니다. 외솔 DB는 외솔.한국의 계정·단축 주소·학생 글에 접근할 정보를 갖고 있지 않고, 외솔.한국과 공유하는 것은 "로그인했는지 확인" 하나뿐입니다. 최악의 경우(표 주소와 교사 키가 둘 다 샘)에도 피해는 그 표 하나가 지워지거나 엉뚱한 값이 들어가는 것에 그칩니다.</p>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    외솔.한국 · 바이브 코딩 w 외솔 · 외솔 DB 베타 · 안내문 v1 ·
+    <a href="/#db">외솔 DB 열기</a> · <a href="/drop/guide">외솔 드롭 사용 안내</a>
+  </div>
+</footer>
+
+</body>
+</html>

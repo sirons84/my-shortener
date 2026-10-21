@@ -1,7 +1,7 @@
 /* 파일 경로: app/page.js — 서버 컴포넌트. 추천도서를 서버에서 미리 조회해
    첫 화면부터 최신 데이터가 보이도록 한다 (예전 폴백 도서 깜빡임 방지) */
 import HomeMain from './HomeMain';
-import DropMain from './DropMain';
+import VibeMain from './VibeMain'; // 바이브 코딩 w 외솔: 외솔 드롭 / 외솔 DB 탭
 import HomeStats from '../components/HomeStats';
 import BookRecommendations from '../components/BookRecommendations';
 import { getRecommendedBooks } from '../lib/books';
@@ -15,7 +15,7 @@ export default async function Home() {
   return (
     <>
       <HomeMain />
-      <DropMain />
+      <VibeMain />
       <HomeStats />
       <BookRecommendations books={books} />
     </>

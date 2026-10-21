@@ -1,0 +1,449 @@
+/* 파일 경로: app/vibe.module.css — 「바이브 코딩 w 외솔」 카드의 탭과 외솔 DB 탭 전용 스타일
+   (공통 카드·버튼은 page.module.css 를 그대로 쓴다) */
+
+/* ── 탭 ─────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 6px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.tab:hover {
+  color: #0f172a;
+}
+
+.tabActive {
+  background: #fff;
+  color: #0984e3;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.tabBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #0984e3;
+  color: #fff;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.intro {
+  margin: -12px 0 20px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #636e72;
+  word-break: keep-all;
+}
+
+.intro strong {
+  color: #2d3436;
+}
+
+/* ── 공통 작은 요소 ────────────────────────────────── */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btnPrimary {
+  composes: btn;
+  border-color: transparent;
+  background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(9, 132, 227, 0.3);
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(135deg, #0769b5 0%, #0984e3 100%);
+}
+
+.btnDanger {
+  composes: btn;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.btnDanger:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.btnBig {
+  composes: btnPrimary;
+  padding: 16px 26px;
+  font-size: 17px;
+  border-radius: 14px;
+}
+
+.error {
+  margin: 14px 0 0;
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+}
+
+.notice {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #7c2d12;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.noticeOk {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #064e3b;
+}
+
+/* ── 표 목록 ───────────────────────────────────────── */
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.card {
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 6px 18px rgba(9, 132, 227, 0.12);
+  transform: translateY(-1px);
+}
+
+.cardName {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  word-break: keep-all;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.lockBadge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.createBox {
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px dashed #93c5fd;
+  background: #f1f8ff;
+}
+
+.createTitle {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #0984e3;
+  box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.15);
+}
+
+.consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.consent input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ── 표 세부 ───────────────────────────────────────── */
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 0 0 18px;
+}
+
+.backBtn {
+  composes: btn;
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
+.detailName {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  word-break: keep-all;
+}
+
+.renameBtn {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 76px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.fieldValue {
+  font-family: ui-monospace, Consolas, "D2Coding", monospace;
+  font-size: 14px;
+  color: #0f172a;
+  word-break: break-all;
+  min-width: 0;
+}
+
+.fieldValueMuted {
+  color: #94a3b8;
+  letter-spacing: 2px;
+}
+
+.copyRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+
+.copyHint {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #475569;
+  word-break: keep-all;
+}
+
+.copyHint code {
+  font-family: inherit;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 14px 0;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.toolbarSpacer {
+  flex: 1;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 480px;
+}
+
+.table th,
+.table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.table tbody tr:hover td {
+  background: #f8fbff;
+}
+
+.cellRow {
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.cellAt {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.rowDel {
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.rowDel:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.empty {
+  padding: 36px 16px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.moreRow {
+  text-align: center;
+  padding: 12px;
+}
+
+.footnote {
+  margin: 18px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+@media (max-width: 640px) {
+  .field {
+    grid-template-columns: 1fr;
+  }
+  .tab {
+    padding: 9px 14px;
+    font-size: 14px;
+  }
+}

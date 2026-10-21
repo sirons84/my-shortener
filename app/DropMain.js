@@ -22,7 +22,12 @@ const expiryOptions = [
   { value: "forever", label: "무제한 (영구)" },
 ];
 
-export default function DropMain() {
+/**
+ * @param {{ embedded?: boolean }} props
+ *   embedded: 「바이브 코딩 w 외솔」 카드의 탭 안에 들어갈 때 true.
+ *             카드 껍데기(wrapper/section/제목)를 빼고 본문만 그린다.
+ */
+export default function DropMain({ embedded = false } = {}) {
   const supabase = createClientComponentClient();
 
   const [user, setUser] = useState(null);
@@ -190,23 +195,8 @@ export default function DropMain() {
     }
   };
 
-  return (
-    <div className={styles.wrapper}>
-      {/* 사이드바 자리까지 포함해 한 줄 전체를 쓰는 넓은 카드 */}
-      <section className={`${styles.mainContent} ${styles.mainContentWide}`}>
-        <h2 className={styles.title}>
-          외솔 드롭 <span className={styles.betaBadge}>베타</span>
-          <Link
-            href="/drop/guide"
-            target="_blank"
-            rel="noreferrer"
-            className={styles.guideBtn}
-            aria-label="외솔 드롭 사용 안내 (새 창)"
-          >
-            📖 사용안내
-          </Link>
-        </h2>
-
+  const body = (
+    <>
         <p className={styles.dropIntro}>
           <strong>HTML 파일 한 장</strong>을 아래에 끌어다 놓으면,
           <strong> 외솔.한국 주소로 바로 배포</strong>해 드립니다.
@@ -352,6 +342,28 @@ export default function DropMain() {
           베타 기능입니다. 올린 페이지는{" "}
           <Link href="/dashboard" className={styles.dropFootnoteLink}>대시보드</Link>에서 바꾸거나 내릴 수 있습니다.
         </p>
+    </>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <div className={styles.wrapper}>
+      {/* 사이드바 자리까지 포함해 한 줄 전체를 쓰는 넓은 카드 */}
+      <section className={`${styles.mainContent} ${styles.mainContentWide}`}>
+        <h2 className={styles.title}>
+          외솔 드롭 <span className={styles.betaBadge}>베타</span>
+          <Link
+            href="/drop/guide"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.guideBtn}
+            aria-label="외솔 드롭 사용 안내 (새 창)"
+          >
+            📖 사용안내
+          </Link>
+        </h2>
+        {body}
       </section>
     </div>
   );
