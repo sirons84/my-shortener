@@ -18,10 +18,15 @@
 }
 
 html {
-  /* 3. (!! 핵심 수정 !!) 
-     전체 폰트 및 rem 단위를 90%로 스케일 다운합니다. 
+  /* 3. (!! 핵심 수정 !!)
+     전체 폰트 및 rem 단위를 90%로 스케일 다운합니다.
   */
   font-size: 90%;
+
+  /* html 에 배경색이 없으면 body 의 배경이 캔버스로 넘어가 버려서,
+     body::before 의 mix-blend-mode(오버레이)가 섞일 대상을 잃고 그냥 검정 무늬가 된다.
+     여기 색을 한 줄 두어 body 배경을 body 에 남겨 둔다. */
+  background-color: var(--color-bg-gradient-start);
 }
 
 html,
@@ -54,10 +59,13 @@ body::before {
   content: '';
   position: fixed; 
   inset: 0; 
-  background-image: url('/images/character.png');
-  background-repeat: repeat;
-  mix-blend-mode: overlay; 
-  opacity: 0.1; 
+  /* 한글 자모 무늬 — 피그마 시안(image 46)과 같은 설정: 화면 맞춤, 오버레이 50%, 스크롤에 고정 */
+  background-image: url('/images/pattern.png');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
   z-index: -1; 
   pointer-events: none;
 }
