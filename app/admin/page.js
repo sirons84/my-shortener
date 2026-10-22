@@ -5,13 +5,21 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts';
 import { isAdmin } from '../../lib/constants';
 import BookAwardBadge from '../../components/BookAwardBadge';
 
 // 리본 문구 원클릭 입력 칩
 const RIBBON_PRESETS = ['교육 베스트 1위', '사회 정치 TOP20', '종합 베스트 1위', '주간 베스트 1위'];
+
+// 바이트 → 사람이 읽는 단위 (드롭 총 용량 카드)
+function formatBytes(n) {
+  if (n === undefined || n === null) return '-';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function AdminPage() {
   const supabase = createClientComponentClient();
@@ -157,37 +165,82 @@ export default function AdminPage() {
         <Link href="/" style={{ fontSize: '14px', color: '#2563eb', textDecoration: 'none' }}>← 메인으로</Link>
       </div>
 
-      {/* 요약 카드 4개 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-        {[
-          { label: '전체 URL', value: stats?.totalUrls ?? '-', color: '#2563eb' },
-          { label: '전체 사용자', value: stats?.totalUsers ?? '-', color: '#7c3aed' },
-          { label: '전체 클릭', value: (stats?.totalClicks ?? 0).toLocaleString(), color: '#059669' },
-          { label: '오늘 생성', value: stats?.urlsToday ?? '-', color: '#d97706' },
-        ].map(({ label, value, color }) => (
-          <div key={label} style={{ backgroundColor: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', borderLeft: `4px solid ${color}` }}>
-            <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>{label}</p>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', color }}>{value}</p>
+      {/* 요약 카드: 단축 URL / 외솔 드롭 / 외솔 DB */}
+      {[
+        {
+          title: '단축 URL',
+          cards: [
+            { label: '전체 URL', value: stats?.totalUrls ?? '-', color: '#2563eb' },
+            { label: '전체 사용자', value: stats?.totalUsers ?? '-', color: '#7c3aed' },
+            { label: '전체 클릭', value: (stats?.totalClicks ?? 0).toLocaleString(), color: '#059669' },
+            { label: '오늘 생성', value: stats?.urlsToday ?? '-', color: '#d97706' },
+          ],
+        },
+        {
+          title: '외솔 드롭',
+          cards: [
+            { label: '전체 배포', value: stats?.drops?.total ?? '-', color: '#2563eb' },
+            { label: '오늘 배포', value: stats?.drops?.today ?? '-', color: '#d97706' },
+            { label: '총 조회', value: (stats?.drops?.views ?? 0).toLocaleString(), color: '#059669' },
+            { label: '총 용량', value: formatBytes(stats?.drops?.bytes), color: '#7c3aed' },
+          ],
+        },
+        {
+          title: '외솔 DB',
+          note: stats && !stats.db ? '외솔 DB 서버가 응답하지 않습니다.' : null,
+          cards: [
+            { label: '전체 표', value: stats?.db?.tables ?? '-', color: '#2563eb' },
+            { label: '전체 기록(행)', value: (stats?.db?.rows ?? 0).toLocaleString(), color: '#059669' },
+            { label: '사용 교사', value: stats?.db?.owners ?? '-', color: '#7c3aed' },
+            { label: '오늘 기록', value: stats?.db?.rowsToday ?? '-', color: '#d97706' },
+          ],
+        },
+      ].map(({ title, note, cards }) => (
+        <div key={title} style={{ marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: '#6b7280', marginBottom: '10px' }}>
+            {title}
+            {note && <span style={{ marginLeft: '10px', fontWeight: 'normal', color: '#dc2626' }}>{note}</span>}
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            {cards.map(({ label, value, color }) => (
+              <div key={label} style={{ backgroundColor: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', borderLeft: `4px solid ${color}` }}>
+                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>{label}</p>
+                <p style={{ fontSize: '28px', fontWeight: 'bold', color }}>{value}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      {/* 일별 URL 생성 차트 */}
-      <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>최근 30일 URL 생성 추이</h2>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={stats?.dailyUrls || []} margin={{ top: 0, right: 4, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={4} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-            <Tooltip
-              formatter={(v) => [`${v}개`, '생성']}
-              labelFormatter={(l) => `날짜: ${l}`}
-              contentStyle={{ fontSize: '13px' }}
-            />
-            <Bar dataKey="count" fill="#2563eb" radius={[3, 3, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* 최근 30일 추이: 생성 수(URL·드롭·DB 표) / 외솔 DB 기록 수 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px', marginBottom: '32px', marginTop: '8px' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>최근 30일 생성 추이</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={stats?.daily || []} margin={{ top: 0, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={4} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v, name) => [`${v}개`, name]} labelFormatter={(l) => `날짜: ${l}`} contentStyle={{ fontSize: '13px' }} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
+              <Bar dataKey="urls" name="단축 URL" fill="#2563eb" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="drops" name="외솔 드롭" fill="#d97706" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="dbTables" name="외솔 DB 표" fill="#7c3aed" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>최근 30일 외솔 DB 기록 추이</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={stats?.daily || []} margin={{ top: 0, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} interval={4} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v) => [`${v}건`, '기록']} labelFormatter={(l) => `날짜: ${l}`} contentStyle={{ fontSize: '13px' }} />
+              <Bar dataKey="dbRows" name="기록" fill="#059669" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* 월간 보고서 다운로드 */}
@@ -375,7 +428,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                {['이메일', '가입일', 'URL 수', '총 클릭'].map(h => (
+                {['이메일', '가입일', 'URL 수', '총 클릭', '드롭 수', '드롭 조회', 'DB 표 수'].map(h => (
                   <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: '600', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -397,11 +450,16 @@ export default function AdminPage() {
                   </td>
                   <td style={{ padding: '10px 12px', fontWeight: '600', color: '#2563eb' }}>{u.urlCount}</td>
                   <td style={{ padding: '10px 12px', color: '#6b7280' }}>{u.totalClicks.toLocaleString()}</td>
+                  <td style={{ padding: '10px 12px', fontWeight: '600', color: '#d97706' }}>{u.dropCount ?? 0}</td>
+                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{(u.dropViews ?? 0).toLocaleString()}</td>
+                  <td style={{ padding: '10px 12px', fontWeight: '600', color: '#7c3aed' }}>
+                    {stats?.db ? (stats.db.byOwner?.[u.id]?.tables ?? 0) : '-'}
+                  </td>
                 </tr>
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: '30px', textAlign: 'center', color: '#9ca3af' }}>검색 결과가 없습니다.</td>
+                  <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: '#9ca3af' }}>검색 결과가 없습니다.</td>
                 </tr>
               )}
             </tbody>
