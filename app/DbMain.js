@@ -59,7 +59,7 @@ export default function DbMain() {
 
   const [user, setUser] = useState(undefined); // undefined = 아직 모름
   const [tables, setTables] = useState([]);
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(5); // null 이면 무제한(관리자)
   const [consented, setConsented] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
 
@@ -115,7 +115,7 @@ export default function DbMain() {
       const data = await api("");
       setTables(data.tables || []);
       setConsented(!!data.consented);
-      if (data.limit) setLimit(data.limit);
+      if (data.limit !== undefined) setLimit(data.limit);
       setUnavailable(false);
     } catch (e) {
       if (e.status === 503 || e.status === 502) setUnavailable(true);
@@ -444,7 +444,7 @@ export default function DbMain() {
   }
 
   // 표 목록
-  const atLimit = tables.length >= limit;
+  const atLimit = limit !== null && tables.length >= limit;
 
   return (
     <>
@@ -471,7 +471,7 @@ export default function DbMain() {
       )}
 
       <form onSubmit={handleCreate} className={vibe.createBox}>
-        <p className={vibe.createTitle}>새 표 만들기 <span style={{ fontWeight: 500, color: "#64748b" }}>({tables.length} / {limit})</span></p>
+        <p className={vibe.createTitle}>새 표 만들기 <span style={{ fontWeight: 500, color: "#64748b" }}>({tables.length} / {limit === null ? "무제한" : limit})</span></p>
         <div className={vibe.row}>
           <input
             className={vibe.input}
