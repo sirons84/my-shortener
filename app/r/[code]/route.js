@@ -77,7 +77,7 @@ async function serveDropOrRedirect(code, homeUrl) {
 
   const { data } = await supabaseAdmin
     .from('drops')
-    .select('code, title, is_blocked, expires_at')
+    .select('code, title, is_blocked, expires_at, updated_at')
     .eq('code', code)
     .maybeSingle();
 
@@ -89,7 +89,7 @@ async function serveDropOrRedirect(code, homeUrl) {
   supabaseAdmin.rpc('increment_drop_view', { p_code: code }).then(() => {}, () => {});
 
   return new NextResponse(
-    buildDropShellHtml({ code: data.code, title: data.title, origin: dropOrigin }),
+    buildDropShellHtml({ code: data.code, title: data.title, origin: dropOrigin, version: data.updated_at }),
     {
       status: 200,
       headers: {
