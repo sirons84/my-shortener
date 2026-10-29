@@ -201,3 +201,10 @@
     font-size: 23px;
   }
 }
+
+.stepHint {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  white-space: nowrap;
+}

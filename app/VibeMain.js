@@ -59,8 +59,8 @@ export default function VibeMain() {
         </h2>
 
         <p className={vibe.intro}>
-          만든 HTML 한 장은 <strong>누리집 펴내기</strong>로 한글 주소에 올리고,
-          그 누리집이 남기는 기록은 <strong>기록 곳간</strong>에 쌓습니다.
+          만든 HTML 한 장은 <strong>누리집 펴내기</strong>(홈페이지 배포)로 한글 주소에 올리고,
+          그 누리집이 남기는 기록은 <strong>기록 곳간</strong>(클라우드 DB)에 쌓습니다.
         </p>
 
         <div className={vibe.tabs} role="tablist" aria-label="말로 짓는 누리집 도구">

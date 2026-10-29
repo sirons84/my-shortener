@@ -1,5 +1,5 @@
 /* 파일 경로: app/DbMain.js — 「말로 짓는 누리집」 카드의 기록 곳간 탭
-   표 목록 → 표 세부(주소·교사 키·챗GPT용 복사·기록 보기·CSV·잠금·재발급·삭제).
+   표 목록 → 표 세부(주소·교사 키·AI에게 전달·기록 보기·CSV·잠금·재발급·삭제).
    모든 요청은 본체 /api/db/* 로 가고, 본체가 로그인 확인 뒤 기록 곳간 서버로 중계한다. */
 "use client";
 
@@ -191,7 +191,7 @@ export default function DbMain() {
       setDetail({ table: data.table, rows: [], hasMore: false });
       setSelectedId(data.table.id);
       setShowKey(false);
-    }, "표를 만들었습니다. 「챗GPT용 복사」를 눌러 시작하세요.");
+    }, "표를 만들었습니다. 「AI에게 전달」을 눌러 시작하세요.");
   };
 
   const patch = (action, extra = {}, okMsg) =>
@@ -295,8 +295,8 @@ export default function DbMain() {
     return (
       <>
         <p className={vibe.copyHint}>
-          <strong>기록 곳간</strong>은 선생님이 챗GPT로 만든 HTML 앱이 기록을 저장하고 읽어 오는 곳입니다.
-          버튼 하나로 <strong>표</strong>를 만들면 표 주소와 안내문이 나오고, 그걸 챗GPT에 붙이면 끝입니다.
+          <strong>기록 곳간</strong>은 선생님이 AI로 만든 HTML 앱이 기록을 저장하고 읽어 오는 곳, 쉽게 말해 선생님용 클라우드 DB입니다.
+          버튼 하나로 <strong>표</strong>를 만들면 표 주소와 안내문이 나오고, 그걸 AI 대화창에 붙이면 끝입니다.
           가입도, API 키 발급도, 코드 복사도 없습니다.
         </p>
         <div className={vibe.row}>
@@ -363,15 +363,15 @@ export default function DbMain() {
 
         <div className={vibe.copyRow}>
           <button type="button" className={vibe.btnBig} onClick={() => doCopy("guide", guideText)}>
-            {copied === "guide" ? "✅ 복사됐습니다" : "📋 챗GPT용 복사"}
+            {copied === "guide" ? "✅ 복사됐습니다" : "📋 AI에게 전달"}
           </button>
-          <span style={{ fontSize: 14, color: "#64748b" }}>표 주소 + 교사 키 + 연동 안내문을 한 번에</span>
+          <span style={{ fontSize: 14, color: "#64748b" }}>표 주소 + 교사 키 + 연동 안내문을 복사합니다 · 챗GPT·클로드·제미나이 대화창에 붙여 넣으세요</span>
         </div>
         <p className={vibe.copyHint}>
-          챗GPT 대화창에 붙여 넣고 한 줄만 덧붙이세요.{" "}
+          AI 대화창에 붙여 넣고 한 줄만 덧붙이세요.{" "}
           <code>{DB_PROMPT_EXAMPLES[0]}</code>
           {" "}받은 HTML 을 <strong>누리집 펴내기</strong> 탭에 올리면 기록이 이 표에 쌓입니다.
-          학생이 쓰는 앱이라면 안내문대로 챗GPT가 키를 넣지 않은 앱을 만들어 줍니다.
+          학생이 쓰는 앱이라면 안내문대로 AI가 키를 넣지 않은 앱을 만들어 줍니다.
         </p>
 
         <div className={vibe.toolbar}>

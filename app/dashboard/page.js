@@ -629,7 +629,7 @@ export default function Dashboard() {
       {tab === 'db' && (
         <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', backgroundColor: '#fff' }}>
           <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#6b7280', lineHeight: 1.7 }}>
-            챗GPT로 만든 HTML 앱이 기록을 저장하는 표입니다. 표를 만들고 「챗GPT용 복사」를 눌러 챗GPT에 붙이면 끝입니다.{' '}
+            AI로 만든 HTML 앱이 기록을 저장하는 표(클라우드 DB)입니다. 표를 만들고 「AI에게 전달」을 눌러 챗GPT·클로드·제미나이에 붙이면 끝입니다.{' '}
             <Link href="/db/guide" target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontWeight: 600 }}>사용안내 ↗</Link>
           </p>
           <DbMain />

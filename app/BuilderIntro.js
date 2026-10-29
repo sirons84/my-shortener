@@ -14,6 +14,7 @@ const STEPS = [
   {
     no: "2",
     name: "누리집 펴내기",
+    hint: "홈페이지 배포",
     tone: "publish",
     desc: "받은 파일을 끌어다 놓으면 한글 주소가 생깁니다. 학생·학부모는 로그인 없이 주소만 열면 됩니다.",
     example: "외솔.한국/우리반점수",
@@ -21,10 +22,11 @@ const STEPS = [
   {
     no: "3",
     name: "기록 곳간",
+    hint: "클라우드 DB",
     tone: "store",
     optional: true,
     desc: "점수·투표·응답처럼 남겨야 할 기록이 있을 때 붙입니다. 새로고침해도, 다른 기기에서도 그대로 남습니다.",
-    example: "「챗GPT용 복사」 → 대화창에 붙여 넣기",
+    example: "「AI에게 전달」 → 대화창에 붙여 넣기",
   },
 ];
 
@@ -57,6 +59,7 @@ export default function BuilderIntro() {
               <div className={intro.stepHead}>
                 <span className={intro.no}>{s.no}</span>
                 <span className={intro.stepName}>{s.name}</span>
+                {s.hint && <span className={intro.stepHint}>{s.hint}</span>}
                 {s.optional && <span className={intro.optional}>필요할 때만</span>}
               </div>
               <p className={intro.desc}>{s.desc}</p>
