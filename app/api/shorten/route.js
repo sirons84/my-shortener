@@ -3,7 +3,7 @@ import { randomInt } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../../../lib/supabaseAdmin';
 import { checkUrlSafety } from '../../../lib/urlSafety';
-import { validateCustomCode, getCreationLimit, isAdmin } from '../../../lib/constants';
+import { validateCustomCode, getLimits, isAdmin } from '../../../lib/constants';
 import { rateLimit, getClientIp } from '../../../lib/rateLimit';
 
 export async function POST(request) {
@@ -81,12 +81,11 @@ export async function POST(request) {
         .eq('user_id', user.id);
 
       if (!countError) {
-        const userRegion = user.user_metadata?.region || "기타";
-        const limit = getCreationLimit(user.email, user.user_metadata?.region);
+        const { label, urls: limit } = getLimits(user);
 
         if (limit !== null && count >= limit) {
           return NextResponse.json(
-            { error: `생성 한도를 초과했습니다. (${userRegion}: 최대 ${limit}개)` }, 
+            { error: `생성 한도를 초과했습니다. (${label} 등급: 최대 ${limit}개)` }, 
             { status: 403 }
           );
         }

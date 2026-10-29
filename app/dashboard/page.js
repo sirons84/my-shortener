@@ -388,7 +388,7 @@ export default function Dashboard() {
         </div>
         {user && <p style={{ color: '#4b5563' }}>안녕하세요, <strong>{user.email}</strong>님</p>}
         {user && !loading && (() => {
-          const limit = getCreationLimit(user.email, user.user_metadata?.region);
+          const limit = getCreationLimit(user);
           if (limit === null) {
             return (
               <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '6px' }}>

@@ -1,6 +1,6 @@
 // 누리집 펴내기(베타) API — 내 드롭 목록 / 펴내기(교체) / 내리기
 //
-// 계정당 펴내기 가능 개수는 getDropLimit 로 정한다(@usedu.ai.kr 2개, 그 외 1개, 관리자 무제한, 예외 계정은 DROP_LIMIT_OVERRIDES).
+// 계정당 펴내기 가능 개수는 등급(lib/constants.js 의 TIERS·getLimits)으로 정한다.
 // 주소는 단축 주소와 같은 이름 공간을 쓰므로 urls 쪽도 함께 확인한다.
 
 import { NextResponse } from 'next/server';
@@ -47,7 +47,7 @@ export async function GET(req) {
 
   return NextResponse.json({
     drops: data || [],
-    limit: getDropLimit(user.email),
+    limit: getDropLimit(user),
     enabled: !!getDropOrigin(),
   });
 }
@@ -126,7 +126,7 @@ export async function POST(req) {
     null;
 
   if (!target) {
-    const limit = getDropLimit(user.email);
+    const limit = getDropLimit(user);
     if (limit !== null && (mine || []).length >= limit) {
       return NextResponse.json(
         { error: `펴낼 수 있는 누리집을 모두 사용했습니다. (최대 ${limit}개) 기존 페이지를 교체하거나 내려주세요.` },

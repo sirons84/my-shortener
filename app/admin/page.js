@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts';
-import { isAdmin } from '../../lib/constants';
+import { isAdmin, TIERS, TIER_ORDER } from '../../lib/constants';
 import BookAwardBadge from '../../components/BookAwardBadge';
 
 // 리본 문구 원클릭 입력 칩
@@ -19,6 +19,104 @@ function formatBytes(n) {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// 한도 숫자 표기 (null = 무제한)
+function fmtLimit(v) { return v === null || v === undefined ? '무제한' : String(v); }
+
+// 사용자 목록의 「등급」「한도」 칸. 등급 select + 개별 한도 입력(빈칸 = 등급 기본, "무제한" = 무제한)
+function TierCell({ user, token, onSaved }) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [draft, setDraft] = useState({ urls: '', drops: '', db: '' });
+  const admin = isAdmin(user.email);
+  const base = TIERS[user.tier] || TIERS.basic;
+  const custom = user.customLimits || {};
+
+  const parse = (text) => {
+    const t = String(text).trim();
+    if (t === '') return undefined;              // 등급 기본값
+    if (/^(무제한|∞|unlimited)$/i.test(t)) return null; // 무제한
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : undefined;
+  };
+
+  const save = async (payload) => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/tier`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || '저장에 실패했습니다.'); return; }
+      onSaved(user.id, data);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = () => {
+    const show = (k) => (Object.prototype.hasOwnProperty.call(custom, k) ? (custom[k] === null ? '무제한' : String(custom[k])) : '');
+    setDraft({ urls: show('urls'), drops: show('drops'), db: show('db') });
+    setEditing(true);
+  };
+
+  const saveLimits = () => {
+    const limits = {};
+    for (const k of ['urls', 'drops', 'db']) {
+      const v = parse(draft[k]);
+      if (v !== undefined) limits[k] = v;
+    }
+    save({ limits: Object.keys(limits).length ? limits : null });
+  };
+
+  const inputStyle = { width: '64px', padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' };
+  const smallBtn = (bg) => ({ padding: '4px 8px', borderRadius: '4px', border: 'none', backgroundColor: bg, color: 'white', fontSize: '12px', cursor: 'pointer' });
+
+  return (
+    <>
+      <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+        {admin ? (
+          <span style={{ fontSize: '12px', backgroundColor: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '10px', fontWeight: 600 }}>관리자</span>
+        ) : (
+          <select
+            value={user.tier}
+            disabled={saving}
+            onChange={(e) => save({ tier: e.target.value })}
+            style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '13px' }}
+          >
+            {TIER_ORDER.filter((t) => t !== 'admin').map((t) => (
+              <option key={t} value={t}>{TIERS[t].label}</option>
+            ))}
+          </select>
+        )}
+      </td>
+      <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', fontSize: '13px', color: '#374151' }}>
+        {admin ? (
+          <span style={{ color: '#9ca3af' }}>무제한</span>
+        ) : editing ? (
+          <span style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+            <input style={inputStyle} placeholder={fmtLimit(base.urls)} value={draft.urls} onChange={(e) => setDraft({ ...draft, urls: e.target.value })} title="URL" />
+            <input style={inputStyle} placeholder={fmtLimit(base.drops)} value={draft.drops} onChange={(e) => setDraft({ ...draft, drops: e.target.value })} title="누리집" />
+            <input style={inputStyle} placeholder={fmtLimit(base.db)} value={draft.db} onChange={(e) => setDraft({ ...draft, db: e.target.value })} title="곳간 표" />
+            <button type="button" onClick={saveLimits} disabled={saving} style={smallBtn('#2563eb')}>{saving ? '저장 중' : '저장'}</button>
+            <button type="button" onClick={() => setEditing(false)} disabled={saving} style={smallBtn('#9ca3af')}>취소</button>
+          </span>
+        ) : (
+          <span style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
+            <span>URL {fmtLimit(user.limits?.urls)} · 누리집 {fmtLimit(user.limits?.drops)} · 곳간 {fmtLimit(user.limits?.db)}</span>
+            {user.limits?.custom && (
+              <span style={{ fontSize: '11px', backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '10px' }}>개별</span>
+            )}
+            <button type="button" onClick={startEdit} style={{ ...smallBtn('#e5e7eb'), color: '#374151' }}>수정</button>
+          </span>
+        )}
+      </td>
+    </>
+  );
 }
 
 export default function AdminPage() {
@@ -87,6 +185,10 @@ export default function AdminPage() {
     };
     init();
   }, []);
+
+  const applyTierSaved = (id, data) => {
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, tier: data.tier, limits: data.limits, customLimits: data.customLimits } : u)));
+  };
 
   const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(userSearch.toLowerCase())
@@ -412,9 +514,16 @@ export default function AdminPage() {
       {/* 사용자 목록 */}
       <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>
-            사용자 목록 ({filteredUsers.length}명)
-          </h2>
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>
+              사용자 목록 ({filteredUsers.length}명)
+            </h2>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#6b7280' }}>
+              등급 기본 한도 (URL · 누리집 · 곳간 표):{' '}
+              {TIER_ORDER.map((t) => `${TIERS[t].label} ${fmtLimit(TIERS[t].urls)}·${fmtLimit(TIERS[t].drops)}·${fmtLimit(TIERS[t].db)}`).join(' / ')}
+              {' '}· 등급을 안 정한 계정은 @usedu.ai.kr·울산 소속이면 교원, 아니면 일반
+            </p>
+          </div>
           <input
             type="text"
             placeholder="이메일 검색..."
@@ -428,7 +537,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                {['이메일', '가입일', 'URL 수', '총 클릭', '누리집 수', '누리집 조회', '곳간 표 수'].map(h => (
+                {['이메일', '가입일', '등급', '한도 (URL · 누리집 · 곳간)', 'URL 수', '총 클릭', '누리집 수', '누리집 조회', '곳간 표 수'].map(h => (
                   <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: '600', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -438,16 +547,11 @@ export default function AdminPage() {
                 <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '10px 12px', color: '#1f2937' }}>
                     {u.email}
-                    {isAdmin(u.email) && (
-                      <span style={{ marginLeft: '6px', fontSize: '11px', backgroundColor: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: '10px' }}>관리자</span>
-                    )}
-                    {u.email.endsWith('@usedu.ai.kr') && !isAdmin(u.email) && (
-                      <span style={{ marginLeft: '6px', fontSize: '11px', backgroundColor: '#dbeafe', color: '#2563eb', padding: '1px 6px', borderRadius: '10px' }}>교원</span>
-                    )}
                   </td>
                   <td style={{ padding: '10px 12px', color: '#6b7280', whiteSpace: 'nowrap' }}>
                     {new Date(u.createdAt).toLocaleDateString('ko-KR')}
                   </td>
+                  <TierCell user={u} token={token} onSaved={applyTierSaved} />
                   <td style={{ padding: '10px 12px', fontWeight: '600', color: '#2563eb' }}>{u.urlCount}</td>
                   <td style={{ padding: '10px 12px', color: '#6b7280' }}>{u.totalClicks.toLocaleString()}</td>
                   <td style={{ padding: '10px 12px', fontWeight: '600', color: '#d97706' }}>{u.dropCount ?? 0}</td>
@@ -459,7 +563,7 @@ export default function AdminPage() {
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: '#9ca3af' }}>검색 결과가 없습니다.</td>
+                  <td colSpan={9} style={{ padding: '30px', textAlign: 'center', color: '#9ca3af' }}>검색 결과가 없습니다.</td>
                 </tr>
               )}
             </tbody>

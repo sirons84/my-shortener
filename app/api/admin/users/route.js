@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
-import { isAdmin } from '../../../../lib/constants';
+import { isAdmin, getTier, getLimits } from '../../../../lib/constants';
 
 // 관리자용 사용자 목록 — 단축 URL 수·클릭, 누리집 펴내기 배포 수·조회.
 // 기록 곳간 표 수는 /api/admin/stats 의 db.byOwner 를 화면에서 합쳐 쓴다.
@@ -40,6 +40,9 @@ export async function GET(req) {
     id: u.id,
     email: u.email,
     createdAt: u.created_at,
+    tier: getTier(u),
+    limits: getLimits(u),
+    customLimits: u.app_metadata?.limits || null,
     urlCount: countMap[u.id]?.urlCount || 0,
     totalClicks: countMap[u.id]?.totalClicks || 0,
     dropCount: dropMap[u.id]?.dropCount || 0,
