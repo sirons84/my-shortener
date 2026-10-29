@@ -99,7 +99,7 @@ export async function POST(request) {
 
   if (validatedCustomCode) {
     // 사용자 지정 코드 중복 확인
-    // (단축 주소와 외솔 드롭 주소는 같은 이름 공간을 쓰므로 양쪽을 모두 확인한다)
+    // (단축 주소와 누리집 펴내기 주소는 같은 이름 공간을 쓰므로 양쪽을 모두 확인한다)
     const [{ data: existing }, { data: existingDrop }] = await Promise.all([
       supabaseAdmin.from('urls').select('code').eq('code', validatedCustomCode).maybeSingle(),
       supabaseAdmin.from('drops').select('code').eq('code', validatedCustomCode).maybeSingle(),

@@ -165,7 +165,7 @@ export default function AdminPage() {
         <Link href="/" style={{ fontSize: '14px', color: '#2563eb', textDecoration: 'none' }}>← 메인으로</Link>
       </div>
 
-      {/* 요약 카드: 단축 URL / 외솔 드롭 / 외솔 DB */}
+      {/* 요약 카드: 단축 URL / 누리집 펴내기 / 기록 곳간 */}
       {[
         {
           title: '단축 URL',
@@ -177,7 +177,7 @@ export default function AdminPage() {
           ],
         },
         {
-          title: '외솔 드롭',
+          title: '누리집 펴내기',
           cards: [
             { label: '전체 배포', value: stats?.drops?.total ?? '-', color: '#2563eb' },
             { label: '오늘 배포', value: stats?.drops?.today ?? '-', color: '#d97706' },
@@ -186,8 +186,8 @@ export default function AdminPage() {
           ],
         },
         {
-          title: '외솔 DB',
-          note: stats && !stats.db ? '외솔 DB 서버가 응답하지 않습니다.' : null,
+          title: '기록 곳간',
+          note: stats && !stats.db ? '기록 곳간 서버가 응답하지 않습니다.' : null,
           cards: [
             { label: '전체 표', value: stats?.db?.tables ?? '-', color: '#2563eb' },
             { label: '전체 기록(행)', value: (stats?.db?.rows ?? 0).toLocaleString(), color: '#059669' },
@@ -212,7 +212,7 @@ export default function AdminPage() {
         </div>
       ))}
 
-      {/* 최근 30일 추이: 생성 수(URL·드롭·DB 표) / 외솔 DB 기록 수 */}
+      {/* 최근 30일 추이: 생성 수(URL·드롭·DB 표) / 기록 곳간 기록 수 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px', marginBottom: '32px', marginTop: '8px' }}>
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>최근 30일 생성 추이</h2>
@@ -224,13 +224,13 @@ export default function AdminPage() {
               <Tooltip formatter={(v, name) => [`${v}개`, name]} labelFormatter={(l) => `날짜: ${l}`} contentStyle={{ fontSize: '13px' }} />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="urls" name="단축 URL" fill="#2563eb" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="drops" name="외솔 드롭" fill="#d97706" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="dbTables" name="외솔 DB 표" fill="#7c3aed" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="drops" name="누리집 펴내기" fill="#d97706" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="dbTables" name="기록 곳간 표" fill="#7c3aed" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>최근 30일 외솔 DB 기록 추이</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px', color: '#1f2937' }}>최근 30일 기록 곳간 기록 추이</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={stats?.daily || []} margin={{ top: 0, right: 4, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -428,7 +428,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                {['이메일', '가입일', 'URL 수', '총 클릭', '드롭 수', '드롭 조회', 'DB 표 수'].map(h => (
+                {['이메일', '가입일', 'URL 수', '총 클릭', '누리집 수', '누리집 조회', '곳간 표 수'].map(h => (
                   <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: '#6b7280', fontWeight: '600', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>

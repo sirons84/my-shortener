@@ -1,6 +1,6 @@
-// 외솔 드롭(베타) API — 내 드롭 목록 / 배포(교체) / 내리기
+// 누리집 펴내기(베타) API — 내 드롭 목록 / 펴내기(교체) / 내리기
 //
-// 계정당 배포 가능 개수는 getDropLimit 로 정한다(@usedu.ai.kr 2개, 그 외 1개, 관리자 무제한, 예외 계정은 DROP_LIMIT_OVERRIDES).
+// 계정당 펴내기 가능 개수는 getDropLimit 로 정한다(@usedu.ai.kr 2개, 그 외 1개, 관리자 무제한, 예외 계정은 DROP_LIMIT_OVERRIDES).
 // 주소는 단축 주소와 같은 이름 공간을 쓰므로 urls 쪽도 함께 확인한다.
 
 import { NextResponse } from 'next/server';
@@ -52,10 +52,10 @@ export async function GET(req) {
   });
 }
 
-// ── 배포 / 교체 ──────────────────────────────────────────
+// ── 펴내기 / 교체 ──────────────────────────────────────────
 export async function POST(req) {
   if (!getDropOrigin()) {
-    return NextResponse.json({ error: '외솔 드롭이 아직 준비되지 않았습니다.' }, { status: 503 });
+    return NextResponse.json({ error: '누리집 펴내기가 아직 준비되지 않았습니다.' }, { status: 503 });
   }
 
   const user = await getUser(req);
@@ -110,7 +110,7 @@ export async function POST(req) {
   // 4. 교체할 대상 정하기
   //    - replaceCode 를 보냈으면 그 페이지를 교체 (주소도 바꿀 수 있다)
   //    - 아니면 같은 주소를 이미 내가 쓰고 있을 때 그 페이지를 교체
-  //    - 둘 다 아니면 새로 배포 (개수 한도 확인)
+  //    - 둘 다 아니면 새로 펴내기 (개수 한도 확인)
   const { data: mine, error: listError } = await supabaseAdmin
     .from('drops')
     .select('id, code')
@@ -129,7 +129,7 @@ export async function POST(req) {
     const limit = getDropLimit(user.email);
     if (limit !== null && (mine || []).length >= limit) {
       return NextResponse.json(
-        { error: `배포할 수 있는 페이지를 모두 사용했습니다. (최대 ${limit}개) 기존 페이지를 교체하거나 내려주세요.` },
+        { error: `펴낼 수 있는 누리집을 모두 사용했습니다. (최대 ${limit}개) 기존 페이지를 교체하거나 내려주세요.` },
         { status: 403 }
       );
     }

@@ -1,5 +1,5 @@
-/* 파일 경로: app/VibeMain.js — 홈 하단 「바이브 코딩 w 외솔」 카드
-   탭 두 개: 외솔 드롭(HTML 한 장 배포) / 외솔 DB(앱의 기록 저장소).
+/* 파일 경로: app/VibeMain.js — 홈 하단 「말로 짓는 누리집」 카드
+   탭 두 개: 누리집 펴내기(HTML 한 장 펴내기) / 기록 곳간(앱의 기록 저장소).
    드롭 쪽은 기존 DropMain 을 그대로 탭 안에 넣기만 한다. */
 "use client";
 
@@ -12,14 +12,14 @@ import DropMain from "./DropMain";
 import DbMain from "./DbMain";
 
 const TABS = [
-  { key: "drop", label: "외솔 드롭", guide: "/drop/guide", hash: "" },
-  { key: "db", label: "외솔 DB", guide: "/db/guide", hash: "#db", badge: "새 기능" },
+  { key: "drop", label: "누리집 펴내기", guide: "/drop/guide", hash: "" },
+  { key: "db", label: "기록 곳간", guide: "/db/guide", hash: "#db", badge: "새 기능" },
 ];
 
 export default function VibeMain() {
   const [tab, setTab] = useState("drop");
 
-  // 외솔.한국/#db 로 들어오면 외솔 DB 탭을 바로 연다 (사용안내·메일에서 링크하기 위함)
+  // 외솔.한국/#db 로 들어오면 기록 곳간 탭을 바로 연다 (사용안내·메일에서 링크하기 위함)
   useEffect(() => {
     const apply = () => {
       if (typeof window === "undefined") return;
@@ -45,7 +45,7 @@ export default function VibeMain() {
     <div className={styles.wrapper} id="vibe">
       <section className={`${styles.mainContent} ${styles.mainContentWide}`}>
         <h2 className={styles.title}>
-          바이브 코딩 <span style={{ color: "#94a3b8", fontWeight: 500 }}>w</span> 외솔
+          말로 짓는 누리집
           <span className={styles.betaBadge}>베타</span>
           <Link
             href={current.guide}
@@ -59,13 +59,11 @@ export default function VibeMain() {
         </h2>
 
         <p className={vibe.intro}>
-          챗GPT·클로드·제미나이에게 말로 시켜 만든 <strong>HTML 한 장</strong>을
-          <strong> 외솔 드롭</strong>으로 주소 하나에 올리고,
-          그 앱이 남기는 기록은 <strong>외솔 DB</strong>에 쌓습니다.
-          서버도, 코드 편집기도, 가입도 필요 없습니다.
+          만든 HTML 한 장은 <strong>누리집 펴내기</strong>로 한글 주소에 올리고,
+          그 누리집이 남기는 기록은 <strong>기록 곳간</strong>에 쌓습니다.
         </p>
 
-        <div className={vibe.tabs} role="tablist" aria-label="바이브 코딩 도구">
+        <div className={vibe.tabs} role="tablist" aria-label="말로 짓는 누리집 도구">
           {TABS.map((t) => (
             <button
               key={t.key}

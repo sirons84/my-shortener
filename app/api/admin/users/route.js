@@ -3,8 +3,8 @@ import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
 import { supabase } from '../../../../lib/supabaseClient';
 import { isAdmin } from '../../../../lib/constants';
 
-// 관리자용 사용자 목록 — 단축 URL 수·클릭, 외솔 드롭 배포 수·조회.
-// 외솔 DB 표 수는 /api/admin/stats 의 db.byOwner 를 화면에서 합쳐 쓴다.
+// 관리자용 사용자 목록 — 단축 URL 수·클릭, 누리집 펴내기 배포 수·조회.
+// 기록 곳간 표 수는 /api/admin/stats 의 db.byOwner 를 화면에서 합쳐 쓴다.
 export const dynamic = 'force-dynamic';
 
 export async function GET(req) {

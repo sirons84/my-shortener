@@ -24,7 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
 import { isAdmin, getCreationLimit } from '../../lib/constants';
-import DbMain from '../DbMain'; // 외솔 DB 탭 — 첫 화면 카드와 같은 화면을 그대로 쓴다
+import DbMain from '../DbMain'; // 기록 곳간 탭 — 첫 화면 카드와 같은 화면을 그대로 쓴다
 
 export default function Dashboard() {
   const [urls, setUrls] = useState([]);
@@ -53,7 +53,7 @@ export default function Dashboard() {
   const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
   const [qrModal, setQrModal] = useState({ show: false, url: '', code: '' });
 
-  // 외솔 드롭(베타) — 탭 전환과 내가 배포 중인 페이지
+  // 누리집 펴내기(베타) — 탭 전환과 내가 펴낸 누리집
   const [tab, setTab] = useState('urls');
 
   // /dashboard#db, #drop 으로 들어오면 그 탭을 바로 연다
@@ -310,7 +310,7 @@ export default function Dashboard() {
     }
   };
 
-  // ── 외솔 드롭 ─────────────────────────────────────────
+  // ── 누리집 펴내기 ─────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
     let alive = true;
@@ -413,7 +413,7 @@ export default function Dashboard() {
 
       {/* 탭 */}
       <div style={{ display: 'flex', gap: '4px', borderBottom: '2px solid #e5e7eb', marginBottom: '20px' }}>
-        {[['urls', `단축 주소 (${urls.length})`], ['drop', `외솔 드롭 (${myDrops.length})`], ['db', '외솔 DB']].map(([val, label]) => (
+        {[['urls', `단축 주소 (${urls.length})`], ['drop', `누리집 펴내기 (${myDrops.length})`], ['db', '기록 곳간']].map(([val, label]) => (
           <button
             key={val}
             onClick={() => setTab(val)}
@@ -549,7 +549,7 @@ export default function Dashboard() {
         </>
       )}
 
-      {/* ── 외솔 드롭 탭 ── */}
+      {/* ── 누리집 펴내기 탭 ── */}
       {tab === 'drop' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {myDrops.map((drop) => {
@@ -559,7 +559,7 @@ export default function Dashboard() {
             return (
               <div key={drop.code} style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', backgroundColor: '#fff' }}>
                 <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb', marginBottom: '12px' }}>
-                  지금 배포 중
+                  지금 펴낸 누리집
                 </div>
 
                 <a
@@ -590,7 +590,7 @@ export default function Dashboard() {
                     {copiedCode === drop.code ? <FiCheck style={{ marginRight: '5px' }} /> : <FiCopy style={{ marginRight: '5px' }} />}
                     {copiedCode === drop.code ? '복사됨!' : '주소 복사'}
                   </button>
-                  <Link href="/" style={{ ...btnStyle, backgroundColor: '#059669', textDecoration: 'none' }}>
+                  <Link href={`/?replace=${encodeURIComponent(drop.code)}#drop`} style={{ ...btnStyle, backgroundColor: '#059669', textDecoration: 'none' }}>
                     <FiEdit style={{ marginRight: '5px' }} /> 다른 파일로 교체
                   </Link>
                   <button onClick={() => handleDropDelete(drop.code)} style={{ ...btnStyle, backgroundColor: '#ef4444' }}>
@@ -604,28 +604,28 @@ export default function Dashboard() {
           {(dropLimit === null || myDrops.length < dropLimit) && (
             <div style={{ border: '1px dashed #d1d5db', borderRadius: '12px', padding: '34px 20px', textAlign: 'center', backgroundColor: '#fff' }}>
               <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-                {myDrops.length === 0 ? '아직 배포한 페이지가 없습니다.' : '한 개 더 배포할 수 있습니다.'}
+                {myDrops.length === 0 ? '아직 펴낸 누리집이 없습니다.' : '한 개 더 펴낼 수 있습니다.'}
               </p>
               <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '20px', lineHeight: 1.7 }}>
-                HTML 파일 한 장을 외솔.한국 주소로 배포해 보세요.
+                HTML 파일 한 장을 외솔.한국 주소로 펴내 보세요.
               </p>
               <Link href="/" style={{ ...btnStyle, backgroundColor: '#2563eb', textDecoration: 'none' }}>
-                메인에서 배포하기
+                메인에서 펴내기
               </Link>
             </div>
           )}
 
           <p style={{ fontSize: '13px', color: '#9ca3af', lineHeight: 1.7, textAlign: 'center' }}>
             {dropLimit === null
-              ? '개수 제한 없이 배포할 수 있습니다.'
-              : `베타 기간에는 계정당 ${dropLimit}개까지 배포할 수 있습니다. (${myDrops.length} / ${dropLimit} 사용 중)`}
+              ? '개수 제한 없이 펴낼 수 있습니다.'
+              : `베타 기간에는 계정당 ${dropLimit}개까지 펴낼 수 있습니다. (${myDrops.length} / ${dropLimit} 사용 중)`}
             <br />
             올린 페이지는 검색에 나오지 않고, 주소를 아는 사람만 볼 수 있습니다.
           </p>
         </div>
       )}
 
-      {/* ── 외솔 DB 탭 ── 첫 화면 카드의 외솔 DB 탭과 같은 화면 */}
+      {/* ── 기록 곳간 탭 ── 첫 화면 카드의 기록 곳간 탭과 같은 화면 */}
       {tab === 'db' && (
         <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', backgroundColor: '#fff' }}>
           <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#6b7280', lineHeight: 1.7 }}>

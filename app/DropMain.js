@@ -1,4 +1,4 @@
-/* 파일 경로: app/DropMain.js — 홈 하단 '외솔 드롭(베타)' 영역
+/* 파일 경로: app/DropMain.js — 홈 하단 '누리집 펴내기(베타)' 영역
    위쪽 단축 주소 카드와 같은 스타일(page.module.css)을 그대로 쓴다 */
 "use client";
 
@@ -24,7 +24,7 @@ const expiryOptions = [
 
 /**
  * @param {{ embedded?: boolean }} props
- *   embedded: 「바이브 코딩 w 외솔」 카드의 탭 안에 들어갈 때 true.
+ *   embedded: 「말로 짓는 누리집」 카드의 탭 안에 들어갈 때 true.
  *             카드 껍데기(wrapper/section/제목)를 빼고 본문만 그린다.
  */
 export default function DropMain({ embedded = false } = {}) {
@@ -61,11 +61,11 @@ export default function DropMain({ embedded = false } = {}) {
       setDrops(data.drops || []);
       if (data.limit !== undefined) setLimit(data.limit);
     } catch {
-      /* 조회 실패는 무시하고 새로 배포할 수 있게 둔다 */
+      /* 조회 실패는 무시하고 새로 펴낼 수 있게 둔다 */
     }
   }, [getToken]);
 
-  // 로그인 상태 + 내가 배포 중인 페이지 확인
+  // 로그인 상태 + 내가 펴낸 누리집 확인
   useEffect(() => {
     let alive = true;
 
@@ -74,6 +74,15 @@ export default function DropMain({ embedded = false } = {}) {
       if (!alive) return;
       setUser(found ?? null);
       if (found) await loadDrops();
+      if (!alive) return;
+
+      // 대시보드 「다른 파일로 교체」에서 ?replace=<주소> 로 들어오면 그 페이지를 교체 대상으로 미리 고른다
+      const wanted = new URLSearchParams(window.location.search).get("replace");
+      if (found && wanted) {
+        setReplaceCode(wanted);
+        setCode(wanted);
+        document.getElementById("vibe")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     })();
 
     return () => { alive = false; };
@@ -99,6 +108,9 @@ export default function DropMain({ embedded = false } = {}) {
   // ── 파일 읽기 ───────────────────────────────────────────
   const readFile = async (file) => {
     if (!file) return;
+    // 같은 이름의 파일을 다시 골라도 onChange 가 울리도록 입력값을 비운다
+    // (교체할 때 고친 파일을 같은 이름으로 다시 올리는 경우가 많다)
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
     if (!/\.(html?|htm)$/i.test(file.name)) {
       setError("HTML 파일(.html)만 올릴 수 있습니다.");
@@ -139,14 +151,14 @@ export default function DropMain({ embedded = false } = {}) {
     setCode("");
   };
 
-  // ── 배포 ────────────────────────────────────────────────
+  // ── 펴내기 ────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setPublished("");
 
     if (!user) {
-      setError("외솔 드롭은 로그인 후 이용할 수 있습니다.");
+      setError("누리집 펴내기는 로그인 후 이용할 수 있습니다.");
       return;
     }
     if (!html.trim()) {
@@ -154,7 +166,7 @@ export default function DropMain({ embedded = false } = {}) {
       return;
     }
     if (!code.trim()) {
-      setError("배포할 주소를 입력해주세요.");
+      setError("펴낼 주소를 입력해주세요.");
       return;
     }
 
@@ -169,7 +181,7 @@ export default function DropMain({ embedded = false } = {}) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "배포에 실패했습니다.");
+        setError(data.error || "펴내기에 실패했습니다.");
         return;
       }
 
@@ -199,17 +211,17 @@ export default function DropMain({ embedded = false } = {}) {
     <>
         <p className={styles.dropIntro}>
           <strong>HTML 파일 한 장</strong>을 아래에 끌어다 놓으면,
-          <strong> 외솔.한국 주소로 바로 배포</strong>해 드립니다.
+          <strong> 외솔.한국 주소로 바로 펴내</strong> 드립니다.
           따로 서버를 빌리거나 프로그램을 설치할 필요 없이,
           학급 안내장·학습 자료·설문 페이지를 주소 하나로 나눠 보세요.
         </p>
 
-        {/* 지금 배포 중인 페이지들 */}
+        {/* 지금 펴낸 누리집들 */}
         {drops.length > 0 && (
           <div className={styles.dropCurrentList}>
             {drops.map((d) => (
               <div key={d.code} className={styles.dropCurrent}>
-                <span className={styles.dropCurrentLabel}>배포 중</span>
+                <span className={styles.dropCurrentLabel}>펴낸 누리집</span>
                 <a href={openUrl(d.code)} target="_blank" rel="noreferrer" className={styles.dropCurrentUrl}>
                   {displayUrl(d.code)}
                 </a>
@@ -224,8 +236,8 @@ export default function DropMain({ embedded = false } = {}) {
             ))}
 
             <p className={styles.dropCurrentHint}>
-              {limit === null ? "개수 제한 없이 배포할 수 있습니다." : `${drops.length} / ${limit}개 사용 중`}
-              {atLimit && !replaceCode && " · 새로 배포하려면 기존 페이지를 교체하거나 대시보드에서 내려주세요."}
+              {limit === null ? "개수 제한 없이 펴낼 수 있습니다." : `${drops.length} / ${limit}개 사용 중`}
+              {atLimit && !replaceCode && " · 새로 펴내려면 기존 페이지를 교체하거나 대시보드에서 내려주세요."}
             </p>
           </div>
         )}
@@ -248,7 +260,7 @@ export default function DropMain({ embedded = false } = {}) {
             </span>
             <span className={styles.dropZoneHint}>클릭해서 파일 선택 · 최대 1MB</span>
             <span className={styles.dropMobileNote}>
-              휴대폰에서는 파일 올리기가 어려울 수 있어요. 컴퓨터에서 배포해 주세요.
+              휴대폰에서는 파일 올리기가 어려울 수 있어요. 컴퓨터에서 펴내 주세요.
             </span>
             <input
               ref={fileInputRef}
@@ -278,7 +290,7 @@ export default function DropMain({ embedded = false } = {}) {
           <div className={`${styles.selectWrapper} ${styles.selectWrapperTight}`}>
             <div className={styles.customCodeInput}>
               <PrefixedInput
-                label={replaceCode ? `배포 주소 (${replaceCode} 교체 중)` : "배포 주소"}
+                label={replaceCode ? `펴낼 주소 (${replaceCode} 교체 중)` : "펴낼 주소"}
                 placeholder="우리반"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -295,7 +307,7 @@ export default function DropMain({ embedded = false } = {}) {
               {!user && (
                 <Link href="/login" className={styles.loginHintLink}>
                   <span className={styles.loginHintIcon}>🔒</span>
-                  로그인하면 배포할 수 있어요
+                  로그인하면 펴낼 수 있어요
                 </Link>
               )}
             </div>
@@ -303,8 +315,8 @@ export default function DropMain({ embedded = false } = {}) {
 
           <SubmitButton
             disabled={loading}
-            label={replaceCode ? "교체하기" : "배포하기"}
-            loadingLabel="배포 중..."
+            label={replaceCode ? "교체하기" : "펴내기"}
+            loadingLabel="펴내는 중..."
             showCharacter={false}
           />
         </form>
@@ -313,7 +325,7 @@ export default function DropMain({ embedded = false } = {}) {
 
         {published && !loading && (
           <div className={styles.resultCard}>
-            <p style={{ marginBottom: "10px", fontSize: "18px", fontWeight: "600" }}>🎉 배포 완료!</p>
+            <p style={{ marginBottom: "10px", fontSize: "18px", fontWeight: "600" }}>🎉 펴내기 완료!</p>
             <p style={{ marginBottom: "8px", wordBreak: "break-all", fontSize: "16px", color: "#0984e3" }}>
               <strong>{displayUrl(published)}</strong>
             </p>
@@ -352,13 +364,13 @@ export default function DropMain({ embedded = false } = {}) {
       {/* 사이드바 자리까지 포함해 한 줄 전체를 쓰는 넓은 카드 */}
       <section className={`${styles.mainContent} ${styles.mainContentWide}`}>
         <h2 className={styles.title}>
-          외솔 드롭 <span className={styles.betaBadge}>베타</span>
+          누리집 펴내기 <span className={styles.betaBadge}>베타</span>
           <Link
             href="/drop/guide"
             target="_blank"
             rel="noreferrer"
             className={styles.guideBtn}
-            aria-label="외솔 드롭 사용 안내 (새 창)"
+            aria-label="누리집 펴내기 사용 안내 (새 창)"
           >
             📖 사용안내
           </Link>

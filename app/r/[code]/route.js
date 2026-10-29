@@ -23,7 +23,7 @@ export async function GET(req, { params }) {
     .single();
 
   if (error || !data) {
-    // 단축 주소가 아니면 외솔 드롭 주소인지 확인한다 (같은 이름 공간을 공유)
+    // 단축 주소가 아니면 누리집 펴내기 주소인지 확인한다 (같은 이름 공간을 공유)
     return serveDropOrRedirect(targetCode, homeUrl);
   }
 
@@ -65,7 +65,7 @@ export async function GET(req, { params }) {
 }
 
 /**
- * 외솔 드롭 껍데기 응답.
+ * 누리집 펴내기 껍데기 응답.
  *
  * 사용자가 올린 HTML 을 이 오리진에서 직접 실행하면 로그인 세션이 노출되므로,
  * 여기서는 전체화면 iframe 껍데기만 내려보내고 실제 내용은 별도 오리진

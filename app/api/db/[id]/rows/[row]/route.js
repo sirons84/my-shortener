@@ -1,4 +1,4 @@
-// 외솔 DB — 행 하나 지우기 (「내 DB」 화면에서. 로그인했으니 교사 키 없이)
+// 기록 곳간 — 행 하나 지우기 (「내 DB」 화면에서. 로그인했으니 교사 키 없이)
 import { NextResponse } from 'next/server';
 import { proxyDb } from '../../../../../../lib/oesolDb';
 

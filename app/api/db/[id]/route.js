@@ -1,4 +1,4 @@
-// 외솔 DB — 표 하나: 세부(키·기록) / 동작 / 삭제 (외솔 DB 서버로 중계)
+// 기록 곳간 — 표 하나: 세부(키·기록) / 동작 / 삭제 (기록 곳간 서버로 중계)
 import { NextResponse } from 'next/server';
 import { proxyDb } from '../../../../lib/oesolDb';
 

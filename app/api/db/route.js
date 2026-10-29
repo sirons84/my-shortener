@@ -1,4 +1,4 @@
-// 외솔 DB — 내 표 목록 / 새 표 만들기 (외솔 DB 서버로 중계)
+// 기록 곳간 — 내 표 목록 / 새 표 만들기 (기록 곳간 서버로 중계)
 import { NextResponse } from 'next/server';
 import { proxyDb } from '../../../lib/oesolDb';
 import { rateLimit } from '../../../lib/rateLimit';

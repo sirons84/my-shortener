@@ -4,7 +4,7 @@ import { supabase } from '../../../../lib/supabaseClient';
 import { isAdmin } from '../../../../lib/constants';
 import { dbOrigin, dbEnabled } from '../../../../lib/oesolDb';
 
-// 관리자 대시보드 요약 통계 — 단축 URL · 외솔 드롭 · 외솔 DB
+// 관리자 대시보드 요약 통계 — 단축 URL · 누리집 펴내기 · 기록 곳간
 // 날짜 경계는 모두 한국 시간(KST) 기준.
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +40,7 @@ function recentDays() {
   return out;
 }
 
-/** 외솔 DB 서버 전체 집계. 꺼져 있거나 실패하면 null (대시보드는 "응답 없음"으로 표시) */
+/** 기록 곳간 서버 전체 집계. 꺼져 있거나 실패하면 null (대시보드는 "응답 없음"으로 표시) */
 async function fetchDbStats() {
   if (!dbEnabled()) return null;
   try {
@@ -85,7 +85,7 @@ export async function GET(req) {
   const totalClicks = (urlRows || []).reduce((sum, r) => sum + (r.count || 0), 0);
   const totalUsers = users?.length || 0;
 
-  // 외솔 드롭 집계
+  // 누리집 펴내기 집계
   const drops = dropRows || [];
   const dropStats = {
     total: drops.length,
@@ -122,7 +122,7 @@ export async function GET(req) {
     totalClicks,
     totalUsers,
     drops: dropStats,
-    // 외솔 DB 서버가 응답하지 않으면 null
+    // 기록 곳간 서버가 응답하지 않으면 null
     db: db
       ? {
           tables: db.tables,

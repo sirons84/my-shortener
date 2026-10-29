@@ -29,7 +29,7 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .gte('clicked_at', todayStart.toISOString());
 
-    // 외솔 드롭 지표 — drops 테이블이 아직 없어도 나머지 통계는 살아남도록 분리
+    // 누리집 펴내기 지표 — drops 테이블이 아직 없어도 나머지 통계는 살아남도록 분리
     let activeDrops = 0;
     let dropViews = 0;
     try {
