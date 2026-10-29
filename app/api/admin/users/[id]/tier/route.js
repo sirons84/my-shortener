@@ -31,7 +31,7 @@ export async function PUT(req, { params }) {
 
   if (body.tier !== undefined) {
     if (!TIERS[body.tier] || body.tier === 'admin') {
-      return NextResponse.json({ error: '등급은 vip · teacher · basic 중 하나여야 합니다.' }, { status: 400 });
+      return NextResponse.json({ error: `등급은 ${Object.keys(TIERS).filter((t) => t !== 'admin').join(' · ')} 중 하나여야 합니다.` }, { status: 400 });
     }
     meta.tier = body.tier;
   }
