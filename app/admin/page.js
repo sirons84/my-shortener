@@ -521,7 +521,7 @@ export default function AdminPage() {
             <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#6b7280' }}>
               등급 기본 한도 (URL · 누리집 · 곳간 표):{' '}
               {TIER_ORDER.map((t) => `${TIERS[t].label} ${fmtLimit(TIERS[t].urls)}·${fmtLimit(TIERS[t].drops)}·${fmtLimit(TIERS[t].db)}`).join(' / ')}
-              {' '}· 등급을 안 정한 계정은 @usedu.ai.kr·울산 소속이면 교원, 아니면 일반
+              {' '}· 등급을 안 정한 계정은 @usedu.ai.kr·울산 소속이면 울산, 아니면 일반
             </p>
           </div>
           <input
