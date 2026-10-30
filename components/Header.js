@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import styles from './Header.module.css';
 import { supabase } from '@/lib/supabaseClient';
+import TierBadge from './TierBadge';
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -56,6 +57,7 @@ export default function Header() {
           {user ? (
             <>
               {/* 로그인 상태: 대시보드 이동 및 로그아웃 버튼 */}
+              <TierBadge user={user} />
               <Link href="/dashboard" className={styles.myUrlButton}>나의 URL</Link>
               <button onClick={handleLogout} className={styles.logoutButton}>로그아웃</button>
             </>

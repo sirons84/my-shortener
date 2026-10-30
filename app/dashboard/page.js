@@ -24,6 +24,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { toUnicode } from 'punycode';
 import Link from 'next/link';
 import { isAdmin, getCreationLimit } from '../../lib/constants';
+import TierBadge from '../../components/TierBadge';
 import DbMain from '../DbMain'; // 기록 곳간 탭 — 첫 화면 카드와 같은 화면을 그대로 쓴다
 
 export default function Dashboard() {
@@ -386,7 +387,12 @@ export default function Dashboard() {
             </Link>
           )}
         </div>
-        {user && <p style={{ color: '#4b5563' }}>안녕하세요, <strong>{user.email}</strong>님</p>}
+        {user && (
+          <p style={{ color: '#4b5563', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span>안녕하세요, <strong>{user.email}</strong>님</span>
+            <TierBadge user={user} size="md" />
+          </p>
+        )}
         {user && !loading && (() => {
           const limit = getCreationLimit(user);
           if (limit === null) {

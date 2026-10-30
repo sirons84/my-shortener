@@ -13,6 +13,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { toUnicode } from "punycode";
 import Image from 'next/image'; 
 import Link from 'next/link';
+import TierBadge from '../components/TierBadge';
 
 import { FiShare2, FiDownload } from 'react-icons/fi';
 import styles from "./page.module.css";
@@ -194,7 +195,8 @@ export default function HomeMain() {
 
       <section className={styles.mainContent}>
         {/* 상단 버튼 추가: 로그인 상태에 따라 대시보드 또는 로그인 이동 */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          {user && <TierBadge user={user} />}
           {user ? (
             <Link href="/dashboard" style={{ fontSize: '14px', color: '#666', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
               ⚙️ 내 주소 관리 (대시보드)
