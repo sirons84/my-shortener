@@ -17,7 +17,9 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  /* 바탕은 외솔한국 본체와 같게 둔다. app/globals.css 의 body 가 그리는
+     노란 그라데이션과 한글 자모 무늬가 그대로 비치도록 여기서는 칠하지 않는다. */
+  background: transparent;
   color: var(--ink);
   font-size: 17px;
   line-height: 1.85;
