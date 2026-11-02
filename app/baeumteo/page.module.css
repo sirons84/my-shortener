@@ -99,12 +99,16 @@
   gap: 14px;
 }
 
+/* 붓글씨 PNG 는 흰 바탕을 그대로 둔다. 노란 바탕 위에 흰 종이 한 장이 걸린 모양 */
 .calimg {
   max-height: 460px;
   width: auto;
   max-width: 100%;
   display: block;
-  mix-blend-mode: multiply;
+  background: #fff;
+  padding: 6px;
+  border: 1px solid var(--rule);
+  box-shadow: 0 6px 20px rgba(31, 29, 26, 0.08);
 }
 
 /* ── 공통 섹션 ─────────────────────────────────────────── */
